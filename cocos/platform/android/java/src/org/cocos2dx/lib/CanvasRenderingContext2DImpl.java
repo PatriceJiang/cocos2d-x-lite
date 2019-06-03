@@ -27,9 +27,11 @@ package org.cocos2dx.lib;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.text.TextPaint;
@@ -58,6 +60,7 @@ public class CanvasRenderingContext2DImpl {
     private Path mLinePath;
     private Canvas mCanvas = new Canvas();
     private Bitmap mBitmap;
+    private Matrix mMatrix = new Matrix();
     private int mTextAlign = TEXT_ALIGN_LEFT;
     private int mTextBaseline = TEXT_BASELINE_BOTTOM;
     private int mFillStyleR = 0;
@@ -232,16 +235,20 @@ public class CanvasRenderingContext2DImpl {
         mLinePath.lineTo(x, y);
     }
 
+    private void quadraticCurveTo(float x1, float y1, float x2, float y2) {
+        mLinePath.quadTo(x1, y1, x2, y2);
+    }
+
     private void stroke() {
         if (mLinePaint == null) {
             mLinePaint = new Paint();
-            mLinePaint.setAntiAlias(true);
         }
 
         if(mLinePath == null) {
             mLinePath = new Path();
         }
 
+        mLinePaint.setAntiAlias(true);
         mLinePaint.setARGB(mStrokeStyleA, mStrokeStyleR, mStrokeStyleG, mStrokeStyleB);
         mLinePaint.setStyle(Paint.Style.STROKE);
         mLinePaint.setStrokeWidth(mLineWidth);
@@ -287,6 +294,7 @@ public class CanvasRenderingContext2DImpl {
             mLinePath = new Path();
         }
 
+        mLinePaint.setAntiAlias(false);
         mLinePaint.setARGB(mFillStyleA, mFillStyleR, mFillStyleG, mFillStyleB);
         mLinePaint.setStyle(Paint.Style.FILL);
         mCanvas.drawPath(mLinePath, mLinePaint);
@@ -320,22 +328,18 @@ public class CanvasRenderingContext2DImpl {
 
     private void rect(float x, float y, float w, float h) {
         //        Log.d(TAG, "this: " + this + ", rect: " + x + ", " + y + ", " + w + ", " + h);
-        beginPath();
-        moveTo(x, y);
-        lineTo(x, y + h);
-        lineTo(x + w, y + h);
-        lineTo(x + w, y);
-        closePath();
+        Paint paint = new Paint();
+        paint.setARGB(mStrokeStyleA, mStrokeStyleR, mStrokeStyleG, mStrokeStyleB);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(mLineWidth);
+        mCanvas.drawRect(x, y, x + w, y + h, paint);
     }
 
     private void clearRect(float x, float y, float w, float h) {
         //        Log.d(TAG, "this: " + this + ", clearRect: " + x + ", " + y + ", " + w + ", " + h);
-        int clearSize = (int)(w * h);
-        int[] clearColor = new int[clearSize];
-        for (int i = 0; i < clearSize; ++i) {
-            clearColor[i] = Color.TRANSPARENT;
-        }
-        mBitmap.setPixels(clearColor, 0, (int) w, (int) x, (int) y, (int) w, (int) h);
+        Paint clearPaint = new Paint();
+        clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        mCanvas.drawRect(x, y, x + w, y + h, clearPaint);
     }
 
     private void createTextPaintIfNeeded() {
@@ -346,13 +350,10 @@ public class CanvasRenderingContext2DImpl {
 
     private void fillRect(float x, float y, float w, float h) {
         // Log.d(TAG, "fillRect: " + x + ", " + y + ", " + ", " + w + ", " + h);
-        int pixelValue = (mFillStyleA & 0xff) << 24 | (mFillStyleR & 0xff) << 16 | (mFillStyleG & 0xff) << 8 | (mFillStyleB & 0xff);
-        int fillSize = (int)(w * h);
-        int[] fillColors = new int[fillSize];
-        for (int i = 0; i < fillSize; ++i) {
-            fillColors[i] = pixelValue;
-        }
-        mBitmap.setPixels(fillColors, 0, (int) w, (int)x, (int)y, (int)w, (int)h);
+        Paint paint = new Paint();
+        paint.setARGB(mFillStyleA, mFillStyleR, mFillStyleG, mFillStyleB);
+        paint.setStyle(Paint.Style.FILL);
+        mCanvas.drawRect(x, y, x + w, y + h, paint);
     }
 
     private void scaleX(TextPaint textPaint, String text, float maxWidth) {
@@ -370,7 +371,9 @@ public class CanvasRenderingContext2DImpl {
         mTextPaint.setStyle(Paint.Style.FILL);
         scaleX(mTextPaint, text, maxWidth);
         Point pt = convertDrawPoint(new Point(x, y), text);
-        mCanvas.drawText(text, pt.x, pt.y, mTextPaint);
+        // Convert to baseline Y
+        float baselineY = pt.y - mTextPaint.getFontMetrics().descent;
+        mCanvas.drawText(text, pt.x, baselineY, mTextPaint);
     }
 
     private void strokeText(String text, float x, float y, float maxWidth) {
@@ -381,7 +384,9 @@ public class CanvasRenderingContext2DImpl {
         mTextPaint.setStrokeWidth(mLineWidth);
         scaleX(mTextPaint, text, maxWidth);
         Point pt = convertDrawPoint(new Point(x, y), text);
-        mCanvas.drawText(text, pt.x, pt.y, mTextPaint);
+        // Convert to baseline Y
+        float baselineY = pt.y - mTextPaint.getFontMetrics().descent;
+        mCanvas.drawText(text, pt.x, baselineY, mTextPaint);
     }
 
     private float measureText(String text) {
@@ -496,5 +501,45 @@ public class CanvasRenderingContext2DImpl {
 
         Log.e(TAG, "getDataRef return null");
         return null;
+    }
+
+    private void scale(float x, float y) {
+        mMatrix.preScale(x, y);
+        mCanvas.setMatrix(mMatrix);
+    }
+
+    private void rotate(float angle) {
+        mMatrix.preRotate((float)Math.toDegrees(angle));
+        mCanvas.setMatrix(mMatrix);
+    }
+
+    private void translate(float x, float y) {
+        mMatrix.preTranslate(x, y);
+        mCanvas.setMatrix(mMatrix);
+    }
+
+    private void transform(float a, float b, float c, float d, float e, float f) {
+        float angle = (float)Math.atan2(b, a);
+        float denominator = (float)(Math.pow(a, 2) + Math.pow(b, 2));
+        float scaleX = (float)Math.sqrt(denominator);
+        float scaleY = (a * d - c * b) / scaleX;
+        float skewX = (float)(Math.atan2(a * c + b * d, denominator));
+        float skewY = 0;
+        // Do not adjust the order
+        mMatrix.preTranslate(e, f);
+        mMatrix.preRotate((float)Math.toDegrees(angle));
+        mMatrix.preScale(scaleX, scaleY);
+        mMatrix.preSkew(skewX, skewY);
+        mCanvas.setMatrix(mMatrix);
+    }
+
+    private void setTransform(float a, float b, float c, float d, float e, float f) {
+        mMatrix.reset();
+        transform(a, b, c, d, e, f);
+    }
+
+    private void resetTransform() {
+        mMatrix.reset();
+        mCanvas.setMatrix(mMatrix);
     }
 }
