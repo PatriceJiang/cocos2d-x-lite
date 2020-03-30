@@ -708,10 +708,7 @@ list(APPEND COCOS2D_SOURCE_LIST
 )
 
 add_library(cocos2d ${COCOS2D_SOURCE_LIST})
-target_link_libraries(cocos2d PUBLIC
-    ws2_32 userenv psapi winmm Version Iphlpapi opengl32
-    ${CC_EXTERNAL_LIBS}
-)
+
 target_include_directories(cocos2d PUBLIC 
     ${CC_EXTERNAL_INCLUDES}
     ${CWD}
@@ -722,22 +719,29 @@ target_include_directories(cocos2d PUBLIC
     ${CWD}/external/sources/khronos
 )
 
-target_compile_definitions(cocos2d PUBLIC
-    CC_STATIC 
-    $<$<CONFIG:Debug>:COCOS2D_DEBUG=1>
-    WIN32
-    _WIN32
-    _WINDOWS
-    UNICODE
-    _UNICODE
-    _CRT_SECURE_NO_WARNINGS
-    _SCL_SECURE_NO_WARNINGS
-    _USRLIBSIMSTATIC
-    SE_ENABLE_INSPECTOR
-)
+if(WIN32)
+    target_link_libraries(cocos2d PUBLIC
+        ws2_32 userenv psapi winmm Version Iphlpapi opengl32
+        ${CC_EXTERNAL_LIBS}
+    )
+
+    target_compile_definitions(cocos2d PUBLIC
+        CC_STATIC 
+        $<$<CONFIG:Debug>:COCOS2D_DEBUG=1>
+        WIN32
+        _WIN32
+        _WINDOWS
+        UNICODE
+        _UNICODE
+        _CRT_SECURE_NO_WARNINGS
+        _SCL_SECURE_NO_WARNINGS
+        _USRLIBSIMSTATIC
+        SE_ENABLE_INSPECTOR
+    )
+
+endif()
 
 source_group(TREE ${CWD} PREFIX "Source Files" FILES ${COCOS2D_SOURCE_LIST})
-
 
 
 if(MSVC)
