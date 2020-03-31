@@ -26,6 +26,15 @@
 
 #include "platform/apple/CCDevice-apple.h"
 #include "platform/CCApplication.h"
+
+#if CC_PLATFORM == CC_PLATFORM_MAC_OSX
+#import <AppKit/NSApplication.h>
+#endif
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wno-objc-method-access"
+
+
 NS_CC_BEGIN
 
 int Device::getDevicePixelRatio()
@@ -33,8 +42,12 @@ int Device::getDevicePixelRatio()
 #if(CC_PLATFORM == CC_PLATFORM_MAC_IOS)
     return [[UIScreen mainScreen] scale];
 #else
-    return [[[[NSApplication sharedApplication] delegate] getWindow] backingScaleFactor];
+    //return [[[[NSApplication sharedApplication] delegate] getWindow] backingScaleFactor];
+    return 2;
 #endif
 }
 
+
 NS_CC_END
+
+#pragma clang diagnostic pop

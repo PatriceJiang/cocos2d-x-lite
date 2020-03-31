@@ -166,6 +166,18 @@ elseif(ANDROID)
         cocos/audio/android/utils/Utils.cpp
         cocos/audio/android/utils/Utils.h
     )
+elseif(APPLE)
+    cocos_source_files(
+        cocos/audio/apple/AudioDecoder.h
+        cocos/audio/apple/AudioPlayer.mm
+        cocos/audio/apple/AudioDecoder.mm
+        cocos/audio/apple/AudioPlayer.h
+        cocos/audio/apple/AudioEngine-inl.mm
+        cocos/audio/apple/AudioMacros.h
+        cocos/audio/apple/AudioCache.mm
+        cocos/audio/apple/AudioCache.h
+        cocos/audio/apple/AudioEngine-inl.h
+    )
 endif()
 
 
@@ -276,6 +288,9 @@ if(APPLE)
         cocos/network/WebSocket-apple.mm
         cocos/network/WebSocket-apple.mm
     )
+    set_source_files_properties(${CWD}/cocos/network/WebSocket-apple.mm PROPERTIES
+        COMPILE_FLAGS -fobjc-arc
+    )
 endif()
 
 if(ANDROID)
@@ -353,6 +368,33 @@ elseif(ANDROID)
         cocos/platform/android/jni/JniImp.cpp
         cocos/platform/android/jni/JniImp.h
     )
+elseif(APPLE)
+    cocos_source_files(
+        cocos/platform/apple/CCFileUtils-apple.h
+        cocos/platform/apple/CCDevice-apple.mm
+        cocos/platform/apple/CCFileUtils-apple.mm
+        cocos/platform/apple/CCCanvasRenderingContext2D-apple.mm
+        cocos/platform/apple/CCDevice-apple.h   
+    )
+    #bad struct
+    cocos_source_files(
+        cocos/platform/ios/CCReachability.h
+        cocos/platform/ios/CCReachability.cpp
+    )
+    if(MACOSX)
+        cocos_source_files(
+            cocos/platform/mac/CCView.h
+            cocos/platform/mac/CCKeyCodeHelper.h
+            cocos/platform/mac/CCView.mm
+            cocos/platform/mac/CCModuleConfigMac.debug.xcconfig
+            cocos/platform/mac/cocos2d-prefix.pch
+            cocos/platform/mac/CCPlatformDefine-mac.h
+            cocos/platform/mac/CCDevice-mac.mm
+            cocos/platform/mac/CCApplication-mac.mm
+            cocos/platform/mac/CCModuleConfigMac.release.xcconfig
+            cocos/platform/mac/CCKeyCodeHelper.cpp
+        )
+    endif()
 endif()
 
 ##### renderer
@@ -534,13 +576,20 @@ if(CC_USE_GLES3)
     )
     if(APPLE) 
         cocos_source_files(
-            cocos/renderer/gfx-gles3/GLES3Context.mm
             cocos/renderer/gfx-gles3/gles3w.mm
         )
     else()
         cocos_source_files(
-            cocos/renderer/gfx-gles3/GLES3Context.cc
             cocos/renderer/gfx-gles3/gles3w.c
+        )
+    endif()
+    if(IOS)
+        cocos_source_files(
+            cocos/renderer/gfx-gles3/GLES3Context.mm
+        )
+    else()
+        cocos_source_files(
+            cocos/renderer/gfx-gles3/GLES3Context.cc
         )
     endif()
 endif()
@@ -781,6 +830,18 @@ list(APPEND COCOS2D_SOURCE_LIST ${CC_EXTERNAL_SROUCES})
 
 add_library(cocos2d ${COCOS2D_SOURCE_LIST})
 
+# setup default flags
+target_compile_definitions(cocos2d PUBLIC 
+    $<$<NOT:$<BOOL:${USE_VIDEO}>>:USE_VIDEO=0>
+    $<$<NOT:$<BOOL:${USE_WEBVIEW}>>:USE_WEB_VIEW=0>
+    $<$<NOT:$<BOOL:${USE_AUDIO}>>:USE_AUDIO=0>
+    $<$<NOT:$<BOOL:${USE_SOCKET}>>:USE_SOCKET=0>
+  #  $<$<NOT:$<BOOL:${USE_SPINE}>>:USE_SPINE=0>
+  #  $<$<NOT:$<BOOL:${USE_DRAGONBONES}>>:USE_DRAGONBONES=0>
+    $<$<NOT:$<BOOL:${USE_TIFF}>>:CC_USE_TIFF=0>
+    $<$<NOT:$<BOOL:${USE_V8_DEBUGGER}>>:USE_V8_DEBUGGER=0>
+)
+
 target_include_directories(cocos2d PUBLIC 
     ${CC_EXTERNAL_INCLUDES}
     ${CWD}
@@ -825,6 +886,52 @@ if(ANDROID)
         GLESv2
         ${CC_EXTERNAL_LIBS}
     )
+endif()
+
+if(APPLE) 
+
+    target_compile_options(cocos2d PRIVATE 
+        -Wno-objc-method-access
+    )
+
+    target_include_directories(cocos2d PUBLIC
+        ${CWD}/cocos/platform/ios
+    )
+    find_library(ICONV_LIBRARY iconv)
+    find_library(AUDIOTOOLBOX_LIBRARY AudioToolBox)
+    find_library(FOUNDATION_LIBRARY Foundation)
+    find_library(OPENAL_LIBRARY OpenAL)
+    find_library(OPENGL_LIBRARY OpenGL)
+    find_library(GAMECONTROLLER_LIBRARY GameController)
+    find_library(APPKIT_LIBRARY AppKit)
+    find_library(METAL_LIBRARY Metal)
+    find_library(METALLIT_LIBRARY MetalKit)
+    find_library(SQLITE3_LIBRARY SQLite3)
+    find_library(SECURITY_LIBRARY Security)
+    find_library(SystemConfiguration_LIBRARY SystemConfiguration)
+    target_link_libraries(cocos2d PUBLIC
+        ${ICONV_LIBRARY}
+        ${AUDIOTOOLBOX_LIBRARY}
+        ${FOUNDATION_LIBRARY}
+        ${OPENGL_LIBRARY}
+        ${OPENAL_LIBRARY}
+        ${GAMECONTROLLER_LIBRARY}
+        ${APPKIT_LIBRARY}
+        ${METAL_LIBRARY}
+        ${METALLIT_LIBRARY}
+        ${SQLITE3_LIBRARY}
+        ${SECURITY_LIBRARY}
+        ${SystemConfiguration_LIBRARY}
+        ${CC_EXTERNAL_LIBS}
+    )
+    if(MACOSX)
+    elseif(IOS)
+        find_library(QUARTZCORE_LIBRARY QuartzCore)
+        target_link_libraries(cocos2d PUBLIC
+            ${QUARTZCORE_LIBRARY}
+        )
+    endif()
+
 endif()
 
 source_group(TREE ${CWD} PREFIX "Source Files" FILES ${COCOS2D_SOURCE_LIST})
