@@ -641,7 +641,7 @@ cocos_source_files(
     cocos/scripting/js-bindings/manual/jsb_global.h
     cocos/scripting/js-bindings/manual/jsb_helper.cpp
     cocos/scripting/js-bindings/manual/jsb_helper.hpp
-    cocos/scripting/js-bindings/manual/jsb_module_register.cpp
+    # cocos/scripting/js-bindings/manual/jsb_module_register.cpp
     cocos/scripting/js-bindings/manual/jsb_module_register.hpp
     cocos/scripting/js-bindings/manual/jsb_platform.h
     cocos/scripting/js-bindings/manual/jsb_socketio.cpp

@@ -71,6 +71,7 @@ else()
     list(APPEND PROJ_EXTRA_SOURCE
         "${cocosdir}/cocos/scripting/js-bindings/manual/jsb_module_register.cpp"
         )
+    source_group("Source Files\\Classes" FILES ${PROJ_EXTRA_SOURCE})
 endif()
 
 if(WINDOWS)
@@ -151,7 +152,7 @@ endforeach()
 
 if(ANDROID)
     add_library(${LIB_NAME} SHARED ${PROJ_SOURCES} ${PROJ_EXTRA_SOURCE})
-elseif(APPLE)
+elseif(APPLE OR MSVC)
     add_executable(${LIB_NAME} ${PROJ_SOURCES} ${asset_files} ${PROJ_EXTRA_SOURCE})
     source_group(TREE ${GAME_RES_ROOT} PREFIX "Resources" FILES ${asset_files})
 else() 
@@ -183,7 +184,6 @@ if(APPLE)
     elseif(IOS)
         set(EXECUTABLE_NAME ${LIB_NAME}) # referenced in Info.plist
         set(PRODUCT_NAME ${APP_NAME})
-        set(PRODUCT_BUNDLE_IDENTIFIER "org.cocos2d.js.pt")
         target_include_directories(${LIB_NAME} PRIVATE proj.ios_mac/ios/service )
         set_target_properties(${LIB_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/proj.ios_mac/ios/Info.plist")
         set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "")
