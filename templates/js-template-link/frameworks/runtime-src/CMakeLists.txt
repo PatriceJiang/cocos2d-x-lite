@@ -15,8 +15,12 @@ set(USE_TIFF ON)
 set(USE_AUDIO           ON)     #Enable AudioEngine
 set(USE_SOCKET          ON)     #Enable WebSocket & SocketIO
 
-#set(cocosdir "${COCOS_X_ROOT}")
-set(cocosdir /Users/cocos/Github/cocos2d-x-lite)
+set(TARGET_IOS_VERSION "8.0")
+
+set(cocosdir "${COCOS_X_ROOT}")
+if(NOT cocosdir)
+    message(FATAL_ERROR "COCOS_X_ROOT is not set!")
+endif()
 include(${cocosdir}/CMakeLists.txt)
 
 if(ANDROID)
@@ -29,41 +33,6 @@ else()
     set(LIB_NAME ${APP_NAME})
 endif()
 
-set(UI_RESOURCES)
-set(PROJ_SOURCES 
-    Classes/Game.h
-    Classes/Game.cpp
-    Classes/jsb_module_register.cpp
-)
-
-if(WINDOWS)
-    list(APPEND PROJ_SOURCES
-        proj.win32/AppDelegate.h
-        proj.win32/AppDelegate.cpp
-        proj.win32/main.h
-        proj.win32/main.cpp
-        proj.win32/resource.h
-    )
-elseif(MACOSX)
-    set(UI_RESOURCES
-        proj.ios_mac/mac/Assets.xcassets/Contents.json
-        proj.ios_mac/mac/Assets.xcassets/AppIcon.appiconset/Contents.json
-        proj.ios_mac/mac/UserConfigMac.release.xcconfig
-        proj.ios_mac/mac/UserConfigMac.debug.xcconfig
-        proj.ios_mac/mac/Info.plist
-        proj.ios_mac/mac/Icon.icns
-    )
-    list(APPEND PROJ_SOURCES
-        proj.ios_mac/mac/main.m
-        proj.ios_mac/mac/ViewController.mm
-        proj.ios_mac/mac/ViewController.h
-        proj.ios_mac/mac/Prefix.pch
-        proj.ios_mac/mac/AppDelegate.mm
-        proj.ios_mac/mac/AppDelegate.h
-        ${UI_RESOURCES}
-    )
-elseif(IOS)
-endif()
 
 
 set(GAME_RES_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../)
@@ -81,9 +50,83 @@ set(GAME_RES_ALL
     ${GAME_RES_FILES}
     ${GAME_RES_FOLDERS}
 )
+
+set(UI_RESOURCES)
+set(PROJ_EXTRA_SOURCE)
+set(PROJ_SOURCES 
+    Classes/Game.h
+    Classes/Game.cpp
+)
+
+if(EXISTS  Classes/jsb_module_register.cpp)
+    list(APPEND PROJ_SOURCES
+        Classes/jsb_module_register.cpp
+        )
+else()
+    list(APPEND PROJ_EXTRA_SOURCE
+        "${cocosdir}/cocos/scripting/js-bindings/manual/jsb_module_register.cpp"
+        )
+endif()
+
+if(WINDOWS)
+    list(APPEND PROJ_SOURCES
+        proj.win32/AppDelegate.h
+        proj.win32/AppDelegate.cpp
+        proj.win32/main.h
+        proj.win32/main.cpp
+        proj.win32/resource.h
+    )
+elseif(MACOSX)
+    set(UI_RESOURCES
+        proj.ios_mac/mac/Assets.xcassets
+       # proj.ios_mac/mac/UserConfigMac.release.xcconfig
+       # proj.ios_mac/mac/UserConfigMac.debug.xcconfig
+        proj.ios_mac/mac/Icon.icns
+    )
+    list(APPEND PROJ_SOURCES
+        proj.ios_mac/mac/main.m
+        proj.ios_mac/mac/ViewController.mm
+        proj.ios_mac/mac/ViewController.h
+        proj.ios_mac/mac/Prefix.pch
+        proj.ios_mac/mac/AppDelegate.mm
+        proj.ios_mac/mac/AppDelegate.h
+        ${UI_RESOURCES}
+    )
+elseif(IOS)
+
+    set(UI_RESOURCES
+        #proj.ios_mac/ios/zh-Hans.lproj/Localizable.strings
+        #proj.ios_mac/ios/UserConfigIOS.release.xcconfig
+        #proj.ios_mac/ios/UserConfigIOS.debug.xcconfig
+        #proj.ios_mac/ios/Prefix.pch
+        proj.ios_mac/ios/LaunchScreenBackground.png
+        #proj.ios_mac/ios/Info.plist
+        proj.ios_mac/ios/Images.xcassets
+        proj.ios_mac/ios/Base.lproj/Localizable.strings
+        proj.ios_mac/ios/Base.lproj/LaunchScreen.storyboard
+    )
+
+    list(APPEND PROJ_SOURCES
+        proj.ios_mac/ios/AppDelegate.mm
+        proj.ios_mac/ios/AppDelegate.h
+        proj.ios_mac/ios/SDKWrapper.m
+        proj.ios_mac/ios/SDKWrapper.h
+        proj.ios_mac/ios/service/SDKDelegate.h
+        proj.ios_mac/ios/main.m
+        proj.ios_mac/ios/ViewController.mm
+        proj.ios_mac/ios/ViewController.h
+        ${UI_RESOURCES}
+    )
+
+endif()
+
 set(asset_files)
 foreach(res ${GAME_RES_ALL})
     set(res_list)
+    if(NOT EXISTS ${res})
+        continue()
+    endif()
+
     if(IS_DIRECTORY ${res})
         file(GLOB_RECURSE res_list "${res}/*")
     else()
@@ -102,13 +145,12 @@ foreach(res ${GAME_RES_ALL})
 endforeach()
 
 if(ANDROID)
-    add_library(${LIB_NAME} SHARED ${PROJ_SOURCES})
+    add_library(${LIB_NAME} SHARED ${PROJ_SOURCES} ${PROJ_EXTRA_SOURCE})
 elseif(APPLE)
-    add_executable(${LIB_NAME} ${PROJ_SOURCES} ${asset_files})
+    add_executable(${LIB_NAME} ${PROJ_SOURCES} ${asset_files} ${PROJ_EXTRA_SOURCE})
     source_group(TREE ${GAME_RES_ROOT} PREFIX "Resources" FILES ${asset_files})
-
 else() 
-    add_executable(${LIB_NAME} ${PROJ_SOURCES})
+    add_executable(${LIB_NAME} ${PROJ_SOURCES} ${PROJ_EXTRA_SOURCE})
 endif()
 
 target_link_libraries(${LIB_NAME} cocos2d)
@@ -116,50 +158,64 @@ target_include_directories(${LIB_NAME} PRIVATE
     Classes
 )
 
-
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} PREFIX "Source Files" FILES ${PROJ_SOURCES})
 
-if(MACOSX)
+if(APPLE)
     set_target_properties(${LIB_NAME} PROPERTIES MACOSX_BUNDLE 1)
     set_target_properties(${LIB_NAME} PROPERTIES RESOURCE "${UI_RESOURCES}")
-    set_target_properties(${LIB_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/proj.ios_mac/mac/Info.plist")
-    if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/proj.ios_mac/mac/Info.plist)
-        message(STATUS "found Info.plist")
+    if(MACOSX)
+        set_target_properties(${LIB_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/proj.ios_mac/mac/Info.plist")
+        set_target_properties(${LIB_NAME} PROPERTIES
+            MACOSX_DEPLOYMENT_TARGET 10.10
+        )
+        get_property(gles2_loc TARGET GLESv2 PROPERTY IMPORTED_LOCATION)
+        get_property(egl_loc TARGET EGL PROPERTY IMPORTED_LOCATION)
+        add_custom_command(TARGET ${LIB_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
+            COMMAND ${CMAKE_COMMAND} -E copy ${gles2_loc} $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
+            COMMAND ${CMAKE_COMMAND} -E copy ${egl_loc} $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
+        )
+    elseif(IOS)
+        set(EXECUTABLE_NAME ${LIB_NAME}) # referenced in Info.plist
+        set(PRODUCT_NAME ${APP_NAME})
+        set(PRODUCT_BUNDLE_IDENTIFIER "org.cocos2d.js.pt")
+        target_include_directories(${LIB_NAME} PRIVATE proj.ios_mac/ios/service )
+        set_target_properties(${LIB_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/proj.ios_mac/ios/Info.plist")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME "AppIcon")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_LAUNCHSTORYBOARD_NAME "LaunchScreen")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${TARGET_IOS_VERSION})
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_ENABLE_BITCODE "NO")
+        set_property(TARGET ${LIB_NAME} PROPERTY XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
     endif()
-    set_target_properties(${LIB_NAME} PROPERTIES
-        MACOSX_DEPLOYMENT_TARGET 10.10
-    )
-    get_property(gles2_loc TARGET GLESv2 PROPERTY IMPORTED_LOCATION)
-    get_property(egl_loc TARGET egl PROPERTY IMPORTED_LOCATION)
-    message(STATUS "GLES2 location ${gles2_loc} ${egl_loc}")
-    add_custom_command(TARGET ${LIB_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
-        COMMAND ${CMAKE_COMMAND} -E copy ${gles2_loc} $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
-        COMMAND ${CMAKE_COMMAND} -E copy ${egl_loc} $<TARGET_FILE_DIR:${LIB_NAME}>/../Frameworks
-    )
-endif()
 
-if(WINDOWS)
-    add_custom_command(TARGET ${LIB_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../jsb-adapter $<TARGET_FILE_DIR:${LIB_NAME}>/jsb-adapter
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../res $<TARGET_FILE_DIR:${LIB_NAME}>/res
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../src $<TARGET_FILE_DIR:${LIB_NAME}>/src
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ../../../main.js $<TARGET_FILE_DIR:${LIB_NAME}>/main.js
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ../../../project.json $<TARGET_FILE_DIR:${LIB_NAME}>/project.json
-    )
+elseif(WINDOWS)
+    
+    if(EXISTS ../../../jsb-adapter)
+        add_custom_command(TARGET ${LIB_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../jsb-adapter $<TARGET_FILE_DIR:${LIB_NAME}>/jsb-adapter
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../res $<TARGET_FILE_DIR:${LIB_NAME}>/res
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ../../../src $<TARGET_FILE_DIR:${LIB_NAME}>/src
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ../../../main.js $<TARGET_FILE_DIR:${LIB_NAME}>/main.js
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ../../../project.json $<TARGET_FILE_DIR:${LIB_NAME}>/project.json
+        )
+    endif()
+    
     target_include_directories(${LIB_NAME} PRIVATE 
         proj.win32
     )
+
+    if(MSVC) 
+        foreach(item ${WIN32_DLLS})
+            get_filename_component(filename ${item} NAME)
+            get_filename_component(abs ${item} ABSOLUTE)
+            add_custom_command(TARGET ${LIB_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${abs} $<TARGET_FILE_DIR:${LIB_NAME}>/${filename}
+            )
+        endforeach()
+        target_compile_options(${LIB_NAME} PUBLIC /MP)
+        target_link_options(${LIB_NAME} PRIVATE /SUBSYSTEM:WINDOWS)
+    endif()
 endif()
 
-if(MSVC) 
-    foreach(item ${WIN32_DLLS})
-        get_filename_component(filename ${item} NAME)
-        get_filename_component(abs ${item} ABSOLUTE)
-        add_custom_command(TARGET ${LIB_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${abs} $<TARGET_FILE_DIR:${LIB_NAME}>/${filename}
-        )
-    endforeach()
-    target_compile_options(${LIB_NAME} PUBLIC /MP)
-    target_link_options(${LIB_NAME} PRIVATE /SUBSYSTEM:WINDOWS)
-endif()

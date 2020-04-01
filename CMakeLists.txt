@@ -394,6 +394,16 @@ elseif(APPLE)
             cocos/platform/mac/CCModuleConfigMac.release.xcconfig
             cocos/platform/mac/CCKeyCodeHelper.cpp
         )
+    elseif(IOS)
+        cocos_source_files(
+            cocos/platform/ios/CCView.h
+            cocos/platform/ios/CCView.mm
+            cocos/platform/ios/CCApplication-ios.mm
+            cocos/platform/ios/cocos2d-prefix.pch
+            cocos/platform/ios/CCDevice-ios.mm
+            cocos/platform/ios/CCPlatformDefine-ios.h
+            cocos/platform/ios/CCImage-ios.mm
+        )
     endif()
 endif()
 
@@ -543,6 +553,7 @@ if(CC_USE_GLES3)
         cocos/renderer/gfx-gles3/GLES3CommandBuffer.h
         cocos/renderer/gfx-gles3/GLES3Commands.cc
         cocos/renderer/gfx-gles3/GLES3Commands.h
+        cocos/renderer/gfx-gles3/GLES3Context.cc
         cocos/renderer/gfx-gles3/GLES3Context.h
         cocos/renderer/gfx-gles3/GLES3Device.cc
         cocos/renderer/gfx-gles3/GLES3Device.h
@@ -586,10 +597,6 @@ if(CC_USE_GLES3)
     if(IOS)
         cocos_source_files(
             cocos/renderer/gfx-gles3/GLES3Context.mm
-        )
-    else()
-        cocos_source_files(
-            cocos/renderer/gfx-gles3/GLES3Context.cc
         )
     endif()
 endif()
@@ -648,7 +655,7 @@ cocos_source_files(
 if(ANDROID)
     cocos_source_files(
         cocos/scripting/js-bindings/manual/jsb_platform_android.cpp
-            cocos/scripting/js-bindings/manual/JavaScriptJavaBridge.cpp
+        cocos/scripting/js-bindings/manual/JavaScriptJavaBridge.cpp
         cocos/scripting/js-bindings/manual/JavaScriptJavaBridge.h
     )
 elseif(APPLE)
@@ -901,9 +908,7 @@ if(APPLE)
     find_library(AUDIOTOOLBOX_LIBRARY AudioToolBox)
     find_library(FOUNDATION_LIBRARY Foundation)
     find_library(OPENAL_LIBRARY OpenAL)
-    find_library(OPENGL_LIBRARY OpenGL)
     find_library(GAMECONTROLLER_LIBRARY GameController)
-    find_library(APPKIT_LIBRARY AppKit)
     find_library(METAL_LIBRARY Metal)
     find_library(METALLIT_LIBRARY MetalKit)
     find_library(SQLITE3_LIBRARY SQLite3)
@@ -913,10 +918,8 @@ if(APPLE)
         ${ICONV_LIBRARY}
         ${AUDIOTOOLBOX_LIBRARY}
         ${FOUNDATION_LIBRARY}
-        ${OPENGL_LIBRARY}
         ${OPENAL_LIBRARY}
         ${GAMECONTROLLER_LIBRARY}
-        ${APPKIT_LIBRARY}
         ${METAL_LIBRARY}
         ${METALLIT_LIBRARY}
         ${SQLITE3_LIBRARY}
@@ -925,11 +928,40 @@ if(APPLE)
         ${CC_EXTERNAL_LIBS}
     )
     if(MACOSX)
+        find_library(OPENGL_LIBRARY OpenGL)
+        find_library(APPKIT_LIBRARY AppKit)
+        target_link_libraries(cocos2d PUBLIC
+            ${OPENGL_LIBRARY}
+            ${APPKIT_LIBRARY}
+        )
+        target_compile_definitions(cocos2d PUBLIC 
+            CC_KEYBOARD_SUPPORT
+            )
     elseif(IOS)
         find_library(QUARTZCORE_LIBRARY QuartzCore)
+        find_library(UIKIT_LIBRARY UIKit)
+        find_library(CORE_MOTION_LIBRARY CoreMotion)
+        find_library(CFNETWORK_LIBRARY CFNetwork)
+        find_library(CORE_MEDIA_LIBRARY CoreMedia)
+        find_library(CORE_TEXT_LIBRARY CoreText)
+        find_library(CORE_GRAPHICS_LIBRARY CoreGraphics)
+        find_library(AV_FOUNDATION_LIBRARY AVFoundation)
+        find_library(ZLIB_LIBRARY z)
+        find_library(OPENGLES_LIBRARY OpenGLES)
         target_link_libraries(cocos2d PUBLIC
             ${QUARTZCORE_LIBRARY}
+            ${UIKIT_LIBRARY}
+            ${CFNETWORK_LIBRARY}
+            ${ZLIB_LIBRARY}
+            ${CORE_GRAPHICS_LIBRARY}
+            ${AV_FOUNDATION_LIBRARY}
+            ${CORE_TEXT_LIBRARY}
+            ${CORE_MOTION_LIBRARY}
+            ${OPENGLES_LIBRARY}
         )
+        set_property(TARGET cocos2d PROPERTY XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${TARGET_IOS_VERSION})
+        set_property(TARGET cocos2d PROPERTY XCODE_ATTRIBUTE_ENABLE_BITCODE "NO")
+        set_property(TARGET cocos2d PROPERTY XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "YES")
     endif()
 
 endif()

@@ -30,9 +30,9 @@
 #if CC_PLATFORM == CC_PLATFORM_MAC_OSX
 #import <AppKit/NSApplication.h>
 #endif
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wno-objc-method-access"
+#if CC_PLATFORM == CC_PLATFORM_MAC_IOS
+#import <UIKit/UIScreen.h>
+#endif
 
 
 NS_CC_BEGIN
@@ -49,5 +49,3 @@ int Device::getDevicePixelRatio()
 
 
 NS_CC_END
-
-#pragma clang diagnostic pop
