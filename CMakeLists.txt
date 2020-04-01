@@ -683,45 +683,73 @@ if(CC_USE_GLES3)
     )
 endif()
 
-cocos_source_files(
-    cocos/scripting/js-bindings/jswrapper/v8/Base.h
-    cocos/scripting/js-bindings/jswrapper/v8/Class.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/Class.hpp
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/base64.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/env.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/env.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/http_parser.c
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/http_parser.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_agent.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_agent.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_io.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_io.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket_server.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket_server.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/node.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/node.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/node_debug_options.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/node_debug_options.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/node_mutex.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/SHA1.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/SHA1.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/util-inl.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/util.cc
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/util.h
-    cocos/scripting/js-bindings/jswrapper/v8/debugger/v8_inspector_protocol_json.h
-    cocos/scripting/js-bindings/jswrapper/v8/HelperMacros.h
-    cocos/scripting/js-bindings/jswrapper/v8/Object.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/Object.hpp
-    cocos/scripting/js-bindings/jswrapper/v8/ObjectWrap.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/ObjectWrap.h
-    cocos/scripting/js-bindings/jswrapper/v8/ScriptEngine.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/ScriptEngine.hpp
-    cocos/scripting/js-bindings/jswrapper/v8/SeApi.h
-    cocos/scripting/js-bindings/jswrapper/v8/Utils.cpp
-    cocos/scripting/js-bindings/jswrapper/v8/Utils.hpp
-)
+if(USE_SE_V8)
+    cocos_source_files(
+        cocos/scripting/js-bindings/jswrapper/v8/Base.h
+        cocos/scripting/js-bindings/jswrapper/v8/Class.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/Class.hpp
+        cocos/scripting/js-bindings/jswrapper/v8/HelperMacros.h
+        cocos/scripting/js-bindings/jswrapper/v8/Object.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/Object.hpp
+        cocos/scripting/js-bindings/jswrapper/v8/ObjectWrap.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/ObjectWrap.h
+        cocos/scripting/js-bindings/jswrapper/v8/ScriptEngine.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/ScriptEngine.hpp
+        cocos/scripting/js-bindings/jswrapper/v8/SeApi.h
+        cocos/scripting/js-bindings/jswrapper/v8/Utils.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/Utils.hpp
+    )
+    if(USE_V8_DEBUGGER)
+    cocos_source_files(
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/base64.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/env.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/env.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/http_parser.c
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/http_parser.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_agent.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_agent.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_io.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_io.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket_server.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/inspector_socket_server.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/node.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/node.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/node_debug_options.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/node_debug_options.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/node_mutex.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/SHA1.cpp
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/SHA1.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/util-inl.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/util.cc
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/util.h
+        cocos/scripting/js-bindings/jswrapper/v8/debugger/v8_inspector_protocol_json.h
+    )
+    endif()
+endif()
+
+if(USE_SE_JSC)
+    cocos_source_files(
+        cocos/scripting/js-bindings/jswrapper/jsc/Class.hpp
+        cocos/scripting/js-bindings/jswrapper/jsc/EJConvert.h
+        cocos/scripting/js-bindings/jswrapper/jsc/HelperMacros.h
+        cocos/scripting/js-bindings/jswrapper/jsc/Utils.cpp
+        cocos/scripting/js-bindings/jswrapper/jsc/EJConvertTypedArray.h
+        cocos/scripting/js-bindings/jswrapper/jsc/PlatformUtils.h
+        cocos/scripting/js-bindings/jswrapper/jsc/EJConvertTypedArray.m
+        cocos/scripting/js-bindings/jswrapper/jsc/EJConvert.m
+        cocos/scripting/js-bindings/jswrapper/jsc/Object.hpp
+        cocos/scripting/js-bindings/jswrapper/jsc/Object.mm
+        cocos/scripting/js-bindings/jswrapper/jsc/ScriptEngine.hpp
+        cocos/scripting/js-bindings/jswrapper/jsc/ScriptEngine.mm
+        cocos/scripting/js-bindings/jswrapper/jsc/PlatformUtils.mm
+        cocos/scripting/js-bindings/jswrapper/jsc/SeApi.h
+        cocos/scripting/js-bindings/jswrapper/jsc/Class.cpp
+        cocos/scripting/js-bindings/jswrapper/jsc/Utils.hpp
+        cocos/scripting/js-bindings/jswrapper/jsc/Base.h
+    )
+endif()
 
 cocos_source_files(
     cocos/scripting/js-bindings/jswrapper/config.cpp
@@ -843,11 +871,13 @@ target_compile_definitions(cocos2d PUBLIC
     $<$<NOT:$<BOOL:${USE_WEBVIEW}>>:USE_WEB_VIEW=0>
     $<$<NOT:$<BOOL:${USE_AUDIO}>>:USE_AUDIO=0>
     $<$<NOT:$<BOOL:${USE_SOCKET}>>:USE_SOCKET=0>
-  #  $<$<NOT:$<BOOL:${USE_SPINE}>>:USE_SPINE=0>
-  #  $<$<NOT:$<BOOL:${USE_DRAGONBONES}>>:USE_DRAGONBONES=0>
     $<$<NOT:$<BOOL:${USE_TIFF}>>:CC_USE_TIFF=0>
     $<$<NOT:$<BOOL:${USE_V8_DEBUGGER}>>:USE_V8_DEBUGGER=0>
+    $<$<BOOL:${USE_SE_JSC}>:SCRIPT_ENGINE_TYPE=3>
+    $<$<CONFIG:Debug>:COCOS2D_DEBUG=1>
 )
+
+
 
 target_include_directories(cocos2d PUBLIC 
     ${CC_EXTERNAL_INCLUDES}
@@ -857,6 +887,7 @@ target_include_directories(cocos2d PUBLIC
     ${CWD}/cocos/platform
     ${CWD}/cocos/renderer/core
     ${CWD}/external/sources/khronos
+    $<$<BOOL:USE_SE_JSC>:${CWD}/cocos/scripting/js-bindings/jswrapper>
 )
 
 if(WIN32)
@@ -867,7 +898,6 @@ if(WIN32)
 
     target_compile_definitions(cocos2d PUBLIC
         CC_STATIC 
-        $<$<CONFIG:Debug>:COCOS2D_DEBUG=1>
         WIN32
         _WIN32
         _WINDOWS
@@ -948,6 +978,7 @@ if(APPLE)
         find_library(AV_FOUNDATION_LIBRARY AVFoundation)
         find_library(ZLIB_LIBRARY z)
         find_library(OPENGLES_LIBRARY OpenGLES)
+        find_library(JAVASCRIPTCORE_LIBRARY JavaScriptCore)
         target_link_libraries(cocos2d PUBLIC
             ${QUARTZCORE_LIBRARY}
             ${UIKIT_LIBRARY}
@@ -958,6 +989,7 @@ if(APPLE)
             ${CORE_TEXT_LIBRARY}
             ${CORE_MOTION_LIBRARY}
             ${OPENGLES_LIBRARY}
+            ${JAVASCRIPTCORE_LIBRARY}
         )
         set_property(TARGET cocos2d PROPERTY XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET ${TARGET_IOS_VERSION})
         set_property(TARGET cocos2d PROPERTY XCODE_ATTRIBUTE_ENABLE_BITCODE "NO")

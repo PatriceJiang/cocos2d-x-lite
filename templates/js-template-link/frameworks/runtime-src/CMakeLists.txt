@@ -6,14 +6,19 @@ project(${APP_NAME} CXX)
 enable_language(C ASM)
 
 set(CMAKE_CXX_STANDARD 14)
-set(USE_SE_V8 ON
-set(USE_V8_DEBUGGER ON))
-set(USE_VIDEOPLAYER OFF)
-set(USE_WEBVIEW OFF)
-set(USE_SOCKET ON)
-set(USE_TIFF ON)
-set(USE_AUDIO           ON)     #Enable AudioEngine
-set(USE_SOCKET          ON)     #Enable WebSocket & SocketIO
+option(USE_SE_V8        "USE V8 JavaScript Engine"          ON)
+option(USE_V8_DEBUGGER  "Enable Chrome Remote inspector"    ON)
+option(USE_SE_JSC       "USE JavaScriptCore on MacOSX/iOS"  OFF)
+option(USE_VIDEOPLAYER  "Enable VideoPlayer Component"      OFF)
+option(USE_WEBVIEW      "Enable WebView Component"          OFF)
+option(USE_SOCKET       "Enable WebSocket & SocketIO"       ON)
+option(USE_TIFF         "Support TIFF image format"         ON)
+option(USE_AUDIO        "Enable Audio"                      ON)     #Enable AudioEngine
+
+if(USE_SE_JSC AND APPLE)
+    set(USE_SE_V8 OFF)
+    set(USE_V8_DEBUGGER OFF)
+endif()
 
 set(TARGET_IOS_VERSION "8.0")
 
