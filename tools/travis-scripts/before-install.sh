@@ -28,6 +28,7 @@ function install_android_ndk()
     # Rename ndk
     mv android-ndk-r16b android-ndk
     export ANDROID_NDK=$HOME/bin/android-ndk
+    export ANDROID_NDK_HOME=$HOME/bin/android-ndk
 }
 
 function install_clang()
