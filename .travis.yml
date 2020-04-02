@@ -4,6 +4,8 @@ os:
 script:
 - tools/travis-scripts/run-script.sh
 sudo: required
+node_js:
+  - "7"
 before_install:
 - tools/travis-scripts/before-install.sh
 

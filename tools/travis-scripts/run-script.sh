@@ -16,6 +16,21 @@ fi
 cd $COCOS2DX_ROOT/tools/travis-scripts
 ./generate-bindings.sh $TRAVIS_BRANCH
 
+cd $COCOS2DX_ROOT/external
+set -x
+
+external_tag=`node -e "let c = require(\"./config.json\");console.log(c.version)"`
+repo_name=`node -e "let c = require(\"./config.json\");console.log(c.repo_name)"`
+repo_parent=`node -e "let c = require(\"./config.json\");console.log(c.repo_parent)"`
+
+git clone --branch $external_tag $repo_parent$repo_parent --depth 1
+
+echo "Build Android ... "
+cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
+
+
+set +x
+
 cd $COCOS2DX_ROOT/tools/travis-scripts
 ./generate-cocosfiles.sh $TRAVIS_BRANCH
 exit 0
