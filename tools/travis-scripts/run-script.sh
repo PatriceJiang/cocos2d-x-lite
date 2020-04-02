@@ -25,7 +25,6 @@ cd android
 ANDROID_SDK=$COCOS2DX_ROOT/../android/android_sdk
 wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip
 unzip *.zip
-cd tools
 yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
         "platforms;android-27" \
         "build-tools;28.0.3" \
