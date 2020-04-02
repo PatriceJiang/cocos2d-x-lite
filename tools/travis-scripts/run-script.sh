@@ -24,7 +24,7 @@ repo_name=`node -e "let c = require(\"./config.json\");console.log(c.repo_name)"
 repo_parent=`node -e "let c = require(\"./config.json\");console.log(c.repo_parent)"`
 
 echo "Clone external ..."
-git clone --branch $external_tag $repo_parent$repo_parent --depth 1
+git clone --branch $external_tag $repo_parent$repo_name --depth 1
 
 echo "Build Android ... "
 cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
