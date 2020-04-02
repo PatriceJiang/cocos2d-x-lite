@@ -28,7 +28,7 @@ git clone --branch $external_tag $repo_parent$repo_name --depth 1
 
 echo "Build Android ... "
 cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
-sed -i s/\$\{COCOS_X_ROOT\}/$COCOS2DX_ROOT/g app/build.gradle
+sed -i s|\$\{COCOS_X_ROOT\}|$COCOS2DX_ROOT|g app/build.gradle
 echo "PROP_USE_CMAKE = true" >> gradle.properties 
 ./gradlew assembleDebug
 
