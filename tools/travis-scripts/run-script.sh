@@ -32,6 +32,9 @@ yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
         "tools" 
 export ANDROID_HOME=$ANDROID_SDK
 
+export ANDROID_NDK=$HOME/bin/android-ndk
+export ANDROID_NDK_HOME=$HOME/bin/android-ndk
+
 echo "Build Android ... "
 cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
 sed -i "s@\${COCOS_X_ROOT}@$COCOS2DX_ROOT@g" app/build.gradle
