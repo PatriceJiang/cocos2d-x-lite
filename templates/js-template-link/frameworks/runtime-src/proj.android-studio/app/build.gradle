@@ -17,7 +17,7 @@ android {
             if (project.hasProperty("PROP_USE_CMAKE")) {
                 cmake {
                     targets "cocos2djs"
-                    arguments "-DANDROID_STL=c++_static", "-DANDROID_TOOLCHAIN=clang", "-DANDROID_ARM_NEON=TRUE", "-DCOCOS_X_ROOT=C:/Github/cocos2d-x-lite"
+                    arguments "-DANDROID_STL=c++_static", "-DANDROID_TOOLCHAIN=clang", "-DANDROID_ARM_NEON=TRUE", "-DCOCOS_X_ROOT=${COCOS_X_ROOT}"
                     cppFlags "-frtti -fexceptions -fsigned-char"
                     abiFilters.addAll(PROP_APP_ABI.split(':').collect{it as String})
                 }
@@ -28,9 +28,9 @@ android {
                         targets 'cocos2djs'
                         arguments 'NDK_TOOLCHAIN_VERSION=clang'
                         
-                        def module_paths = [project.file("C:/Github/cocos2d-x-lite"),
-                                            project.file("C:/Github/cocos2d-x-lite/cocos"),
-                                            project.file("C:/Github/cocos2d-x-lite/external")]
+                        def module_paths = [project.file("${COCOS_X_ROOT}"),
+                                            project.file("${COCOS_X_ROOT}/cocos"),
+                                            project.file("${COCOS_X_ROOT}/external")]
                         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                             arguments 'NDK_MODULE_PATH=' + module_paths.join(";")
                         }
@@ -149,6 +149,6 @@ android.applicationVariants.all { variant ->
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar','*.aar'])
-    implementation fileTree(dir: "C:/Github/cocos2d-x-lite/cocos/platform/android/java/libs", include: ['*.jar'])
+    implementation fileTree(dir: "${COCOS_X_ROOT}/cocos/platform/android/java/libs", include: ['*.jar'])
     implementation project(':libcocos2dx')
 }
