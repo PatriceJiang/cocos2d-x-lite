@@ -27,6 +27,7 @@ function install_android_ndk()
     unzip -q android-ndk-r16b-${HOST_NAME}-x86_64.zip
     # Rename ndk
     mv android-ndk-r16b android-ndk
+    export ANDROID_NDK=$HOME/bin/android-ndk
 }
 
 function install_clang()
