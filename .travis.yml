@@ -6,6 +6,8 @@ script:
 sudo: required
 node_js:
   - "7"
+jdk:
+  - oraclejdk8
 before_install:
 - tools/travis-scripts/before-install.sh
 

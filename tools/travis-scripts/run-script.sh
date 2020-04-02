@@ -18,7 +18,20 @@ cd $COCOS2DX_ROOT/tools/travis-scripts
 
 set -x
 
-
+echo "Download Android SDK... "
+cd $COCOS2DX_ROOT/..
+mkdir android
+cd android
+ANDROID_SDK=$COCOS2DX_ROOT/../android/android_sdk
+wget https://dl.google.com/android/repository/commandlinetools-linux-6200805.zip
+unzip *.zip
+cd tools
+yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
+        "platforms;android-27" \
+        "build-tools;28.0.3" \
+        "platform-tools" \
+        "tools" 
+export ANDROID_HOME=$ANDROID_SDK
 
 echo "Build Android ... "
 cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
