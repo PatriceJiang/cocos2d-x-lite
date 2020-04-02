@@ -23,7 +23,7 @@ cd $COCOS2DX_ROOT/..
 mkdir android
 cd android
 ANDROID_SDK=$COCOS2DX_ROOT/../android/android_sdk
-wget https://dl.google.com/android/repository/commandlinetools-linux-6200805.zip
+wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip
 unzip *.zip
 cd tools
 yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
