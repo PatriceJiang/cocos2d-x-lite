@@ -7,13 +7,7 @@ COCOS2DX_ROOT="$DIR"/../..
 HOST_NAME=""
 
 pushd $COCOS2DX_ROOT
-
-cd $COCOS2DX_ROOT/external
-external_tag=`node -e "let c = require(\"./config.json\");console.log(c.version)"`
-repo_name=`node -e "let c = require(\"./config.json\");console.log(c.repo_name)"`
-repo_parent=`node -e "let c = require(\"./config.json\");console.log(c.repo_parent)"`
-echo "Clone external ..."
-git clone --branch $external_tag $repo_parent$repo_name --depth 1
+python download-deps.py -r=yes
 popd
 
 mkdir -p $HOME/bin
