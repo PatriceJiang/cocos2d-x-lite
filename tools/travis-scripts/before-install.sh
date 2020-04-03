@@ -57,7 +57,9 @@ function install_python_module()
     pip install Cheetah
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
     # python -m easy_install pip
+    choco install -y python2
     export PATH="C:/ProgramData/chocolatey/bin":$PATH
+    which python
     python -m easy_install pip 
     python -m pip install PyYAML
     python -m pip install Cheetah
