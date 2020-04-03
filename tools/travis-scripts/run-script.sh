@@ -29,13 +29,16 @@ yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
         "platforms;android-27" \
         "build-tools;28.0.3" \
         "platform-tools" \
-        "tools" 
+        "tools"  \
+        "cmake;3.10.2.4988404"
+
 export ANDROID_HOME=$ANDROID_SDK
 
 export ANDROID_NDK=$HOME/bin/android-ndk
 export ANDROID_NDK_HOME=$HOME/bin/android-ndk
 
-cmake_dir=`find $ANDROID_SDK/cmake -name bin -type d |head -1`
+#cmake_dir=`find $ANDROID_SDK/cmake -name bin -type d |head -1`
+cmake_dir=$ANDROID_SDK/cmake/3.10.2.4988404/bin
 export PATH=$cmake_dir:$PATH
 
 echo "Build Android ... "
