@@ -69,6 +69,7 @@ function install_python_module()
     pip install PyYAML
     pip install Cheetah
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
+    easy_install pip
     python -m pip install PyYAML
     python -m pip install Cheetah
   else
