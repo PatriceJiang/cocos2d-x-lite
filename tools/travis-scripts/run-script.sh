@@ -80,7 +80,7 @@ function mac_install_cmake()
     mkdir build-mac 
     cd build-mac
     cmake .. -GXcode -DCOCOS_X_ROOT=$COCOS2DX_ROOT
-    cmake --build . --config Release -- --quiet
+    cmake --build . --config Release -- -quiet
     echo "Compile MacOSX Done!"
 }
 
