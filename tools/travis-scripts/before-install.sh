@@ -19,6 +19,7 @@ function download_external()
     git clone --branch $external_version --depth 1 $external_repo_parent$external_repo_name
     #git checkout $external_version
     git log --oneline -1
+    ls
     popd
 }
 
@@ -68,8 +69,8 @@ function install_python_module()
     pip install PyYAML
     pip install Cheetah
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
-    pip install PyYAML
-    pip install Cheetah
+    python -m pip install PyYAML
+    python -m pip install Cheetah
   else
     sudo easy_install pip
     sudo -H pip install pyyaml
