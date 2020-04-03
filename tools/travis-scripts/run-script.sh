@@ -86,12 +86,12 @@ function mac_install_cmake()
 
 function run_compile()
 {
-    if [ "BUILD_TARGET" == "android_cmake" ]; then
+    if [ "$BUILD_TARGET" == "android_cmake" ]; then
         setup_andorid_ndk
         build_android
     fi
 
-    if [ "BUILD_TARGET" == "macosx_cmake" ]; then
+    if [ "$BUILD_TARGET" == "macosx_cmake" ]; then
         mac_install_cmake
         build_macosx
     fi
