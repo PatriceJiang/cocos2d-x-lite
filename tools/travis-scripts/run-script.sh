@@ -13,15 +13,16 @@ fi
 #git remote add old https://github.com/cocos-creator/cocos2d-x-lite
 #git fetch --unshallow old
 
+set -x
+
 cd $COCOS2DX_ROOT/tools/travis-scripts
 ./generate-bindings.sh $TRAVIS_BRANCH
 
-set -x
 
 ANDROID_SDK=$COCOS2DX_ROOT/../android/android_sdk
 export ANDROID_HOME=$ANDROID_SDK
-export ANDROID_NDK=$HOME/bin/android-ndk        #installed in generate-bindings.sh
-export ANDROID_NDK_HOME=$HOME/bin/android-ndk
+export ANDROID_NDK=$NDK_ROOT       #installed in generate-bindings.sh
+export ANDROID_NDK_HOME=$NDK_ROOT
 
 
 function setup_andorid_ndk()
