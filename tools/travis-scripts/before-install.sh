@@ -72,6 +72,7 @@ function install_python_module()
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
     # python -m easy_install pip
     wget -t 3 http://peak.telecommunity.com/dist/ez_setup.py -O ez_setup.py
+    sed -i 's@http:@https:@g' ez_setup.py
     python ez_setup.py
     python -m pip install PyYAML
     python -m pip install Cheetah
