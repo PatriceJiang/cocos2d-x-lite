@@ -79,8 +79,8 @@ function mac_install_cmake()
     cd  $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src
     mkdir build-mac 
     cd build-mac
-    cmake .. -GXcode
-    cmake --build . --config Release -DCOCOS_X_ROOT=$COCOS2DX_ROOT
+    cmake .. -GXcode -DCOCOS_X_ROOT=$COCOS2DX_ROOT
+    cmake --build . --config Release
     echo "Compile MacOSX Done!"
 }
 
