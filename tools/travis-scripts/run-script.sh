@@ -25,7 +25,7 @@ cd android
 ANDROID_SDK=$COCOS2DX_ROOT/../android/android_sdk
 wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip
 unzip *.zip
-yes | ./tools/bin/sdkmanager  --verbose --sdk_root="$ANDROID_SDK" \
+yes | ./tools/bin/sdkmanager  --sdk_root="$ANDROID_SDK" \
         "platforms;android-27" \
         "build-tools;28.0.3" \
         "platform-tools" \
@@ -48,7 +48,7 @@ sed -i "s@\${COCOS_X_ROOT}@$COCOS2DX_ROOT@g" settings.gradle
 sed -i "s/^RELEASE_/#RELEASE_/g" gradle.properties
 echo "PROP_USE_CMAKE = true" >> gradle.properties
 echo "ANDORID_NDK ${ANDROID_NDK} or ${ANDROID_NDK_HOME}" 
-./gradlew assembleDebug
+./gradlew assembleDebug --quiet
 
 set +x
 
