@@ -48,8 +48,13 @@ function install_clang()
 function install_python_module_for_osx()
 {
   sudo easy_install pip
-  sudo -H pip install pyyaml
-  sudo -H pip install Cheetah
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    pip install PyYAML
+    pip install Cheetah
+  else
+    sudo -H pip install pyyaml
+    sudo -H pip install Cheetah
+  fi
 }
 
 #we only use osx for generate bindings
