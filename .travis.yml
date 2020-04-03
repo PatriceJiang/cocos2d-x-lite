@@ -8,6 +8,12 @@ matrix:
       language: cpp
       osx_image: xcode10.3
       sudo: required
+    - os: osx
+      env:
+        - BUILD_TARGET=ios_cmake
+      language: cpp
+      osx_image: xcode10.3
+      sudo: required
     - os: linux
       dist: xenial
       sudo: required

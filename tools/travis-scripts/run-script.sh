@@ -56,7 +56,7 @@ function build_android()
     echo "Compile Android Done!"
 }
 
-function build_macosx()
+function mac_install_cmake()
 {   
     echo "Compiling CMake ... "
     NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
@@ -65,14 +65,14 @@ function build_macosx()
     wget -t 5 --no-check-certificate $cmake_source -O cmake-mac.tar.gz -q
     tar xf cmake-mac.tar.gz 2>/dev/null
     cd cmake-3.17.0
-    ./configure --prefix=$HOME/bin/cmake
+    ./configure --prefix=$HOME/bin/cmake > /dev/null
     make -j $NUM_OF_CORES >/dev/null
     make install >/dev/null
     ls $HOME/bin/cmake
     export PATH=$HOME/bin/cmake/bin:$PATH
 }
 
-function mac_install_cmake()
+function build_macosx()
 {
     
     echo "Compiling MacOSX ... "
@@ -84,6 +84,21 @@ function mac_install_cmake()
     echo "Compile MacOSX Done!"
 }
 
+function build_ios()
+{
+    
+    echo "Compiling iOS ... "
+    cd  $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src
+    mkdir build-ios 
+    cd build-ios
+    cmake .. -GXcode -DCOCOS_X_ROOT=$COCOS2DX_ROOT -DCMAKE_SYSTEM_NAME=iOS \
+        -DCMAKE_OSX_SYSROOT=iphonesimulator \
+        -DCMAKE_CXX_FLAGS="-DSCRIPT_ENGINE_TYPE=3"
+    cmake --build . --config Debug -- -quiet
+    echo "Compile iOS Done!"
+}
+
+
 function run_compile()
 {
     if [ "$BUILD_TARGET" == "android_cmake" ]; then
@@ -92,6 +107,11 @@ function run_compile()
     fi
 
     if [ "$BUILD_TARGET" == "macosx_cmake" ]; then
+        mac_install_cmake
+        build_macosx
+    fi
+
+    if [ "$BUILD_TARGET" == "ios_cmake" ]; then
         mac_install_cmake
         build_macosx
     fi
