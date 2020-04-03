@@ -5,10 +5,16 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 COCOS2DX_ROOT="$DIR"/../..
 HOST_NAME=""
-
+set -x
 pushd $COCOS2DX_ROOT
-python download-deps.py -r=yes
+#python download-deps.py -r=yes
+cd $COCOS2DX_ROOT/external
+external_version=`node -e"let c = require(\"./config.json\"); console.log(c.version)"`;
+external_giturl=`node -e"let c = require(\"./config.json\"); console.log(c.repo_parent + c.repo_name)"`;
+git clone --branch $external_version --depth 1 $external_giturl
+git checkout $external_version
 popd
+set +x
 
 mkdir -p $HOME/bin
 cd $HOME/bin
