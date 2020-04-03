@@ -146,6 +146,10 @@ function run_compile()
 
 run_compile
 
+cd $COCOS2DX_ROOT
+## revert change
+git clean -fdx templates
+git checkout HEAD templates
 set +x
 
 cd $COCOS2DX_ROOT/tools/travis-scripts
