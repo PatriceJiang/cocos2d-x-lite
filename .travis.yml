@@ -6,8 +6,6 @@ matrix:
       env: 
         - BUILD_TARGET=windows_cmake
       language: cpp
-      - before_install:
-        - choco install -y nodejs
 
     # - os: osx
     #   env:
