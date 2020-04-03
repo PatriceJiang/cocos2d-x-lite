@@ -109,6 +109,17 @@ function build_ios()
     echo "Compile iOS Done!"
 }
 
+function build_windows()
+{
+    echo "Compiling Win32 ... "
+    cd  $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src
+    mkdir build-win32 
+    cd build-win32
+    cmake .. -G"Visual Studio 15 2017" -DCOCOS_X_ROOT=$COCOS2DX_ROOT 
+    cmake --build . --config Debug 
+    echo "Compile Win32 Done!"
+}
+
 
 function run_compile()
 {
@@ -125,6 +136,11 @@ function run_compile()
     if [ "$BUILD_TARGET" == "ios_cmake" ]; then
         mac_download_cmake
         build_macosx
+    fi
+
+    if [ "$BUILD_TARGET" == "windows_cmake" ]; then
+        cmake -V
+        build_windows
     fi
 }
 

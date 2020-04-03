@@ -18,8 +18,10 @@ function install_android_ndk()
     # Download android ndk
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
         HOST_NAME="darwin"
-    else
+    elif [ $TRAVIS_OS_NAME = 'linux' ]; then
         HOST_NAME="linux"
+    else
+        HOST_NAME="windows"
     fi
     echo "Download android-ndk-r16b-${HOST_NAME}-x86_64.zip ..."
     curl -O http://dl.google.com/android/repository/android-ndk-r16b-${HOST_NAME}-x86_64.zip
@@ -27,8 +29,6 @@ function install_android_ndk()
     unzip -q android-ndk-r16b-${HOST_NAME}-x86_64.zip
     # Rename ndk
     mv android-ndk-r16b android-ndk
-    export ANDROID_NDK=$HOME/bin/android-ndk
-    export ANDROID_NDK_HOME=$HOME/bin/android-ndk
 }
 
 function install_clang()
@@ -45,13 +45,17 @@ function install_clang()
     fi
 }
 
-function install_python_module_for_osx()
+function install_python_module()
 {
-  sudo easy_install pip
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    sudo easy_install pip
+    pip install PyYAML
+    pip install Cheetah
+  elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
     pip install PyYAML
     pip install Cheetah
   else
+    sudo easy_install pip
     sudo -H pip install pyyaml
     sudo -H pip install Cheetah
   fi
@@ -59,5 +63,5 @@ function install_python_module_for_osx()
 
 #we only use osx for generate bindings
 install_android_ndk
-install_python_module_for_osx
+install_python_module
 install_clang
