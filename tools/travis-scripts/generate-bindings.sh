@@ -39,22 +39,18 @@ generate_bindings_glue_codes()
     popd
 }
 
-pushd "$PROJECT_ROOT"
-#Set git user for cocos2d-js repo
-git config user.email ${GH_EMAIL}
-git config user.name ${GH_USER}
-popd
-
 # 1. Generate js bindings
 generate_bindings_glue_codes
 
-if [ "$TRAVIS_OS_NAME" != "linux"]; then
+if [ "$TRAVIS_OS_NAME" != "linux" ]; then
   exit 0
 fi
 
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   exit 0
 fi
+
+
 
 if [ -z "${GH_EMAIL}" ]; then
   echo "GH_EMAIL not set"
@@ -68,6 +64,13 @@ if [ -z "${GH_PASSWORD}" ]; then
   echo "GH_USER not set"
   exit 1
 fi
+
+pushd "$PROJECT_ROOT"
+#Set git user for cocos2d-js repo
+git config user.email ${GH_EMAIL}
+git config user.name ${GH_USER}
+popd
+
 
 echo
 echo Bindings generated successfully
