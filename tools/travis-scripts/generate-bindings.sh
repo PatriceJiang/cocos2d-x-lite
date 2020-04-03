@@ -48,6 +48,10 @@ popd
 # 1. Generate js bindings
 generate_bindings_glue_codes
 
+if [ "$TRAVIS_OS_NAME" != "linux"]; then
+  exit 0
+fi
+
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   exit 0
 fi
