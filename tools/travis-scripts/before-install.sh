@@ -48,6 +48,11 @@ function install_android_ndk()
     mv android-ndk-r16b android-ndk
 }
 
+function install_python_win32()
+{
+    choco install -y python2-x86_32
+    export PATH="/c/Python27":$PATH
+}
 
 function install_python_module()
 {
@@ -56,10 +61,7 @@ function install_python_module()
     pip install PyYAML
     pip install Cheetah
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
-    # python -m easy_install pip
-    choco install -y python2
-    export PATH="/c/Python27":$PATH
-    echo `which python`
+    install_python_win32
     python -m easy_install pip 
     python -m pip install PyYAML
     python -m pip install Cheetah
