@@ -50,7 +50,7 @@ function install_android_ndk()
 
 function install_python_win32()
 {
-    choco install --forcex86 -y python2-x86_32 
+    choco install --forcex86 -y python2
     export PATH="/c/Python27":$PATH
 }
 
