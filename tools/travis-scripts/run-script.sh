@@ -72,6 +72,17 @@ function mac_install_cmake()
     export PATH=$HOME/bin/cmake/bin:$PATH
 }
 
+function mac_download_cmake()
+{
+    echo "Download CMake ..."
+    cmake_binary=https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Darwin-x86_64.tar.gz
+    wget -t 3 --no-check-certificate $cmake_binary -O cmake_bin.tar.gz -q
+    tar xf cmake_bin.tar.gz 2>/dev/null
+    cmake_bin_dir=`dirname $(find . -name cmake-gui)`
+    cmake_bin_dir="$PWD/$cmake_bin_dir"
+    export PATH=$cmake_bin_dir:$PATH
+}
+
 function build_macosx()
 {
     
@@ -107,12 +118,12 @@ function run_compile()
     fi
 
     if [ "$BUILD_TARGET" == "macosx_cmake" ]; then
-        mac_install_cmake
+        mac_download_cmake
         build_macosx
     fi
 
     if [ "$BUILD_TARGET" == "ios_cmake" ]; then
-        mac_install_cmake
+        mac_download_cmake
         build_macosx
     fi
 }
