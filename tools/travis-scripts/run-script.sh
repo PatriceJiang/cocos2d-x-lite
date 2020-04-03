@@ -35,6 +35,9 @@ export ANDROID_HOME=$ANDROID_SDK
 export ANDROID_NDK=$HOME/bin/android-ndk
 export ANDROID_NDK_HOME=$HOME/bin/android-ndk
 
+cmake_dir=`find $ANDROID_SDK/cmake -name bin -type d |head -1`
+export PATH=$cmake_dir:$PATH
+
 echo "Build Android ... "
 cd $COCOS2DX_ROOT/templates/js-template-link/frameworks/runtime-src/proj.android-studio
 sed -i "s@\${COCOS_X_ROOT}@$COCOS2DX_ROOT@g" app/build.gradle
