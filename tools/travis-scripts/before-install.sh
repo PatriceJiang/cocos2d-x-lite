@@ -26,7 +26,6 @@ function download_external()
 
 download_external
 
-set +x
 
 mkdir -p $HOME/bin
 cd $HOME/bin
@@ -49,19 +48,6 @@ function install_android_ndk()
     mv android-ndk-r16b android-ndk
 }
 
-function install_clang()
-{
-    if [ ! -f $COCOS2DX_ROOT/tools/bindings-generator/libclang/libclang.so ]; then
-        echo "Download clang"
-        curl -O http://releases.llvm.org/5.0.0/clang+llvm-5.0.0-linux-x86_64-ubuntu14.04.tar.xz
-        echo "Decompress clang"
-        tar xpf ./clang+llvm-5.0.0-linux-x86_64-ubuntu14.04.tar.xz
-        cp ./clang+llvm-5.0.0-linux-x86_64-ubuntu14.04/lib/libclang.so.5.0 $COCOS2DX_ROOT/tools/bindings-generator/libclang/libclang.so
-    else
-        echo "Skip downloading clang"
-        echo "  file $COCOS2DX_ROOT/tools/bindings-generator/libclang/libclang.so exists!"
-    fi
-}
 
 function install_python_module()
 {
@@ -83,6 +69,7 @@ function install_python_module()
 }
 
 #we only use osx for generate bindings
-install_android_ndk
 install_python_module
-install_clang
+install_android_ndk
+
+set +x
