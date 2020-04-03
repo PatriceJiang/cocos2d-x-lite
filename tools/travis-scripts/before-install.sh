@@ -59,7 +59,7 @@ function install_python_module()
     # python -m easy_install pip
     choco install -y python2
     export PATH="C:/Python27/bin":$PATH
-    which python
+    echo `which python`
     python -m easy_install pip 
     python -m pip install PyYAML
     python -m pip install Cheetah
