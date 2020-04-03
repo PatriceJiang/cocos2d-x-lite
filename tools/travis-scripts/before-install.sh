@@ -58,7 +58,7 @@ function install_python_module()
   elif [ "$TRAVIS_OS_NAME" == "windows" ]; then
     # python -m easy_install pip
     choco install -y python2
-    export PATH="C:/ProgramData/chocolatey/bin":$PATH
+    export PATH="C:/Python27/bin":$PATH
     which python
     python -m easy_install pip 
     python -m pip install PyYAML
