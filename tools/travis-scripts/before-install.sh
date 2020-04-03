@@ -20,7 +20,6 @@ function download_external()
     git clone --branch $external_version --depth 1 $external_repo_parent$external_repo_name .
     #git checkout $external_version
     git log --oneline -1
-    ls
     popd
 }
 
