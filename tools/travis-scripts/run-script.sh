@@ -31,7 +31,7 @@ function setup_andorid_ndk()
     cd $COCOS2DX_ROOT/..
     mkdir android
     cd android
-    wget https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip
+    wget -t 5 -q https://dl.google.com/android/repository/commandlinetools-linux-6200805_latest.zip
     unzip *.zip
     yes | ./tools/bin/sdkmanager  --sdk_root="$ANDROID_SDK" \
             "platforms;android-27" \
@@ -62,12 +62,12 @@ function build_macosx()
     NUM_OF_CORES=`getconf _NPROCESSORS_ONLN`
     cd $HOME/bin
     cmake_source=https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0.tar.gz
-    wget -t 5 --no-check-certificate $cmake_source -O cmake-mac.tar.gz
-    tar xf cmake-mac.tar.gz
+    wget -t 5 --no-check-certificate $cmake_source -O cmake-mac.tar.gz -q
+    tar xf cmake-mac.tar.gz 2>/dev/null
     cd cmake-3.17.0
     ./configure --prefix=$HOME/bin/cmake
-    make -j $NUM_OF_CORES
-    make install
+    make -j $NUM_OF_CORES >/dev/null
+    make install >/dev/null
     ls $HOME/bin/cmake
     export PATH=$HOME/bin/cmake/bin:$PATH
 }
@@ -80,7 +80,7 @@ function mac_install_cmake()
     mkdir build-mac 
     cd build-mac
     cmake .. -GXcode -DCOCOS_X_ROOT=$COCOS2DX_ROOT
-    cmake --build . --config Release
+    cmake --build . --config Release -- --quiet
     echo "Compile MacOSX Done!"
 }
 

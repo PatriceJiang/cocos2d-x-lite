@@ -28,7 +28,6 @@ JS_COMMIT_PATH="cocos/scripting/js-bindings/auto"
 
 # Exit on error
 set -e
-set -x
 
 generate_bindings_glue_codes()
 {

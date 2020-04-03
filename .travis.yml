@@ -8,13 +8,12 @@ matrix:
       language: cpp
       osx_image: xcode10.3
       sudo: required
-    
-    # - os: linux
-    #   dist: xenial
-    #   sudo: required
-    #   env: 
-    #     - BUILD_TARGET=android_cmake
-    #   language: cpp
+    - os: linux
+      dist: xenial
+      sudo: required
+      env: 
+        - BUILD_TARGET=android_cmake
+      language: cpp
 
 node_js:
   - "7"
