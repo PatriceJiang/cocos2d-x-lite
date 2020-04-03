@@ -29,6 +29,10 @@ JS_COMMIT_PATH="cocos/scripting/js-bindings/auto"
 # Exit on error
 set -e
 
+if [ "$TRAVIS_OS_NAME" == "windows" ]; then
+  export PATH="/c/Python27":$PATH
+fi
+
 generate_bindings_glue_codes()
 {
     echo "Create auto-generated jsbinding glue codes."
