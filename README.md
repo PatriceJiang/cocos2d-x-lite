@@ -1,5 +1,12 @@
+
 Cocos2d-x, compact version
+
+
+[![Build Status](https://travis-ci.org/PatriceJiang/cocos2d-x-lite.svg?branch=3dgfx-add-cmake-tmp)](https://travis-ci.org/PatriceJiang/cocos2d-x-lite)
+
 ==========================
+
+
 
 <a href="https://travis-ci.org/cocos-creator/cocos2d-x-lite"><img src="https://travis-ci.org/cocos-creator/cocos2d-x-lite.svg?branch=develop " alt="Build Status"></a>
 
