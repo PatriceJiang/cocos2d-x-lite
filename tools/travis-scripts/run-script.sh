@@ -139,7 +139,7 @@ function run_compile()
     fi
 
     if [ "$BUILD_TARGET" == "windows_cmake" ]; then
-        cmake -V
+        cmake --version
         build_windows
     fi
 }
