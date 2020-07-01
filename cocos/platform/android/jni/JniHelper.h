@@ -387,7 +387,7 @@ private:
     static std::string getJNISignature(T x, Ts... xs) {
         return getJNISignature(x) + getJNISignature(xs...);
     }
-
+public:
     static void reportError(const std::string& className, const std::string& methodName, const std::string& signature);
 };
 

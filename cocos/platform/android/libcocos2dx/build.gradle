@@ -31,4 +31,5 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: '../java/libs')
+    implementation "org.ow2.asm:asm:8.0.1"
 }
