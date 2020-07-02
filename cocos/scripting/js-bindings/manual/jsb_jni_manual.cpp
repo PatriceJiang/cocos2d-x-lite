@@ -5,9 +5,10 @@
 #include <jni.h>
 #include "platform/android/jni/JniHelper.h"
 #include "platform/android/jni/JniImp.h"
-
+#include "jsb_jni_utils.h"
 #define JS_JNI_DEBUG 1
 #define JS_JNI_TAG_TYPE "jni_obj_type"
+#define JS_JNI_JCLASS_TYPE "java_class"
 
 using cocos2d::JniHelper;
 using cocos2d::JniMethodInfo;
@@ -18,6 +19,31 @@ namespace {
 
 
 namespace {
+
+    std::unordered_map<std::string, se::Class *> sJClassToJSClass;
+
+    std::string getJObjectClass(jobject obj) {
+        auto *env = JniHelper::getEnv();
+        jclass objectClass = env->GetObjectClass(obj);
+        jmethodID getClassMethodID = env->GetMethodID(objectClass, "getClass", "()Ljava/lang/Class;");
+
+        jobject classObject = env->CallObjectMethod(obj, getClassMethodID);
+        jclass classObjectClass = env->GetObjectClass(classObject);
+        jmethodID getSimpleNameMethodID = env->GetMethodID(classObjectClass, "getSimpleName", "()Ljava/lang/String;");
+
+        jstring classNameString = (jstring) env->CallObjectMethod(classObject, getSimpleNameMethodID);
+
+        char buff[256] = {};
+        int len = env->GetStringUTFLength(classNameString);
+        env->GetStringUTFRegion(classNameString, 0, len, buff);
+
+        env->DeleteLocalRef(objectClass);
+        env->DeleteLocalRef(classObject);
+        env->DeleteLocalRef(classObjectClass);
+
+        return buff;
+    }
+
     class JObjectWrapper {
     public:
         JObjectWrapper(jobject obj){
@@ -30,6 +56,7 @@ namespace {
                 JniHelper::getEnv()->DeleteGlobalRef(_obj);
                 _obj = nullptr;
             }
+
         }
 
         se::Object * asJSObject() {
@@ -39,6 +66,7 @@ namespace {
             _jsObj->setPrivateData(this);
 #if JS_JNI_DEBUG
             _jsObj->setProperty(JS_JNI_TAG_TYPE, se::Value("jobject"));
+            _jsObj->setProperty(JS_JNI_JCLASS_TYPE, se::Value(getJObjectClass(_obj)));
 #endif
             return _jsObj;
         }
@@ -47,61 +75,91 @@ namespace {
             return _obj;
         }
 
+        jclass getClass() const {
+            return JniHelper::getEnv()->GetObjectClass(_obj);
+        }
+
     private:
         jobject _obj = nullptr;
         se::Object *_jsObj = nullptr;
     };
 
-    enum class JniType{
-        None,
-        Boolean_Z,
-        Char_C,
-        Short_S,
-        Int_I,
-        Long_J,
-        Float_F,
-        Double_D,
-        Array_,
-        Object_L,
-    };
-
-    JniType parseSigType(const char *data, int *len) {
-        int i = 0;
-        const char f = data[i];
-        *len = 1;
-        switch(f) {
-            case 'Z': return JniType::Boolean_Z;
-            case 'C': return JniType ::Char_C;
-            case 'S': return JniType ::Short_S;
-            case 'I': return JniType ::Int_I;
-            case 'J': return JniType ::Long_J;
-            case 'F' : return JniType ::Float_F;
-            case 'D' : return JniType ::Double_D;
-            default: ;
+    jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def, const se::Value &val, bool &ok)
+    {
+        jvalue ret;
+        ok = false;
+        if(def.isBoolean()) {
+            ret.z = val.toBoolean();
+        }else if(def.isByte()) {
+            ret.b = val.toInt8();
+        }else if(def.isChar()) {
+            ret.c = val.toInt16();
+        }else if(def.isShort()) {
+            ret.s = val.toInt16();
+        }else if(def.isInt()) {
+            ret.i = val.toInt32();
+        }else if(def.isLong()) {
+            ret.j = static_cast<jlong>(val.toNumber()); // int 64
+        }else if (def.isFloat()) {
+            ret.f = val.toFloat();
+        }else if(def.isDouble()) {
+            ret.d = val.toNumber();
+        }else if(def.isObject()) {
+            assert(val.isObject());
+            se::Object *seObj = val.toObject();
+            auto *jo = static_cast<JObjectWrapper*>(seObj->getPrivateData());
+            ret.l = jo->unwrap();
+        }else{
+            SE_LOGE("incorrect jni type, don't know how to convert from js value");
+            return ret;
         }
-
-        if(f == '[') {
-
-        }else if(f == 'L') {
-
-        }
+        ok = true;
+        return ret;
     }
 
-    std::vector<jobject*> convertFuncArgs(const std::string &signature, const std::vector<se::Value> &args, int offset, bool *success)
+
+    std::vector<jvalue> convertFuncArgs(JNIEnv *env, const std::string &signature, const std::vector<se::Value> &args, int offset, bool &success)
     {
-        int i = 0;
-        const int e = signature.length();
-        if(signature[i] != '(') {
-            *success = false;
+        bool convertOk = false;
+        success = false;
+        std::vector<jni_utils::JniType> argTypes = jni_utils::exactArgsFromSignature(signature, convertOk);
+        if(convertOk) {
+            SE_LOGE("failed to parse signature \"%s\"", signature.c_str());
             return {};
         }
+
+        if(argTypes.size() != args.size() - offset) {
+            SE_LOGE("arguments size %d does not match function signature \"%s\"", args.size(), signature.c_str());
+            return {};
+        }
+
+        std::vector<jvalue> ret;
+        for(size_t i =0; i < argTypes.size(); i++) {
+            jvalue arg = seval_to_jvalule(env, argTypes[i], args[i + offset], convertOk);
+            assert(convertOk);
+            ret.push_back(arg);
+        }
+
+        success = true;
+        return ret;
     }
 
+    void installJavaClass(const std::string &javaClass, se::Class *seClass) {
+        sJClassToJSClass[javaClass] = seClass;
+    }
+
+    se::Class *findJSClass(const std::string &javaClass) {
+        auto itr = sJClassToJSClass.find(javaClass);
+        if(itr == sJClassToJSClass.end()) {
+            return nullptr;
+        }
+        return itr->second;
+    }
 }
 
 static bool js_jni_jobject_finalize(se::State& s)
 {
-    JObjectWrapper* cobj = (JObjectWrapper*)s.nativeThisObject();
+    auto* cobj = (JObjectWrapper*)s.nativeThisObject();
     if(cobj){
         delete cobj;
     }
@@ -119,6 +177,8 @@ static bool js_register_jni_jobject(se::Object *obj) {
 
 static bool js_jni_helper_getActivity(se::State& s)
 {
+    auto *env = JniHelper::getEnv();
+    jobject activity = JniHelper::getActivity();
     auto *obj = new JObjectWrapper(JniHelper::getActivity());
     s.rval().setObject(obj->asJSObject());
     return true;
@@ -145,6 +205,8 @@ static bool js_jni_helper_newObject(se::State& s)
     const int argCnt = s.args().size();
     std::string signature;
     jobject ret = nullptr;
+    bool ok;
+    jclass klass;
 
     JniMethodInfo methodInfo;
     if(argCnt == 0) {
@@ -156,10 +218,31 @@ static bool js_jni_helper_newObject(se::State& s)
         signature = "()V";
         if( JniHelper::getMethodInfo( methodInfo, klassPath.c_str(), "<init>", signature.c_str())) {
             ret = methodInfo.env->NewObject(methodInfo.classID, methodInfo.methodID);
+            klass = methodInfo.classID;
         }else{
             JniHelper::reportError(klassPath, "<init>", signature);
+            return false;
+        }
+    } else {
+        // arg0 : class
+        // arg1 : signature
+        // arg2 : arg 0 for constructor
+        // arg3 : arg 1 for constructor
+        // ...
+        auto klassPath = s.args()[0].toString();
+        signature = s.args()[1].toString();
+        std::vector<jvalue> jvalueArray = convertFuncArgs(JniHelper::getEnv(), signature, s.args(), 2, ok);
+
+        if( JniHelper::getMethodInfo(methodInfo, klassPath.c_str(), "<init>", signature.c_str())) {
+            ret = methodInfo.env->NewObjectA(methodInfo.classID, methodInfo.methodID, jvalueArray.data());
+            klass = methodInfo.classID;
+        }else{
+            JniHelper::reportError(klassPath, "<init>", signature);
+            return false;
         }
     }
+    auto *jobjWrapper = new JObjectWrapper(ret);
+    s.rval().setObject(jobjWrapper->asJSObject());
     return true;
 }
 SE_BIND_FUNC(js_jni_helper_newObject)

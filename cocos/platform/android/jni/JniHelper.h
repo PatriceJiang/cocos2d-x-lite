@@ -130,6 +130,25 @@ public:
     }
 
     template <typename... Ts>
+    static jobject callObjectObjectMethod(jobject object,
+                                       const std::string& className,
+                                       const std::string& methodName,
+                                       Ts... xs) {
+        jobject ret = nullptr;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")F";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallObjectMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
     static jbyteArray callObjectByteArrayMethod(jobject object,
                                      const std::string& className, 
                                      const std::string& methodName, 

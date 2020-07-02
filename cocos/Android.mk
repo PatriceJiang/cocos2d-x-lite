@@ -68,6 +68,7 @@ scripting/js-bindings/manual/jsb_xmlhttprequest.cpp \
 scripting/js-bindings/manual/jsb_cocos2dx_network_manual.cpp \
 scripting/js-bindings/manual/jsb_platform_android.cpp \
 scripting/js-bindings/manual/jsb_jni_manual.cpp \
+scripting/js-bindings/manual/jsb_jni_utils.cpp \
 scripting/js-bindings/jswrapper/config.cpp \
 scripting/js-bindings/jswrapper/HandleObject.cpp \
 scripting/js-bindings/jswrapper/MappingUtils.cpp \
