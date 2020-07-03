@@ -65,11 +65,11 @@
     }
 
 #define SE_BIND_FINALIZE_FUNC(funcName) \
-    void funcName##Registry(JSObjectRef _obj) \
+    void funcName##Registry(JSObjectRef _javaObject) \
     { \
         auto se = se::ScriptEngine::getInstance(); \
         se->_setGarbageCollecting(true); \
-        void* nativeThisObject = JSObjectGetPrivate(_obj); \
+        void* nativeThisObject = JSObjectGetPrivate(_javaObject); \
         if (nativeThisObject != nullptr) \
         { \
             bool ret = false; \
@@ -80,14 +80,14 @@
             if (!ret) { \
                 SE_LOGE("[ERROR] Failed to invoke %s, location: %s:%d\n", #funcName, __FILE__, __LINE__); \
             } \
-            JSObjectSetPrivate(_obj, nullptr); \
+            JSObjectSetPrivate(_javaObject, nullptr); \
             SAFE_DEC_REF(_thisObject); \
         } \
         se->_setGarbageCollecting(false); \
     }
 
 #define SE_DECLARE_FINALIZE_FUNC(funcName) \
-    void funcName##Registry(JSObjectRef _obj);
+    void funcName##Registry(JSObjectRef _javaObject);
 
 
 // NOTE: se::Object::createObjectWithClass(cls) will return a se::Object pointer which is watched by garbage collector.

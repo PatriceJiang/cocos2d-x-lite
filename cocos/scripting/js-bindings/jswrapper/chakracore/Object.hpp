@@ -369,7 +369,7 @@ namespace se {
         bool init(JsValueRef obj);
 
         Class* _cls;
-        JsValueRef _obj;
+        JsValueRef _javaObject;
         void* _privateData;
         JsFinalizeCallback _finalizeCb;
 

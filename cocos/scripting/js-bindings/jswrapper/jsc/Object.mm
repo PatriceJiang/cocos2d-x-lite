@@ -59,7 +59,7 @@ namespace se {
 
     Object::Object()
     : _cls(nullptr)
-    , _obj(nullptr)
+    , _javaObject(nullptr)
     , _privateData(nullptr)
     , _finalizeCb(nullptr)
     , _rootCount(0)
@@ -357,7 +357,7 @@ namespace se {
 
     bool Object::init(Class* cls, JSObjectRef obj)
     {
-        _obj = obj;
+        _javaObject = obj;
         _cls = cls;
         return true;
     }
@@ -374,7 +374,7 @@ namespace se {
             {
                 if (nativeObj == nullptr)
                 {
-                    nativeObj = internal::getPrivate(_obj);
+                    nativeObj = internal::getPrivate(_javaObject);
                 }
 
                 if (nativeObj != nullptr)
@@ -396,7 +396,7 @@ namespace se {
                 //            SE_LOGD("Object::_cleanup, (%p) rootCount: %u\n", this, _rootCount);
                 // Don't unprotect if it's in cleanup, otherwise, it will trigger crash.
                 if (!se->isInCleanup() && !se->isGarbageCollecting())
-                    JSValueUnprotect(__cx, _obj);
+                    JSValueUnprotect(__cx, _javaObject);
 
                 _rootCount = 0;
             }
@@ -421,12 +421,12 @@ namespace se {
         data->setUndefined();
 
         JSStringRef jsName = JSStringCreateWithUTF8CString(name);
-        bool exist = JSObjectHasProperty(__cx, _obj, jsName);
+        bool exist = JSObjectHasProperty(__cx, _javaObject, jsName);
 
         if (exist)
         {
             JSValueRef exception = nullptr;
-            JSValueRef jsValue = JSObjectGetProperty(__cx, _obj, jsName, &exception);
+            JSValueRef jsValue = JSObjectGetProperty(__cx, _javaObject, jsName, &exception);
             if (exception != nullptr)
             {
                 ScriptEngine::getInstance()->_clearException(exception);
@@ -449,7 +449,7 @@ namespace se {
         bool ret = true;
         JSStringRef jsName = JSStringCreateWithUTF8CString(name);
         JSValueRef jsValue = nullptr;
-        JSObjectRef obj = _obj;
+        JSObjectRef obj = _javaObject;
         if (v.getType() == Value::Type::Number)
         {
             jsValue = JSValueMakeNumber(__cx, v.toNumber());
@@ -466,7 +466,7 @@ namespace se {
         }
         else if (v.getType() == Value::Type::Object)
         {
-            jsValue = v.toObject()->_obj;
+            jsValue = v.toObject()->_javaObject;
         }
         else if (v.getType() == Value::Type::Null)
         {
@@ -501,7 +501,7 @@ namespace se {
         bool ret = true;
         JSStringRef jsName = JSStringCreateWithUTF8CString(name);
         JSValueRef exception = nullptr;
-        JSObjectDeleteProperty(__cx, _obj, jsName, &exception);
+        JSObjectDeleteProperty(__cx, _javaObject, jsName, &exception);
         if (exception != nullptr)
         {
             ScriptEngine::getInstance()->_clearException(exception);
@@ -518,7 +518,7 @@ namespace se {
         JSObjectRef contextObject = nullptr;
         if (thisObject != nullptr)
         {
-            contextObject = thisObject->_obj;
+            contextObject = thisObject->_javaObject;
         }
 
         JSValueRef* jsArgs = nullptr;
@@ -530,7 +530,7 @@ namespace se {
         }
 
         JSValueRef exception = nullptr;
-        JSValueRef rcValue = JSObjectCallAsFunction(__cx, _obj, contextObject, args.size(), jsArgs, &exception);
+        JSValueRef rcValue = JSObjectCallAsFunction(__cx, _javaObject, contextObject, args.size(), jsArgs, &exception);
         free(jsArgs);
         
         if (rcValue != nullptr)
@@ -556,7 +556,7 @@ namespace se {
         JSStringRef jsName = JSStringCreateWithUTF8CString(funcName);
         JSObjectRef jsFunc = JSObjectMakeFunctionWithCallback(__cx, jsName, func);
         JSValueRef exception = nullptr;
-        JSObjectSetProperty(__cx, _obj, jsName, jsFunc, kJSPropertyAttributeNone, &exception);
+        JSObjectSetProperty(__cx, _javaObject, jsName, jsFunc, kJSPropertyAttributeNone, &exception);
         if (exception != nullptr)
         {
             ScriptEngine::getInstance()->_clearException(exception);
@@ -571,7 +571,7 @@ namespace se {
         assert(length != nullptr);
         JSStringRef key = JSStringCreateWithUTF8CString("length");
         JSValueRef exception = nullptr;
-        JSValueRef v = JSObjectGetProperty(__cx, _obj, key, &exception);
+        JSValueRef v = JSObjectGetProperty(__cx, _javaObject, key, &exception);
         if (exception != nullptr)
         {
             ScriptEngine::getInstance()->_clearException(exception);
@@ -593,7 +593,7 @@ namespace se {
         assert(isArray());
         assert(data != nullptr);
         JSValueRef exception = nullptr;
-        JSValueRef v = JSObjectGetPropertyAtIndex(__cx, _obj, index, &exception);
+        JSValueRef v = JSObjectGetPropertyAtIndex(__cx, _javaObject, index, &exception);
 
         if (exception != nullptr)
         {
@@ -613,7 +613,7 @@ namespace se {
         JSValueRef v;
         internal::seToJsValue(__cx, data, &v);
         JSValueRef exception = nullptr;
-        JSObjectSetPropertyAtIndex(__cx, _obj, index, v, &exception);
+        JSObjectSetPropertyAtIndex(__cx, _javaObject, index, v, &exception);
         if (exception != nullptr)
         {
             ScriptEngine::getInstance()->_clearException(exception);
@@ -625,7 +625,7 @@ namespace se {
 
     bool Object::getAllKeys(std::vector<std::string>* allKeys) const
     {
-        JSPropertyNameArrayRef keys = JSObjectCopyPropertyNames(__cx, _obj);
+        JSPropertyNameArrayRef keys = JSObjectCopyPropertyNames(__cx, _javaObject);
         size_t expectedCount = JSPropertyNameArrayGetCount(keys);
 
         std::string tmp;
@@ -642,7 +642,7 @@ namespace se {
 
     bool Object::isFunction() const
     {
-        return JSObjectIsFunction(__cx, _obj);
+        return JSObjectIsFunction(__cx, _javaObject);
     }
 
     bool Object::isTypedArray() const
@@ -664,7 +664,7 @@ namespace se {
 #if (__MAC_OS_X_VERSION_MAX_ALLOWED >= 101200 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000)
         if (isSupportTypedArrayAPI())
         {
-            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _obj, nullptr);
+            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _javaObject, nullptr);
             bool ret = (type != kJSTypedArrayTypeNone && type != kJSTypedArrayTypeArrayBuffer);
             if (ret)
             {
@@ -704,7 +704,7 @@ namespace se {
         }
 #endif
 
-        EJJSTypedArrayType typedArrayType = EJJSObjectGetTypedArrayType(__cx, _obj);
+        EJJSTypedArrayType typedArrayType = EJJSObjectGetTypedArrayType(__cx, _javaObject);
         return typedArrayType >= kEJJSTypedArrayTypeInt8Array && typedArrayType <= kEJJSTypedArrayTypeFloat64Array;
     }
 
@@ -734,7 +734,7 @@ namespace se {
 #if (__MAC_OS_X_VERSION_MAX_ALLOWED >= 101200 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000)
         if (isSupportTypedArrayAPI())
         {
-            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _obj, nullptr);
+            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _javaObject, nullptr);
             bool ret = (type != kJSTypedArrayTypeNone && type != kJSTypedArrayTypeArrayBuffer);
             if (ret)
             {
@@ -782,7 +782,7 @@ namespace se {
             return typedArrayType;
         }
 #endif
-        EJJSTypedArrayType ejTypedArrayType = EJJSObjectGetTypedArrayType(__cx, _obj);
+        EJJSTypedArrayType ejTypedArrayType = EJJSObjectGetTypedArrayType(__cx, _javaObject);
 
         switch (ejTypedArrayType) {
             case kEJJSTypedArrayTypeInt8Array:
@@ -839,15 +839,15 @@ namespace se {
             JSValueRef exception = nullptr;
             do
             {
-                *length = JSObjectGetTypedArrayByteLength(__cx, _obj, &exception);
+                *length = JSObjectGetTypedArrayByteLength(__cx, _javaObject, &exception);
                 if (exception != nullptr)
                     break;
 
-                size_t offset = JSObjectGetTypedArrayByteOffset(__cx, _obj, &exception);
+                size_t offset = JSObjectGetTypedArrayByteOffset(__cx, _javaObject, &exception);
                 if (exception != nullptr)
                     break;
 
-                uint8_t* buf = (uint8_t*)JSObjectGetTypedArrayBytesPtr(__cx, _obj, &exception);
+                uint8_t* buf = (uint8_t*)JSObjectGetTypedArrayBytesPtr(__cx, _javaObject, &exception);
                 if (exception != nullptr)
                     break;
 
@@ -869,7 +869,7 @@ namespace se {
             return true;
         }
 #endif
-        NSMutableData* data = EJJSObjectGetTypedArrayData(__cx, _obj);
+        NSMutableData* data = EJJSObjectGetTypedArrayData(__cx, _javaObject);
         *ptr = (uint8_t*)data.mutableBytes;
         *length = data.length;
         return true;
@@ -896,10 +896,10 @@ namespace se {
 #if (__MAC_OS_X_VERSION_MAX_ALLOWED >= 101100 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 90000)
         if (isSupportArrayTestAPI())
         {
-            return JSValueIsArray(__cx, _obj);
+            return JSValueIsArray(__cx, _javaObject);
         }
 #endif
-        bool ret = isInstanceOfConstructor(__cx, _obj, "Array");
+        bool ret = isInstanceOfConstructor(__cx, _javaObject, "Array");
         if (ret)
             _type = Type::ARRAY;
         return ret;
@@ -914,7 +914,7 @@ namespace se {
         if (isSupportTypedArrayAPI())
         {
             JSValueRef exception = nullptr;
-            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _obj, &exception);
+            JSTypedArrayType type = JSValueGetTypedArrayType(__cx, _javaObject, &exception);
             if (exception != nullptr)
             {
                 ScriptEngine::getInstance()->_clearException(exception);
@@ -928,7 +928,7 @@ namespace se {
         }
 #endif
 
-        bool ret = isInstanceOfConstructor(__cx, _obj, "ArrayBuffer");
+        bool ret = isInstanceOfConstructor(__cx, _javaObject, "ArrayBuffer");
         if (ret)
             _type = Type::ARRAY_BUFFER;
         return ret;
@@ -943,14 +943,14 @@ namespace se {
         if (isSupportTypedArrayAPI())
         {
             JSValueRef exception = nullptr;
-            *length = JSObjectGetArrayBufferByteLength(__cx, _obj, &exception);
+            *length = JSObjectGetArrayBufferByteLength(__cx, _javaObject, &exception);
             if (exception != nullptr)
             {
                 ScriptEngine::getInstance()->_clearException(exception);
                 return false;
             }
 
-            *ptr = (uint8_t*)JSObjectGetArrayBufferBytesPtr(__cx, _obj, &exception);
+            *ptr = (uint8_t*)JSObjectGetArrayBufferBytesPtr(__cx, _javaObject, &exception);
             if (exception != nullptr)
             {
                 ScriptEngine::getInstance()->_clearException(exception);
@@ -960,7 +960,7 @@ namespace se {
             return (*ptr != nullptr);
         }
 #endif
-        NSMutableData* data = EJJSObjectGetTypedArrayData(__cx, _obj);
+        NSMutableData* data = EJJSObjectGetTypedArrayData(__cx, _javaObject);
         *ptr = (uint8_t*)data.mutableBytes;
         *length = data.length;
         return true;
@@ -970,7 +970,7 @@ namespace se {
     {
         if (_privateData == nullptr)
         {
-            const_cast<Object*>(this)->_privateData = internal::getPrivate(_obj);
+            const_cast<Object*>(this)->_privateData = internal::getPrivate(_javaObject);
         }
         return _privateData;
     }
@@ -979,7 +979,7 @@ namespace se {
     {
         assert(_privateData == nullptr);
         assert(NativePtrToObjectMap::find(data) == NativePtrToObjectMap::end());
-        internal::setPrivate(_obj, data, _finalizeCb);
+        internal::setPrivate(_javaObject, data, _finalizeCb);
         NativePtrToObjectMap::emplace(data, this);
         _privateData = data;
     }
@@ -990,7 +990,7 @@ namespace se {
         {
             if (clearMapping)
                 NativePtrToObjectMap::erase(_privateData);
-            internal::clearPrivate(_obj);
+            internal::clearPrivate(_javaObject);
             _privateData = nullptr;
         }
     }
@@ -1020,7 +1020,7 @@ namespace se {
 
     JSObjectRef Object::_getJSObject() const
     {
-        return _obj;
+        return _javaObject;
     }
 
     Class* Object::_getClass() const
@@ -1032,7 +1032,7 @@ namespace se {
     {
         if (_rootCount == 0)
         {
-            JSValueProtect(__cx, _obj);
+            JSValueProtect(__cx, _javaObject);
         }
         ++_rootCount;
     }
@@ -1049,7 +1049,7 @@ namespace se {
                 if (_currentVMId == se->getVMId())
                 {
                     if (!se->isInCleanup() && !se->isGarbageCollecting())
-                        JSValueUnprotect(__cx, _obj);
+                        JSValueUnprotect(__cx, _javaObject);
                 }
                 else
                 {
@@ -1066,7 +1066,7 @@ namespace se {
 
     bool Object::strictEquals(Object* o) const
     {
-        return JSValueIsStrictEqual(__cx, _obj, o->_obj);
+        return JSValueIsStrictEqual(__cx, _javaObject, o->_javaObject);
     }
 
     bool Object::attachObject(Object* obj)
@@ -1117,7 +1117,7 @@ namespace se {
         std::string ret;
         if (isFunction() || isArray() || isTypedArray())
         {
-            internal::forceConvertJsValueToStdString(__cx, _obj, &ret);
+            internal::forceConvertJsValueToStdString(__cx, _javaObject, &ret);
         }
         else if (isArrayBuffer())
         {

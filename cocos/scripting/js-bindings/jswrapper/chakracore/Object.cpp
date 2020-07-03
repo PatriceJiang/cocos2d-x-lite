@@ -35,7 +35,7 @@ namespace se {
  
     Object::Object()
     : _cls(nullptr)
-    , _obj(JS_INVALID_REFERENCE)
+    , _javaObject(JS_INVALID_REFERENCE)
     , _privateData(nullptr)
     , _finalizeCb(nullptr)
     , _rootCount(0)
@@ -229,7 +229,7 @@ namespace se {
 
     bool Object::init(JsValueRef obj)
     {
-        _obj = obj;
+        _javaObject = obj;
         return true;
     }
 
@@ -243,11 +243,11 @@ namespace se {
         {
             if (_privateData != nullptr)
             {
-                if (_obj != nullptr)
+                if (_javaObject != nullptr)
                 {
                     if (nativeObject == nullptr)
                     {
-                        nativeObject = internal::getPrivate(_obj);
+                        nativeObject = internal::getPrivate(_javaObject);
                     }
 
                     if (nativeObject != nullptr)
@@ -267,7 +267,7 @@ namespace se {
                 if (!se->isInCleanup() && !se->isGarbageCollecting())
                 {
                     unsigned int count = 0;
-                    _CHECK(JsRelease(_obj, &count));
+                    _CHECK(JsRelease(_javaObject, &count));
                 }
                 _rootCount = 0;
             }
@@ -310,12 +310,12 @@ namespace se {
         _CHECK(JsCreatePropertyId(name, strlen(name), &propertyId));
 
         bool exist = false;
-        JsHasProperty(_obj, propertyId, &exist);
+        JsHasProperty(_javaObject, propertyId, &exist);
 
         if (exist)
         {
             JsValueRef jsValue;
-            _CHECK(JsGetProperty(_obj, propertyId, &jsValue));
+            _CHECK(JsGetProperty(_javaObject, propertyId, &jsValue));
             internal::jsToSeValue(jsValue, data);
         }
 
@@ -328,13 +328,13 @@ namespace se {
         internal::seToJsValue(v, &jsValue);
         JsPropertyIdRef propertyId;
         _CHECK(JsCreatePropertyId(name, strlen(name), &propertyId));
-        _CHECK(JsSetProperty(_obj, propertyId, jsValue, true));
+        _CHECK(JsSetProperty(_javaObject, propertyId, jsValue, true));
         return true;
     }
 
     bool Object::defineProperty(const char *name, JsNativeFunction getter, JsNativeFunction setter)
     {
-        return internal::defineProperty(_obj, name, getter, setter, true, true);
+        return internal::defineProperty(_javaObject, name, getter, setter, true, true);
     }
 
     bool Object::call(const ValueArray& args, Object* thisObject, Value* rval/* = nullptr*/)
@@ -345,7 +345,7 @@ namespace se {
 
         if (thisObject != nullptr)
         {
-            contextObject = thisObject->_obj;
+            contextObject = thisObject->_javaObject;
         }
         else
         {
@@ -376,7 +376,7 @@ namespace se {
         jsArgs[0] = contextObject;
 
         JsValueRef rcValue = JS_INVALID_REFERENCE;
-        JsErrorCode errCode = JsCallFunction(_obj, jsArgs, args.size() + 1, &rcValue);
+        JsErrorCode errCode = JsCallFunction(_javaObject, jsArgs, args.size() + 1, &rcValue);
         free(jsArgs);
 
         for (auto& obj: toUnrootedObjects)
@@ -410,7 +410,7 @@ namespace se {
         JsValueRef funcVal = JS_INVALID_REFERENCE;
         _CHECK(JsCreateFunction(func, nullptr, &funcVal));
 
-        _CHECK(JsSetProperty(_obj, propertyId, funcVal, true));
+        _CHECK(JsSetProperty(_javaObject, propertyId, funcVal, true));
         return true;
     }
 
@@ -453,12 +453,12 @@ namespace se {
 
     bool Object::isArray() const
     {
-        return isArrayOfObject(_obj);
+        return isArrayOfObject(_javaObject);
     }
 
     bool Object::getArrayLength(uint32_t* length) const
     {
-        return getArrayLengthOfObject(_obj, length);
+        return getArrayLengthOfObject(_javaObject, length);
     }
 
     bool Object::getArrayElement(uint32_t index, Value* data) const 
@@ -473,7 +473,7 @@ namespace se {
         if (err != JsNoError)
             return false;
 
-        err = JsGetIndexedProperty(_obj, jsIndex, &result);
+        err = JsGetIndexedProperty(_javaObject, jsIndex, &result);
         if (err != JsNoError)
             return false;
 
@@ -495,7 +495,7 @@ namespace se {
         JsValueRef value = JS_INVALID_REFERENCE;
         internal::seToJsValue(data, &value);
 
-        err = JsSetIndexedProperty(_obj, jsIndex, value);
+        err = JsSetIndexedProperty(_javaObject, jsIndex, value);
         if (err != JsNoError)
             return false;
 
@@ -508,7 +508,7 @@ namespace se {
 
         JsErrorCode err = JsNoError;
         JsValueRef keys = JS_INVALID_REFERENCE;
-        err = JsGetOwnPropertyNames(_obj, &keys);
+        err = JsGetOwnPropertyNames(_javaObject, &keys);
         if (err != JsNoError)
             return false;
 
@@ -539,8 +539,8 @@ namespace se {
     bool Object::isFunction() const
     {
         JsValueType type;
-        _CHECK(JsGetValueType(_obj, &type));
-        if (_obj != JS_INVALID_REFERENCE && type == JsFunction)
+        _CHECK(JsGetValueType(_javaObject, &type));
+        if (_javaObject != JS_INVALID_REFERENCE && type == JsFunction)
         {
             return true;
         }
@@ -564,7 +564,7 @@ namespace se {
     bool Object::isTypedArray() const
     {
         JsValueType type;
-        if (JsNoError == JsGetValueType(_obj, &type))
+        if (JsNoError == JsGetValueType(_javaObject, &type))
         {
             return type == JsTypedArray;
         }
@@ -582,7 +582,7 @@ namespace se {
         unsigned int byteOffset = 0;
         unsigned int byteLength = 0;
 
-        if (JsNoError == JsGetTypedArrayInfo(_obj, &type, &arrayBuffer, &byteOffset, &byteLength))
+        if (JsNoError == JsGetTypedArrayInfo(_javaObject, &type, &arrayBuffer, &byteOffset, &byteLength))
         {
             if (type == JsArrayTypeInt8)
                 ret = TypedArrayType::INT8;
@@ -615,7 +615,7 @@ namespace se {
         unsigned int bufferLength = 0;
         int elementSize = 0;
         bool ret = false;
-        if (JsNoError == JsGetTypedArrayStorage(_obj, &buffer, &bufferLength, &arrayType, &elementSize))
+        if (JsNoError == JsGetTypedArrayStorage(_javaObject, &buffer, &bufferLength, &arrayType, &elementSize))
         {
             *ptr = buffer;
             *length = bufferLength;
@@ -632,7 +632,7 @@ namespace se {
     bool Object::isArrayBuffer() const
     {
         JsValueType type;
-        if (JsNoError == JsGetValueType(_obj, &type))
+        if (JsNoError == JsGetValueType(_javaObject, &type))
         {
             return type == JsArrayBuffer;
         }
@@ -645,7 +645,7 @@ namespace se {
         ChakraBytePtr buffer = nullptr;
         unsigned int bufferLength = 0;
         bool ret = false;
-        if (JsNoError == JsGetArrayBufferStorage(_obj, &buffer, &bufferLength))
+        if (JsNoError == JsGetArrayBufferStorage(_javaObject, &buffer, &bufferLength))
         {
             *ptr = buffer;
             *length = bufferLength;
@@ -663,7 +663,7 @@ namespace se {
     {
         if (_privateData == nullptr)
         {
-            const_cast<Object*>(this)->_privateData = internal::getPrivate(_obj);
+            const_cast<Object*>(this)->_privateData = internal::getPrivate(_javaObject);
         }
         return _privateData;
     }
@@ -672,7 +672,7 @@ namespace se {
     {
         assert(_privateData == nullptr);
         assert(NativePtrToObjectMap::find(data) == NativePtrToObjectMap::end());
-        internal::setPrivate(_obj, data, _finalizeCb);
+        internal::setPrivate(_javaObject, data, _finalizeCb);
         NativePtrToObjectMap::emplace(data, this);
         _privateData = data;
     }
@@ -683,14 +683,14 @@ namespace se {
         {
             if (clearMapping)
                 NativePtrToObjectMap::erase(_privateData);
-            internal::clearPrivate(_obj);
+            internal::clearPrivate(_javaObject);
             _privateData = nullptr;
         }
     }
 
     JsValueRef Object::_getJSObject() const
     {
-        return _obj;
+        return _javaObject;
     }
 
     Class* Object::_getClass() const
@@ -703,7 +703,7 @@ namespace se {
         if (_rootCount == 0)
         {
             unsigned int count = 0;
-            _CHECK(JsAddRef(_obj, &count));
+            _CHECK(JsAddRef(_javaObject, &count));
         }
         ++_rootCount;
     }
@@ -722,7 +722,7 @@ namespace se {
                     if (!se->isInCleanup() && !se->isGarbageCollecting())
                     {
                         unsigned int count = 0;
-                        _CHECK(JsRelease(_obj, &count));
+                        _CHECK(JsRelease(_javaObject, &count));
                     }
                 }
                 else
@@ -741,7 +741,7 @@ namespace se {
     bool Object::strictEquals(Object* o) const
     {
         bool same = false;
-        _CHECK(JsStrictEquals(_obj, o->_obj, &same));
+        _CHECK(JsStrictEquals(_javaObject, o->_javaObject, &same));
         return same;
     }
 
@@ -793,7 +793,7 @@ namespace se {
         std::string ret;
         if (isFunction() || isArray() || isTypedArray())
         {
-            internal::forceConvertJsValueToStdString(_obj, &ret);
+            internal::forceConvertJsValueToStdString(_javaObject, &ret);
         }
         else if (isArrayBuffer())
         {

@@ -133,10 +133,11 @@ public:
     static jobject callObjectObjectMethod(jobject object,
                                        const std::string& className,
                                        const std::string& methodName,
+                                       const std::string& returnType,
                                        Ts... xs) {
         jobject ret = nullptr;
         cocos2d::JniMethodInfo t;
-        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")F";
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")" + returnType;
         if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallObjectMethod(object, t.methodID, convert(localRefs, t, xs)...);

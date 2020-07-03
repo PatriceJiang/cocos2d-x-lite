@@ -43,15 +43,15 @@ namespace se {
         JSContextRef __cx = nullptr;
         std::vector<Class*> __allClasses;
 
-        void defaultFinalizeCallback(JSObjectRef _obj)
+        void defaultFinalizeCallback(JSObjectRef _javaObject)
         {
-            void* nativeThisObject = JSObjectGetPrivate(_obj);
+            void* nativeThisObject = JSObjectGetPrivate(_javaObject);
             if (nativeThisObject != nullptr)
             {
                 State state(nativeThisObject);
                 Object* _thisObject = state.thisObject();
                 if (_thisObject) _thisObject->_cleanup(nativeThisObject);
-                JSObjectSetPrivate(_obj, nullptr);
+                JSObjectSetPrivate(_javaObject, nullptr);
                 SAFE_DEC_REF(_thisObject);
             }
         }

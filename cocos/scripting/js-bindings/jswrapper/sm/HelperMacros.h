@@ -60,12 +60,12 @@ extern uint32_t __jsbInvocationCount;
     }
 
 #define SE_DECLARE_FINALIZE_FUNC(funcName) \
-    void funcName##Registry(JSFreeOp* _fop, JSObject* _obj);
+    void funcName##Registry(JSFreeOp* _fop, JSObject* _javaObject);
 
 #define SE_BIND_FINALIZE_FUNC(funcName) \
-    void funcName##Registry(JSFreeOp* _fop, JSObject* _obj) \
+    void funcName##Registry(JSFreeOp* _fop, JSObject* _javaObject) \
     { \
-        void* nativeThisObject = JS_GetPrivate(_obj); \
+        void* nativeThisObject = JS_GetPrivate(_javaObject); \
         bool ret = false; \
         if (nativeThisObject == nullptr) \
             return;\

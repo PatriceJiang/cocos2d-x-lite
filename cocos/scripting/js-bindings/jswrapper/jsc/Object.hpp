@@ -399,7 +399,7 @@ namespace se {
         };
 
         Class* _cls;
-        JSObjectRef _obj;
+        JSObjectRef _javaObject;
         void* _privateData;
         JSObjectFinalizeCallback _finalizeCb;
 
