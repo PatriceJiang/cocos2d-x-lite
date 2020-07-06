@@ -18,15 +18,18 @@ using cocos2d::JniMethodInfo;
 
 namespace {
     se::Class *__jsb_jni_jobject = nullptr;
+    se::Class *__jsb_jni_jmethod_invoke_instance = nullptr;
 
     se::Object *sProxyObject = nullptr;
     se::Object *sJavaObjectMethodsUnbound = nullptr;
     se::Object *sJavaObjectFieldsUnbound = nullptr;
+    se::Object *sJavaObjectMethodApplyUnbound = nullptr;
 } // namespace
 
 namespace {
 
     class JValueWrapper;
+    class JObjectWrapper;
 
     std::unordered_map<std::string, se::Class *> sJClassToJSClass;
 
@@ -75,6 +78,40 @@ namespace {
         return buff;
     }
 
+    std::string getJMethodName(jobject method)
+    {
+        jobject methodName = JniHelper::callObjectObjectMethod(
+                method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
+        return jstringToString(methodName);
+    }
+
+    std::string getJMethodReturnType(jobject method) {
+        jobject returnType =
+                JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method",
+                                                  "getReturnType", "Ljava/lang/Class;");
+        jobject returnTypeName = JniHelper::callObjectObjectMethod(
+                returnType, "java/lang/Class", "getName", "Ljava/lang/String;");
+        auto jniRetType = jni_utils::JniType::fromString(jstringToString(returnTypeName));
+        return jniRetType.toString();
+    }
+
+    std::string getJMethodSignature(jobject method) {
+        std::stringstream ss;
+        auto *env = JniHelper::getEnv();
+        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method", "getParameterTypes", "[Ljava/lang/Class;");
+        auto len = env->GetArrayLength(paramTypes);
+        ss << "(";
+        for (auto j = 0; j < len; j++) {
+            jobject m = env->GetObjectArrayElement(paramTypes, 0);
+            jobject paramName = JniHelper::callObjectObjectMethod(
+                    m, "java/lang/Class", "getName", "Ljava/lang/String;");
+            ss << jstringToString(paramName);
+        }
+        ss << ")";
+        ss << getJMethodReturnType(method);
+        return ss.str();
+    }
+
     std::vector<std::string> getJobjectMethods(jobject obj) {
         auto *env = JniHelper::getEnv();
         jobject classObject = getJObjectClassObject(obj);
@@ -85,28 +122,10 @@ namespace {
         auto len = env->GetArrayLength(methods);
         for (auto i = 0; i < len; i++) {
             jobject method = env->GetObjectArrayElement(methods, i);
-            jobject methodName = JniHelper::callObjectObjectMethod(
-                    method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
-            std::stringstream ss;
-            ss << jstringToString(methodName);
-            jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(
-                    method, "java/lang/reflect/Method", "getParameterTypes",
-                    "[Ljava/lang/Class;");
-            auto len = env->GetArrayLength(paramTypes);
-            ss << " # (";
-            for (auto j = 0; j < len; j++) {
-                jobject m = env->GetObjectArrayElement(paramTypes, 0);
-                jobject paramName = JniHelper::callObjectObjectMethod(
-                        m, "java/lang/Class", "getName", "Ljava/lang/String;");
-                ss << jstringToString(paramName);
-            }
-            ss << ")";
-            jobject returnType =
-                    JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method",
-                                                      "getReturnType", "Ljava/lang/Class;");
-            jobject returnTypeName = JniHelper::callObjectObjectMethod(
-                    returnType, "java/lang/Class", "getName", "Ljava/lang/String;");
-            ss << jstringToString(returnTypeName);
+             std::stringstream ss;
+            ss << getJMethodName(method);
+            ss << " # ";
+            ss << getJMethodSignature(method);
             methodList.push_back(ss.str());
         }
 
@@ -197,6 +216,32 @@ namespace {
         jvalue value;
     };
 
+    struct JMethod {
+        jmethodID method;
+        std::string signature;
+    };
+
+
+
+    class InvokeMethods {
+    public:
+        InvokeMethods(const  std::vector<JMethod> & _methods, JObjectWrapper *_self):
+            methods(_methods), self(_self){
+
+        }
+        se::Object * asJSObject()
+        {
+            if(_jsobj) return _jsobj;
+            _jsobj = se::Object::createObjectWithClass(__jsb_jni_jmethod_invoke_instance);
+            _jsobj->setPrivateData(this);
+            return _jsobj;
+        }
+        std::vector<JMethod> methods;
+        JObjectWrapper *self = nullptr;
+    private:
+        se::Object *_jsobj = nullptr;
+    };
+
     class JObjectWrapper {
     public:
         JObjectWrapper(jobject obj) {
@@ -243,7 +288,7 @@ namespace {
 
         se::Object *getUnderlineJSObject() const { return _jsObject; }
 
-        bool findMethods(const std::string &name, const std::string &signature);
+        bool findMethods(const std::string &name, const std::string &signature, std::vector<JMethod> &method);
 
         JValueWrapper *findField(const std::string &name);
 
@@ -271,7 +316,7 @@ namespace {
                 fieldType, "java/lang/Class", "getName", "Ljava/lang/String;");
         std::string fieldNameStr = jstringToString(fieldTypeName);
         jni_utils::JniType jniFieldType =
-                jni_utils::JniType::fromCanonicalName(fieldNameStr);
+                jni_utils::JniType::fromString(fieldNameStr);
         jfieldID fieldId =
                 env->GetFieldID(env->GetObjectClass(_javaObject), name.c_str(),
                                 jniFieldType.toString().c_str());
@@ -314,9 +359,45 @@ namespace {
     }
 
     bool JObjectWrapper::findMethods(const std::string &name,
-                                     const std::string &signature) {
-        // TODO
-        return false;
+                                     const std::string &signature, std::vector<JMethod> &list) {
+        auto *env = JniHelper::getEnv();
+        std::string klassName = getJObjectClass(_javaObject);
+        jclass jobjClass = env->GetObjectClass(_javaObject);
+        JMethod oMethod;
+        if(!signature.empty()) {
+            jmethodID mid = env->GetMethodID(jobjClass, klassName.c_str(), signature.c_str());
+            if(!mid || env->ExceptionCheck())
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            oMethod.method = mid;
+            oMethod.signature = signature;
+            list.push_back(oMethod);
+        } else {
+            jobject classObj = JniHelper::callObjectObjectMethod(_javaObject, klassName, "getClass", "Ljava/lang/Class;");
+            jobjectArray methodsArray = (jobjectArray) JniHelper::callObjectObjectMethod(classObj, "java/lang/Class", "getMethods", "[Ljava/lang/reflect/Method;");
+            if(!methodsArray || env->ExceptionCheck()) {
+                env->ExceptionClear();
+                return false;
+            }
+            auto len = env->GetArrayLength(methodsArray);
+            for(int i = 0; i < len; i++) {
+                jobject methodObj = env->GetObjectArrayElement(methodsArray, i);
+                std::string methodName = getJMethodName(methodObj);
+                if(methodName != name) {
+                    continue;
+                }
+                auto sig = getJMethodSignature(methodObj);
+                jmethodID mid = env->GetMethodID(jobjClass, name.c_str(), sig.c_str());
+                assert(mid);
+                oMethod.method = mid;
+                oMethod.signature = sig;
+                list.push_back(oMethod);
+            }
+        }
+
+        return true;
     }
 
     bool JValueWrapper::cast(se::Value &out) {
@@ -509,7 +590,6 @@ static bool js_jni_jobject_finalize(se::State &s) {
     }
     return true;
 }
-
 SE_BIND_FINALIZE_FUNC(js_jni_jobject_finalize)
 
 static bool js_register_jni_jobject(se::Object *obj) {
@@ -518,6 +598,23 @@ static bool js_register_jni_jobject(se::Object *obj) {
     __jsb_jni_jobject = cls;
     return true;
 }
+
+static bool js_jni_jmethod_invoke_instance_finalize(se::State &s) {
+    auto *cobj = (InvokeMethods *) s.nativeThisObject();
+    if (cobj) {
+        delete cobj;
+    }
+    return true;
+}
+SE_BIND_FINALIZE_FUNC(js_jni_jmethod_invoke_instance_finalize)
+
+static bool js_register_jni_jmethod_invoke_instance(se::Object *obj) {
+    auto cls = se::Class::create("jmethod_invoke_instance", obj, nullptr, nullptr);
+    cls->defineFinalizeFunction(_SE(js_jni_jmethod_invoke_instance_finalize));
+    __jsb_jni_jmethod_invoke_instance = cls;
+    return true;
+}
+
 
 static bool js_jni_helper_getActivity(se::State &s) {
     auto *env = JniHelper::getEnv();
@@ -648,12 +745,23 @@ static bool js_jni_proxy_get(se::State &s) {
 
     auto *inner = (JObjectWrapper *) target->getPrivateData();
     if (inner) {
-        JValueWrapper *field = inner->findField(method.c_str());
-        if (field) {
-            field->cast(outvalue);
-            s.rval() = outvalue;
-            return true;
+        {
+            JValueWrapper *field = inner->findField(method);
+            if (field) {
+                field->cast(outvalue);
+                s.rval() = outvalue;
+                return true;
+            }
         }
+        {
+            std::vector<JMethod> methods;
+            if(inner->findMethods(method, "", methods) && !methods.empty()) {
+                auto * ctx = new InvokeMethods(methods, inner);
+                s.rval().setObject(sJavaObjectMethodApplyUnbound->bindThis(ctx->asJSObject()));
+                return true;
+            }
+        }
+
     }
 
     SE_LOGE("try to find field '%s'", method.c_str());
@@ -723,6 +831,45 @@ static bool js_jni_proxy_fields(se::State &s) {
 
 SE_BIND_FUNC(js_jni_proxy_fields)
 
+static bool js_jni_proxy_object_method_apply(se::State &s)
+{
+    auto *env = JniHelper::getEnv();
+    auto *self = s.getJSThisObject();
+    auto argCnt = s.args().size();
+    bool ok = false;
+
+    auto *ctx = (InvokeMethods *) self->getPrivateData();
+    if(ctx->methods.size() == 1) {
+        auto &m = ctx->methods[0];
+        auto jthis = ctx->self->getJavaObject();
+        std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0, ok);
+        std::string returnType = m.signature.substr(m.signature.find(')') + 1);
+        jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
+        if(rType.isVoid()) {
+            env->CallVoidMethodA(jthis, m.method, jvalueArray.data());
+        } else if(rType.isObject()) {
+            jobject ret = env->CallObjectMethodA(jthis, m.method, jvalueArray.data());
+            if(rType.getClassName() == "java/lang/String") {
+                s.rval().setString(jstringToString(ret));
+                return true;
+            } else {
+                auto *jret = new JObjectWrapper(ret);
+                s.rval().setObject(jret->asJSObject());
+                return true;
+            }
+        } else {
+            //TODO
+        }
+    } else {
+        //TODO iterate all methods, catch exception
+        // argument cnt
+    }
+
+    return true;
+}
+
+SE_BIND_FUNC(js_jni_proxy_object_method_apply)
+
 static void setup_proxy_object() {
     sProxyObject = se::Object::createPlainObject();
     sProxyObject->defineFunction("apply", _SE(js_jni_proxy_apply));
@@ -738,6 +885,9 @@ static void setup_proxy_object() {
     sJavaObjectFieldsUnbound =
             se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_fields));
     sJavaObjectFieldsUnbound->root();
+
+    sJavaObjectMethodApplyUnbound = se::Object::createFunctionObject(nullptr,  _SE(js_jni_proxy_object_method_apply));
+    sJavaObjectMethodApplyUnbound->root();
 }
 
 bool jsb_register_jni_manual(se::Object *obj) {
@@ -751,6 +901,7 @@ bool jsb_register_jni_manual(se::Object *obj) {
     auto *ns = nsVal.toObject();
     js_register_jni_jobject(ns);
     js_register_jni_helper(ns);
+    js_register_jni_jmethod_invoke_instance(ns);
 
     return true;
 }

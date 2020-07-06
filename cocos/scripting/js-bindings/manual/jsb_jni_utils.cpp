@@ -26,7 +26,7 @@ namespace jni_utils {
         return ret;
     }
 
-    JniType JniType::fromCanonicalName(const std::string &name_) {
+    JniType JniType::fromString(const std::string &name_) {
         JniType ret;
         std::regex reg("^\\[*(V|Z|C|S|B|I|J|F|D|L.*;)$");
 

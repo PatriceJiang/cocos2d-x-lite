@@ -45,7 +45,7 @@ namespace jni_utils {
 
         static JniType from(JniTypeEnum e);
 
-        static JniType fromCanonicalName(const std::string &name);
+        static JniType fromString(const std::string &name);
 
         std::string toString() const;
 
