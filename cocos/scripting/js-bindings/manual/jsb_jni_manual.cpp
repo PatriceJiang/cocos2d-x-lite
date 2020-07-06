@@ -26,6 +26,8 @@ namespace {
 
 namespace {
 
+    class JValueWrapper;
+
     std::unordered_map<std::string, se::Class *> sJClassToJSClass;
 
     std::string jstringToString(jobject arg) {
@@ -37,6 +39,14 @@ namespace {
         env->GetStringUTFRegion(str, 0, len, buff.data());
         buff[len] = '\0';
         return buff.data();
+    }
+
+    std::string jthrowableToString(jthrowable e) {
+        auto *env = JniHelper::getEnv();
+        jobject str = JniHelper::callObjectObjectMethod((jobject)e, "java/lang/Throwable", "toString", "Ljava/lang/String;");
+        auto ret = jstringToString(str);
+        env->DeleteLocalRef(str);
+        return ret;
     }
 
     jobject getJObjectClassObject(jobject obj) {
@@ -111,6 +121,63 @@ namespace {
         return fieldList;
     }
 
+    class JValueWrapper {
+    public:
+        JValueWrapper(const  jni_utils::JniType& type_, jvalue v_): type(type_), value(v_) {}
+
+        const jni_utils::JniType & getType() const {return type;}
+
+        jboolean getBoolean() const {
+            assert(type.isBoolean());
+            return value.z;
+        }
+
+        jbyte getByte() const {
+            assert(type.isByte());
+            return value.b;
+        }
+
+        jchar getChar() const {
+            assert(type.isChar());
+            return value.c;
+        }
+
+        jshort getShort() const {
+            assert(type.isShort());
+            return value.s;
+        }
+
+        jint getInt() const {
+            assert(type.isInt());
+            return value.i;
+        }
+
+        jlong getLong() const {
+            assert(type.isLong());
+            return value.j;
+        }
+
+        jfloat getFloat() const {
+            assert(type.isFloat());
+            return value.f;
+        }
+
+        jdouble getDouble() const {
+            assert(type.isDouble());
+            return value.d;
+        }
+
+        jobject getObject() const {
+            assert(type.isObject());
+            return value.l;
+        }
+
+        bool cast(se::Value &out);
+
+    private:
+        jni_utils::JniType type;
+        jvalue value;
+    };
 
     class JObjectWrapper {
     public:
@@ -158,7 +225,7 @@ namespace {
 
         bool findMethods(const std::string &name, const std::string &signature);
 
-        JObjectWrapper* findField(const std::string &name);
+        JValueWrapper* findField(const std::string &name);
 
     private:
         jobject _javaObject = nullptr;
@@ -166,7 +233,7 @@ namespace {
         se::Object *_jsObject = nullptr;
     };
 
-    JObjectWrapper* JObjectWrapper::findField(const std::string &name)
+    JValueWrapper* JObjectWrapper::findField(const std::string &name)
     {
         auto *env = JniHelper::getEnv();
         std::string klassName = getJObjectClass(_javaObject);
@@ -179,13 +246,46 @@ namespace {
         jobject fieldType = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
         jobject fieldTypeName = JniHelper::callObjectObjectMethod(fieldType, "java/lang/Class", "getName", "Ljava/lang/String;");
         std::string fieldNameStr = jstringToString(fieldTypeName);
-        jfieldID fieldId = env->GetFieldID(env->GetObjectClass(_javaObject), name.c_str(), fieldNameStr.c_str());
+        jni_utils::JniType jniFieldType = jni_utils::JniType::fromCanonicalName(fieldNameStr);
+        jfieldID fieldId = env->GetFieldID(env->GetObjectClass(_javaObject), name.c_str(), jniFieldType.toString().c_str());
         if(fieldId == nullptr || env->ExceptionCheck()) {
+            jthrowable e = env->ExceptionOccurred();
+            auto exceptionString = jthrowableToString(e);
+            SE_LOGE("Exception caught when access %s#%s\n %s", klassName.c_str(), name.c_str(), exceptionString.c_str());
             env->ExceptionClear();
             return nullptr;
         }
-        jobject ret = env->GetObjectField(_javaObject, fieldId);
-        return new JObjectWrapper(ret);
+        jvalue ret;
+        if(jniFieldType.dim == 0)
+        {
+            if(jniFieldType.isBoolean()) {
+                ret.z = env->GetBooleanField(_javaObject, fieldId);
+            }else if(jniFieldType.isByte()) {
+                ret.b = env->GetByteField(_javaObject, fieldId);
+            }else if(jniFieldType.isChar()){
+                ret.c = env->GetCharField(_javaObject, fieldId);
+            }else if(jniFieldType.isShort()) {
+                ret.s = env->GetShortField(_javaObject, fieldId);
+            }else if(jniFieldType.isInt()) {
+                ret.i = env->GetIntField(_javaObject, fieldId);
+            }else if(jniFieldType.isLong()) {
+                ret.j = env->GetLongField(_javaObject, fieldId);
+            }else if(jniFieldType.isFloat()) {
+                ret.f = env->GetFloatField(_javaObject, fieldId);
+            }else if(jniFieldType.isDouble()) {
+                ret.d = env->GetDoubleField(_javaObject, fieldId);
+            }else if(jniFieldType.isObject()) {
+                ret.l = env->GetObjectField(_javaObject, fieldId);
+            }else {
+                assert(false);
+            }
+        }
+        else if(jniFieldType.dim > 0)
+        {
+            ret.l = env->GetObjectField(_javaObject, fieldId);
+        }
+
+        return new JValueWrapper(jniFieldType, ret);
     }
 
     bool JObjectWrapper::findMethods(const std::string &name, const std::string &signature)
@@ -193,6 +293,119 @@ namespace {
         //TODO
         return false;
     }
+
+
+    bool JValueWrapper::cast(se::Value &out) {
+        auto *env = JniHelper::getEnv();
+        if(type.dim == 0)
+        {
+            if (type.isBoolean()) {
+                out.setBoolean(value.z);
+            } else if (type.isByte()) {
+                out.setUint8(value.b);
+            } else if (type.isChar()) {
+                out.setUint16(value.c);
+            } else if (type.isShort()) {
+                out.setInt16(value.s);
+            } else if (type.isInt()) {
+                out.setInt32(value.i);
+            } else if (type.isLong()) {
+                out.setInt32((int32_t) value.l); // use double ??
+            } else if (type.isFloat()) {
+                out.setFloat(value.f);
+            } else if (type.isDouble()) {
+                out.setFloat(value.d);
+            } else if (type.isObject()) {
+                if (type.getClassName() == "java/lang/String")
+                {
+                    out.setString(jstringToString(value.l));
+                }
+                else
+                {
+                    auto *obj = new JObjectWrapper(value.l);
+                    out.setObject(obj->asJSObject());
+                }
+            }
+        }
+        else if(type.dim == 1)
+        {
+            auto jarr = (jarray) value.l;
+            auto len = env->GetArrayLength(jarr);
+            se::Object * array = se::Object::createArrayObject(len);
+            jboolean isCopy = false;
+            if (type.isBoolean()) {
+                auto  *tmp=env->GetBooleanArrayElements((jbooleanArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((bool)tmp[i]));
+                }
+            } else if (type.isByte()) {
+                auto  *tmp=env->GetByteArrayElements((jbyteArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((uint8_t)tmp[i]));
+                }
+            } else if (type.isChar()) {
+                auto  *tmp=env->GetCharArrayElements((jcharArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((uint16_t)tmp[i]));
+                }
+            } else if (type.isShort()) {
+                auto *tmp=env->GetShortArrayElements((jshortArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((int16_t)tmp[i]));
+                }
+            } else if (type.isInt()) {
+                auto  *tmp = env->GetIntArrayElements((jintArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((int)tmp[i]));
+                }
+            } else if (type.isLong()) {
+                auto  *tmp = env->GetLongArrayElements((jlongArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((int32_t)tmp[i]));
+                }
+            } else if (type.isFloat()) {
+                auto  *tmp = env->GetFloatArrayElements((jfloatArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((float)tmp[i]));
+                }
+            } else if (type.isDouble()) {
+                auto  *tmp = env->GetDoubleArrayElements((jdoubleArray)jarr, &isCopy);
+                for(auto i =0;i<len; i++) {
+                    array->setArrayElement(i, se::Value((double)tmp[i]));
+                }
+            } else if (type.isObject()) {
+                for(auto i = 0 ; i < len; i++) {
+                    jobject ele = env->GetObjectArrayElement((jobjectArray)jarr, i);
+                    if(type.klassName == "java/lang/String") {
+                        array->setArrayElement(i, se::Value(jstringToString(ele)));
+                    }else {
+                        auto *obj = new JObjectWrapper(ele);
+                        out.setObject(obj->asJSObject());
+                    }
+                }
+            }
+            out.setObject(array);
+        } else {
+            auto jarr = (jarray) value.l;
+            auto len = env->GetArrayLength(jarr);
+            se::Object * array = se::Object::createArrayObject(len);
+            jboolean isCopy = false;
+
+            jni_utils::JniType type2 = type;
+            type2.dim -= 1;
+            for(auto i = 0;i < len; i++) {
+                se::Value tmpSeValue;
+                jvalue jvalueTmp;
+                jvalueTmp.l = env->GetObjectArrayElement((jobjectArray)jarr, i);
+                JValueWrapper tmpJwrapper(type2, jvalueTmp);
+                tmpJwrapper.cast(tmpSeValue);
+                array->setArrayElement(i, tmpSeValue);
+            }
+            out.setObject(array);
+        }
+        return true;
+    }
+
 
     jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def, const se::Value &val, bool &ok)
     {
@@ -405,17 +618,18 @@ static bool js_jni_proxy_get(se::State& s) {
     }
 
 
-    se::Value prop;
-    if(target->getRealNamedProperty(method.c_str(), &prop)) {
-        s.rval() = prop;
+    se::Value outvalue;
+    if(target->getRealNamedProperty(method.c_str(), &outvalue)) {
+        s.rval() = outvalue;
         return true;
     }
 
     auto *inner = (JObjectWrapper*)target->getPrivateData();
     if(inner) {
-        JObjectWrapper *field = inner->findField(method.c_str());
+        JValueWrapper *field = inner->findField(method.c_str());
         if(field) {
-            s.rval().setObject(field->asJSObject());
+            field->cast(outvalue);
+            s.rval() = outvalue;
             return true;
         }
     }
@@ -517,4 +731,3 @@ bool jsb_register_jni_manual(se::Object* obj)
 
     return true;
 }
-

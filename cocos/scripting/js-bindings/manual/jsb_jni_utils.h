@@ -27,6 +27,11 @@ namespace jni_utils
         JniTypeEnum type = JniTypeEnum::None;
         std::string klassName;
         JniType() = default;
+        JniType(const JniType &o) {
+            type = o.type;
+            dim = o.dim;
+            klassName = o.klassName;
+        }
         JniType(JniType && other) {
             this->dim = other.dim;
             this->type = other.type;
@@ -35,6 +40,7 @@ namespace jni_utils
             other.type = JniTypeEnum ::None;
         }
         static JniType from(JniTypeEnum e);
+        static JniType fromCanonicalName(const std::string &name);
         std::string toString() const;
 
         inline bool isNone() const { return type == JniTypeEnum::None;}
@@ -50,6 +56,7 @@ namespace jni_utils
         inline bool isObject() const { return type == JniTypeEnum::Object_L;}
         inline bool isMAX() const { return type == JniTypeEnum::MAX_TYPE;}
 
+        inline const std::string &getClassName() const {return klassName;}
     };
 
 
