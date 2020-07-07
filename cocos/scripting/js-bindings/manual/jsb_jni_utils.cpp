@@ -70,6 +70,10 @@ namespace jni_utils {
         return ret;
     }
 
+    std::string JniType::reparse(const std::string &name) {
+        return fromString(name).toString();
+    }
+
     std::string JniType::toString() const {
         std::stringstream ss;
         auto d = this->dim;

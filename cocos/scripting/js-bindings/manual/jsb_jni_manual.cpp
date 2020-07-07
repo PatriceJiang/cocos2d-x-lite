@@ -29,6 +29,7 @@ namespace {
 namespace {
 
     class JValueWrapper;
+
     class JObjectWrapper;
 
     std::unordered_map<std::string, se::Class *> sJClassToJSClass;
@@ -78,8 +79,7 @@ namespace {
         return buff;
     }
 
-    std::string getJMethodName(jobject method)
-    {
+    std::string getJMethodName(jobject method) {
         jobject methodName = JniHelper::callObjectObjectMethod(
                 method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
         return jstringToString(methodName);
@@ -98,14 +98,17 @@ namespace {
     std::string getJMethodSignature(jobject method) {
         std::stringstream ss;
         auto *env = JniHelper::getEnv();
-        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method", "getParameterTypes", "[Ljava/lang/Class;");
+        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(method,
+                                                                                   "java/lang/reflect/Method",
+                                                                                   "getParameterTypes",
+                                                                                   "[Ljava/lang/Class;");
         auto len = env->GetArrayLength(paramTypes);
         ss << "(";
         for (auto j = 0; j < len; j++) {
             jobject m = env->GetObjectArrayElement(paramTypes, 0);
             jobject paramName = JniHelper::callObjectObjectMethod(
                     m, "java/lang/Class", "getName", "Ljava/lang/String;");
-            ss << jstringToString(paramName);
+            ss << jni_utils::JniType::reparse(jstringToString(paramName));
         }
         ss << ")";
         ss << getJMethodReturnType(method);
@@ -122,7 +125,7 @@ namespace {
         auto len = env->GetArrayLength(methods);
         for (auto i = 0; i < len; i++) {
             jobject method = env->GetObjectArrayElement(methods, i);
-             std::stringstream ss;
+            std::stringstream ss;
             ss << getJMethodName(method);
             ss << " # ";
             ss << getJMethodSignature(method);
@@ -156,6 +159,7 @@ namespace {
 
         return fieldList;
     }
+
 
     class JValueWrapper {
     public:
@@ -222,22 +226,22 @@ namespace {
     };
 
 
-
     class InvokeMethods {
     public:
-        InvokeMethods(const  std::vector<JMethod> & _methods, JObjectWrapper *_self):
-            methods(_methods), self(_self){
-
+        InvokeMethods(const std::string &methodName, const std::vector<JMethod> &_methods, JObjectWrapper *_self) :
+                methodName(methodName), methods(_methods), self(_self) {
         }
-        se::Object * asJSObject()
-        {
-            if(_jsobj) return _jsobj;
+
+        se::Object *asJSObject() {
+            if (_jsobj) return _jsobj;
             _jsobj = se::Object::createObjectWithClass(__jsb_jni_jmethod_invoke_instance);
             _jsobj->setPrivateData(this);
             return _jsobj;
         }
+
         std::vector<JMethod> methods;
         JObjectWrapper *self = nullptr;
+        std::string methodName;
     private:
         se::Object *_jsobj = nullptr;
     };
@@ -288,7 +292,8 @@ namespace {
 
         se::Object *getUnderlineJSObject() const { return _jsObject; }
 
-        bool findMethods(const std::string &name, const std::string &signature, std::vector<JMethod> &method);
+        bool findMethods(const std::string &name, const std::string &signature,
+                         std::vector<JMethod> &method);
 
         JValueWrapper *findField(const std::string &name);
 
@@ -364,10 +369,9 @@ namespace {
         std::string klassName = getJObjectClass(_javaObject);
         jclass jobjClass = env->GetObjectClass(_javaObject);
         JMethod oMethod;
-        if(!signature.empty()) {
+        if (!signature.empty()) {
             jmethodID mid = env->GetMethodID(jobjClass, klassName.c_str(), signature.c_str());
-            if(!mid || env->ExceptionCheck())
-            {
+            if (!mid || env->ExceptionCheck()) {
                 env->ExceptionClear();
                 return false;
             }
@@ -375,17 +379,21 @@ namespace {
             oMethod.signature = signature;
             list.push_back(oMethod);
         } else {
-            jobject classObj = JniHelper::callObjectObjectMethod(_javaObject, klassName, "getClass", "Ljava/lang/Class;");
-            jobjectArray methodsArray = (jobjectArray) JniHelper::callObjectObjectMethod(classObj, "java/lang/Class", "getMethods", "[Ljava/lang/reflect/Method;");
-            if(!methodsArray || env->ExceptionCheck()) {
+            jobject classObj = JniHelper::callObjectObjectMethod(_javaObject, klassName, "getClass",
+                                                                 "Ljava/lang/Class;");
+            jobjectArray methodsArray = (jobjectArray) JniHelper::callObjectObjectMethod(classObj,
+                                                                                         "java/lang/Class",
+                                                                                         "getMethods",
+                                                                                         "[Ljava/lang/reflect/Method;");
+            if (!methodsArray || env->ExceptionCheck()) {
                 env->ExceptionClear();
                 return false;
             }
             auto len = env->GetArrayLength(methodsArray);
-            for(int i = 0; i < len; i++) {
+            for (int i = 0; i < len; i++) {
                 jobject methodObj = env->GetObjectArrayElement(methodsArray, i);
                 std::string methodName = getJMethodName(methodObj);
-                if(methodName != name) {
+                if (methodName != name) {
                     continue;
                 }
                 auto sig = getJMethodSignature(methodObj);
@@ -505,33 +513,76 @@ namespace {
         return true;
     }
 
+
+    bool callJMethodByReturnType(const jni_utils::JniType &rType, jobject jthis, jmethodID method,
+                                 const std::vector<jvalue> &jvalueArray, se::Value &out) {
+        auto *env = JniHelper::getEnv();
+        jvalue jRet;
+        if (rType.isVoid()) {
+            env->CallVoidMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isBoolean()) {
+            jRet.z = env->CallBooleanMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isChar()) {
+            jRet.c = env->CallCharMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isShort()) {
+            jRet.s = env->CallShortMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isByte()) {
+            jRet.b = env->CallByteMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isInt()) {
+            jRet.i = env->CallIntMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isLong()) {
+            jRet.j = env->CallIntMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isFloat()) {
+            jRet.f = env->CallFloatMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isDouble()) {
+            jRet.d = env->CallDoubleMethodA(jthis, method, jvalueArray.data());
+        } else if (rType.isObject()) {
+            jRet.l = env->CallObjectMethodA(jthis, method, jvalueArray.data());
+        } else {
+            assert(false);
+            return false;
+        }
+        JValueWrapper wrap(rType, jRet);
+        wrap.cast(out);
+        return true;
+    }
+
     jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def,
                             const se::Value &val, bool &ok) {
         jvalue ret;
         ok = false;
-        if (def.isBoolean()) {
+        if (def.isBoolean() && val.isBoolean()) {
             ret.z = val.toBoolean();
-        } else if (def.isByte()) {
+        } else if (def.isByte() && val.isNumber()) {
             ret.b = val.toInt8();
-        } else if (def.isChar()) {
+        } else if (def.isChar() && val.isNumber()) {
             ret.c = val.toInt16();
-        } else if (def.isShort()) {
+        } else if (def.isShort() && val.isNumber()) {
             ret.s = val.toInt16();
-        } else if (def.isInt()) {
+        } else if (def.isInt() && val.isNumber()) {
             ret.i = val.toInt32();
-        } else if (def.isLong()) {
+        } else if (def.isLong() && val.isNumber()) {
             ret.j = static_cast<jlong>(val.toNumber()); // int 64
-        } else if (def.isFloat()) {
+        } else if (def.isFloat() && val.isNumber()) {
             ret.f = val.toFloat();
-        } else if (def.isDouble()) {
+        } else if (def.isDouble() && val.isNumber()) {
             ret.d = val.toNumber();
         } else if (def.isObject()) {
-            assert(val.isObject());
-            se::Object *seObj = val.toObject();
-            auto *jo = static_cast<JObjectWrapper *>(seObj->getPrivateData());
-            ret.l = jo->getJavaObject();
+
+            if (def.getClassName() == "java/lang/String") {
+                std::string jsstring = val.toStringForce();
+                ret.l = env->NewStringUTF(jsstring.c_str());
+            } else if(val.isObject()){
+                se::Object *seObj = val.toObject();
+                auto *jo = static_cast<JObjectWrapper *>(seObj->getPrivateData());
+                ret.l = jo->getJavaObject();
+            } else {
+                ok = false;
+                SE_LOGE("incorrect jni type, don't know how to convert %s to java value %s", val.toStringForce().c_str(), def.toString().c_str());
+            }
+
         } else {
-            SE_LOGE("incorrect jni type, don't know how to convert from js value");
+            SE_LOGE("incorrect jni type, don't know how to convert %s from js value %s:%s", def.toString().c_str(), val.getTypeName().c_str(), val.toStringForce().c_str());
             return ret;
         }
         ok = true;
@@ -545,7 +596,7 @@ namespace {
         success = false;
         std::vector<jni_utils::JniType> argTypes =
                 jni_utils::exactArgsFromSignature(signature, convertOk);
-        if (convertOk) {
+        if (!convertOk) {
             SE_LOGE("failed to parse signature \"%s\"", signature.c_str());
             return {};
         }
@@ -560,6 +611,11 @@ namespace {
         for (size_t i = 0; i < argTypes.size(); i++) {
             jvalue arg =
                     seval_to_jvalule(env, argTypes[i], args[i + offset], convertOk);
+            if (!convertOk || env->ExceptionCheck()) {
+                env->ExceptionClear();
+                success = false;
+                return {};
+            }
             assert(convertOk);
             ret.push_back(arg);
         }
@@ -590,6 +646,7 @@ static bool js_jni_jobject_finalize(se::State &s) {
     }
     return true;
 }
+
 SE_BIND_FINALIZE_FUNC(js_jni_jobject_finalize)
 
 static bool js_register_jni_jobject(se::Object *obj) {
@@ -606,6 +663,7 @@ static bool js_jni_jmethod_invoke_instance_finalize(se::State &s) {
     }
     return true;
 }
+
 SE_BIND_FINALIZE_FUNC(js_jni_jmethod_invoke_instance_finalize)
 
 static bool js_register_jni_jmethod_invoke_instance(se::Object *obj) {
@@ -755,8 +813,8 @@ static bool js_jni_proxy_get(se::State &s) {
         }
         {
             std::vector<JMethod> methods;
-            if(inner->findMethods(method, "", methods) && !methods.empty()) {
-                auto * ctx = new InvokeMethods(methods, inner);
+            if (inner->findMethods(method, "", methods) && !methods.empty()) {
+                auto *ctx = new InvokeMethods(method, methods, inner);
                 s.rval().setObject(sJavaObjectMethodApplyUnbound->bindThis(ctx->asJSObject()));
                 return true;
             }
@@ -831,41 +889,48 @@ static bool js_jni_proxy_fields(se::State &s) {
 
 SE_BIND_FUNC(js_jni_proxy_fields)
 
-static bool js_jni_proxy_object_method_apply(se::State &s)
-{
+static bool js_jni_proxy_object_method_apply(se::State &s) {
     auto *env = JniHelper::getEnv();
     auto *self = s.getJSThisObject();
     auto argCnt = s.args().size();
     bool ok = false;
 
     auto *ctx = (InvokeMethods *) self->getPrivateData();
-    if(ctx->methods.size() == 1) {
+    auto jthis = ctx->self->getJavaObject();
+    auto throwException = "method '" + ctx->methodName + "' is not found, or signature mismatch!";
+    if (ctx->methods.size() == 1) {
         auto &m = ctx->methods[0];
-        auto jthis = ctx->self->getJavaObject();
         std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0, ok);
+        if (!ok) {
+            se::ScriptEngine::getInstance()->throwException(throwException);
+            return false;
+        }
         std::string returnType = m.signature.substr(m.signature.find(')') + 1);
         jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
-        if(rType.isVoid()) {
-            env->CallVoidMethodA(jthis, m.method, jvalueArray.data());
-        } else if(rType.isObject()) {
-            jobject ret = env->CallObjectMethodA(jthis, m.method, jvalueArray.data());
-            if(rType.getClassName() == "java/lang/String") {
-                s.rval().setString(jstringToString(ret));
-                return true;
-            } else {
-                auto *jret = new JObjectWrapper(ret);
-                s.rval().setObject(jret->asJSObject());
+        ok = callJMethodByReturnType(rType, jthis, m.method, jvalueArray, s.rval());
+        return ok;
+    } else {
+        //TODO: match signature by type test, should not try all methods
+        for (const JMethod &m : ctx->methods) {
+            auto argsFromSignature = jni_utils::exactArgsFromSignature(m.signature, ok);
+            if (argsFromSignature.size() == argCnt) {
+                std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0,
+                                                                  ok);
+                if (!ok) continue;
+                std::string returnType = m.signature.substr(m.signature.find(')') + 1);
+                jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
+                ok = callJMethodByReturnType(rType, jthis, m.method, jvalueArray, s.rval());
+                if (!ok || env->ExceptionCheck()) {
+                    env->ExceptionClear();
+                    continue;
+                }
                 return true;
             }
-        } else {
-            //TODO
         }
-    } else {
-        //TODO iterate all methods, catch exception
-        // argument cnt
-    }
 
-    return true;
+    }
+    se::ScriptEngine::getInstance()->throwException(throwException);
+    return false;
 }
 
 SE_BIND_FUNC(js_jni_proxy_object_method_apply)
@@ -886,7 +951,8 @@ static void setup_proxy_object() {
             se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_fields));
     sJavaObjectFieldsUnbound->root();
 
-    sJavaObjectMethodApplyUnbound = se::Object::createFunctionObject(nullptr,  _SE(js_jni_proxy_object_method_apply));
+    sJavaObjectMethodApplyUnbound = se::Object::createFunctionObject(nullptr,
+                                                                     _SE(js_jni_proxy_object_method_apply));
     sJavaObjectMethodApplyUnbound->root();
 }
 

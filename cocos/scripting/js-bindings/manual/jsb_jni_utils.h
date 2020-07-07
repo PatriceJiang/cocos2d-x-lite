@@ -47,6 +47,8 @@ namespace jni_utils {
 
         static JniType fromString(const std::string &name);
 
+        static std::string reparse(const std::string &);
+
         std::string toString() const;
 
         inline bool isNone() const { return type == JniTypeEnum::None; }
