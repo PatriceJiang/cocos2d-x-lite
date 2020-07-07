@@ -32,6 +32,13 @@ namespace {
 
     class JObjectWrapper;
 
+    bool
+    getJFieldByType1D(JNIEnv *env, jobject jthis, const jni_utils::JniType &type, jfieldID fieldId,
+                      jvalue &ret);
+
+    jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def,
+                            const se::Value &val, bool &ok);
+
     std::unordered_map<std::string, se::Class *> sJClassToJSClass;
 
     std::string jstringToString(jobject arg) {
@@ -135,6 +142,64 @@ namespace {
         return methodList;
     }
 
+    bool setJobjectFieldByType(JNIEnv *env, const jni_utils::JniType &type, jobject jthis, jfieldID field, const jvalue value)
+    {
+        if(type.isBoolean()) {
+            env->SetBooleanField(jthis, field, value.z);
+        }else if(type.isChar()) {
+            env->SetCharField(jthis, field, value.c);
+        }else if(type.isShort()) {
+            env->SetShortField(jthis, field, value.s);
+        }else if(type.isByte()) {
+            env->SetByteField(jthis, field, value.b);
+        }else if(type.isInt()) {
+            env->SetIntField(jthis, field, value.i);
+        }else if(type.isLong()) {
+            env->SetIntField(jthis, field, value.j);
+        }else if(type.isFloat()) {
+            env->SetFloatField(jthis, field, value.f);
+        }else if(type.isDouble()) {
+            env->SetDoubleField(jthis, field, value.d);
+        }else if(type.isObject()) {
+            env->SetObjectField(jthis, field, value.l);
+        }else{
+            assert(false);
+        }
+
+        return true;
+    }
+
+    bool setJobjectField(jobject obj, const std::string &fieldName, const se::Value &value,
+                         bool &hasField) {
+        auto *env = JniHelper::getEnv();
+        bool ok = false;
+        jobject classObject = getJObjectClassObject(obj);
+        jobject field = JniHelper::callObjectObjectMethod(
+                classObject, "java/lang/Class", "getField",
+                "Ljava/lang/reflect/Field;", fieldName);
+        if (!field || env->ExceptionCheck()) {
+            env->ExceptionClear();
+            hasField = false;
+            return true;
+        }
+        hasField = true;
+
+        jobject fieldClassObject = JniHelper::callObjectObjectMethod(
+                field, "java/lang/reflect/Field", "getType",
+                "Ljava/lang/Class;");
+        jobject fieldTypeJNIName = JniHelper::callObjectObjectMethod(
+                fieldClassObject, "java/lang/Class", "getName",
+                "Ljava/lang/String;");
+
+        jni_utils::JniType fieldType = jni_utils::JniType::fromString(jstringToString(fieldTypeJNIName));
+        jvalue ret = seval_to_jvalule(env, fieldType, value, ok);
+        if(ok) {
+            jfieldID fieldId = env->GetFieldID(env->GetObjectClass(obj), fieldName.c_str(), fieldType.toString().c_str());
+            ok &= setJobjectFieldByType(env, fieldType, obj, fieldId, ret);
+        }
+        return ok;
+    }
+
     std::vector<std::string> getJobjectFields(jobject obj) {
         auto *env = JniHelper::getEnv();
         jobject classObject = getJObjectClassObject(obj);
@@ -221,15 +286,16 @@ namespace {
     };
 
     struct JMethod {
-        jmethodID method;
+        jmethodID method{};
         std::string signature;
     };
 
 
     class InvokeMethods {
     public:
-        InvokeMethods(const std::string &methodName, const std::vector<JMethod> &_methods, JObjectWrapper *_self) :
-                methodName(methodName), methods(_methods), self(_self) {
+        InvokeMethods(std::string methodName, const std::vector<JMethod> &_methods,
+                      JObjectWrapper *_self) :
+                methodName(std::move(methodName)), methods(_methods), self(_self) {
         }
 
         se::Object *asJSObject() {
@@ -248,7 +314,7 @@ namespace {
 
     class JObjectWrapper {
     public:
-        JObjectWrapper(jobject obj) {
+        explicit JObjectWrapper(jobject obj) {
             if (obj) {
                 _javaObject = JniHelper::getEnv()->NewGlobalRef(obj);
             }
@@ -295,7 +361,7 @@ namespace {
         bool findMethods(const std::string &name, const std::string &signature,
                          std::vector<JMethod> &method);
 
-        JValueWrapper *findField(const std::string &name);
+        JValueWrapper *getFieldValue(const std::string &name);
 
     private:
         jobject _javaObject = nullptr;
@@ -303,7 +369,7 @@ namespace {
         se::Object *_jsObject = nullptr;
     };
 
-    JValueWrapper *JObjectWrapper::findField(const std::string &name) {
+    JValueWrapper *JObjectWrapper::getFieldValue(const std::string &name) {
         auto *env = JniHelper::getEnv();
         std::string klassName = getJObjectClass(_javaObject);
         jobject klassObject = JniHelper::callObjectObjectMethod(
@@ -334,32 +400,7 @@ namespace {
             return nullptr;
         }
         jvalue ret;
-        if (jniFieldType.dim == 0) {
-            if (jniFieldType.isBoolean()) {
-                ret.z = env->GetBooleanField(_javaObject, fieldId);
-            } else if (jniFieldType.isByte()) {
-                ret.b = env->GetByteField(_javaObject, fieldId);
-            } else if (jniFieldType.isChar()) {
-                ret.c = env->GetCharField(_javaObject, fieldId);
-            } else if (jniFieldType.isShort()) {
-                ret.s = env->GetShortField(_javaObject, fieldId);
-            } else if (jniFieldType.isInt()) {
-                ret.i = env->GetIntField(_javaObject, fieldId);
-            } else if (jniFieldType.isLong()) {
-                ret.j = env->GetLongField(_javaObject, fieldId);
-            } else if (jniFieldType.isFloat()) {
-                ret.f = env->GetFloatField(_javaObject, fieldId);
-            } else if (jniFieldType.isDouble()) {
-                ret.d = env->GetDoubleField(_javaObject, fieldId);
-            } else if (jniFieldType.isObject()) {
-                ret.l = env->GetObjectField(_javaObject, fieldId);
-            } else {
-                assert(false);
-            }
-        } else if (jniFieldType.dim > 0) {
-            ret.l = env->GetObjectField(_javaObject, fieldId);
-        }
-
+        getJFieldByType1D(env, _javaObject, jniFieldType, fieldId, ret);
         return new JValueWrapper(jniFieldType, ret);
     }
 
@@ -487,7 +528,7 @@ namespace {
                         array->setArrayElement(i, se::Value(jstringToString(ele)));
                     } else {
                         auto *obj = new JObjectWrapper(ele);
-                        out.setObject(obj->asJSObject());
+                        array->setArrayElement(i, se::Value(obj->asJSObject()));
                     }
                 }
             }
@@ -513,11 +554,43 @@ namespace {
         return true;
     }
 
+    bool
+    getJFieldByType1D(JNIEnv *env, jobject jthis, const jni_utils::JniType &type, jfieldID fieldId,
+                      jvalue &ret) {
+        if (type.dim == 0) {
+            if (type.isBoolean()) {
+                ret.z = env->GetBooleanField(jthis, fieldId);
+            } else if (type.isByte()) {
+                ret.b = env->GetByteField(jthis, fieldId);
+            } else if (type.isChar()) {
+                ret.c = env->GetCharField(jthis, fieldId);
+            } else if (type.isShort()) {
+                ret.s = env->GetShortField(jthis, fieldId);
+            } else if (type.isInt()) {
+                ret.i = env->GetIntField(jthis, fieldId);
+            } else if (type.isLong()) {
+                ret.j = env->GetLongField(jthis, fieldId);
+            } else if (type.isFloat()) {
+                ret.f = env->GetFloatField(jthis, fieldId);
+            } else if (type.isDouble()) {
+                ret.d = env->GetDoubleField(jthis, fieldId);
+            } else if (type.isObject()) {
+                ret.l = env->GetObjectField(jthis, fieldId);
+            } else {
+                assert(false);
+                return false;
+            }
+        } else {
+            ret.l = env->GetObjectField(jthis, fieldId);
+        }
+        return true;
+    }
+
 
     bool callJMethodByReturnType(const jni_utils::JniType &rType, jobject jthis, jmethodID method,
                                  const std::vector<jvalue> &jvalueArray, se::Value &out) {
         auto *env = JniHelper::getEnv();
-        jvalue jRet;
+        jvalue jRet = {};
         if (rType.isVoid()) {
             env->CallVoidMethodA(jthis, method, jvalueArray.data());
         } else if (rType.isBoolean()) {
@@ -549,7 +622,7 @@ namespace {
 
     jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def,
                             const se::Value &val, bool &ok) {
-        jvalue ret;
+        jvalue ret = {};
         ok = false;
         if (def.isBoolean() && val.isBoolean()) {
             ret.z = val.toBoolean();
@@ -572,17 +645,19 @@ namespace {
             if (def.getClassName() == "java/lang/String") {
                 std::string jsstring = val.toStringForce();
                 ret.l = env->NewStringUTF(jsstring.c_str());
-            } else if(val.isObject()){
+            } else if (val.isObject()) {
                 se::Object *seObj = val.toObject();
                 auto *jo = static_cast<JObjectWrapper *>(seObj->getPrivateData());
                 ret.l = jo->getJavaObject();
             } else {
                 ok = false;
-                SE_LOGE("incorrect jni type, don't know how to convert %s to java value %s", val.toStringForce().c_str(), def.toString().c_str());
+                SE_LOGE("incorrect jni type, don't know how to convert %s to java value %s",
+                        val.toStringForce().c_str(), def.toString().c_str());
             }
 
         } else {
-            SE_LOGE("incorrect jni type, don't know how to convert %s from js value %s:%s", def.toString().c_str(), val.getTypeName().c_str(), val.toStringForce().c_str());
+            SE_LOGE("incorrect jni type, don't know how to convert %s from js value %s:%s",
+                    def.toString().c_str(), val.getTypeName().c_str(), val.toStringForce().c_str());
             return ret;
         }
         ok = true;
@@ -641,9 +716,7 @@ SE_DECLARE_FUNC(js_jni_proxy_methods);
 
 static bool js_jni_jobject_finalize(se::State &s) {
     auto *cobj = (JObjectWrapper *) s.nativeThisObject();
-    if (cobj) {
-        delete cobj;
-    }
+    delete cobj;
     return true;
 }
 
@@ -658,9 +731,7 @@ static bool js_register_jni_jobject(se::Object *obj) {
 
 static bool js_jni_jmethod_invoke_instance_finalize(se::State &s) {
     auto *cobj = (InvokeMethods *) s.nativeThisObject();
-    if (cobj) {
-        delete cobj;
-    }
+    delete cobj;
     return true;
 }
 
@@ -796,15 +867,17 @@ static bool js_jni_proxy_get(se::State &s) {
     }
 
     se::Value outvalue;
-    if (target->getRealNamedProperty(method.c_str(), &outvalue)) {
-        s.rval() = outvalue;
-        return true;
-    }
 
     auto *inner = (JObjectWrapper *) target->getPrivateData();
     if (inner) {
+
+        if (inner->getUnderlineJSObject()->getRealNamedProperty(method.c_str(), &outvalue)) {
+            s.rval() = outvalue;
+            return true;
+        }
+
         {
-            JValueWrapper *field = inner->findField(method);
+            JValueWrapper *field = inner->getFieldValue(method);
             if (field) {
                 field->cast(outvalue);
                 s.rval() = outvalue;
@@ -831,13 +904,31 @@ SE_BIND_FUNC(js_jni_proxy_get)
 
 static bool js_jni_proxy_set(se::State &s) {
     int argCnt = s.args().size();
-    if (argCnt < 2) {
-        SE_REPORT_ERROR("wrong number of arguments: %d, 2+ expected", (int) argCnt);
+    if (argCnt < 3) {
+        SE_REPORT_ERROR("wrong number of arguments: %d, 3+ expected", (int) argCnt);
         return false;
     }
     assert(s.args()[0].isObject());
     assert(s.args()[1].isString());
 
+    auto *target = s.args()[0].toObject();
+    auto prop = s.args()[1].toString();
+    s.rval().setBoolean(true); //always return true
+
+    auto *inner = (JObjectWrapper *) target->getPrivateData();
+    if (inner) {
+        bool fieldFound = false;
+        auto ok = setJobjectField(inner->getJavaObject(), prop, s.args()[2], fieldFound);
+        if (fieldFound) {
+            if (!ok) {
+                se::ScriptEngine::getInstance()->throwException(
+                        "failed to set field '" + prop + "'");
+                return false;
+            }
+            return true;
+        }
+        inner->getUnderlineJSObject()->setProperty(prop.c_str(), s.args()[2]);
+    }
     return true;
 }
 
@@ -939,7 +1030,7 @@ static void setup_proxy_object() {
     sProxyObject = se::Object::createPlainObject();
     sProxyObject->defineFunction("apply", _SE(js_jni_proxy_apply));
     sProxyObject->defineFunction("get", _SE(js_jni_proxy_get));
-    // sProxyObject->defineFunction("set", _SE(js_jni_proxy_set));
+    sProxyObject->defineFunction("set", _SE(js_jni_proxy_set));
     //    sProxyObject->defineFunction("_methods", _SE(js_jni_proxy_methods));
     sProxyObject->root(); // unroot somewhere
 
