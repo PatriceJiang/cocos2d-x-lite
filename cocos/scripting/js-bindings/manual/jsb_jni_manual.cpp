@@ -12,6 +12,7 @@
 #define JS_JNI_DEBUG 1
 #define JS_JNI_TAG_TYPE "jni_obj_type"
 #define JS_JNI_JCLASS_TYPE "java_class"
+#define JS_JNI_TAG_PATH "path"
 
 using cocos2d::JniHelper;
 using cocos2d::JniMethodInfo;
@@ -19,8 +20,10 @@ using cocos2d::JniMethodInfo;
 namespace {
     se::Class *__jsb_jni_jobject = nullptr;
     se::Class *__jsb_jni_jmethod_invoke_instance = nullptr;
+    se::Class *__jsb_jni_path = nullptr;
 
     se::Object *sProxyObject = nullptr;
+    se::Object *sPathProxObject = nullptr;
     se::Object *sJavaObjectMethodsUnbound = nullptr;
     se::Object *sJavaObjectFieldsUnbound = nullptr;
     se::Object *sJavaObjectMethodApplyUnbound = nullptr;
@@ -31,6 +34,8 @@ namespace {
     class JValueWrapper;
 
     class JObjectWrapper;
+
+    class JPathWrapper;
 
     bool
     getJFieldByType1D(JNIEnv *env, jobject jthis, const jni_utils::JniType &type, jfieldID fieldId,
@@ -142,27 +147,27 @@ namespace {
         return methodList;
     }
 
-    bool setJobjectFieldByType(JNIEnv *env, const jni_utils::JniType &type, jobject jthis, jfieldID field, const jvalue value)
-    {
-        if(type.isBoolean()) {
+    bool setJobjectFieldByType(JNIEnv *env, const jni_utils::JniType &type, jobject jthis,
+                               jfieldID field, const jvalue value) {
+        if (type.isBoolean()) {
             env->SetBooleanField(jthis, field, value.z);
-        }else if(type.isChar()) {
+        } else if (type.isChar()) {
             env->SetCharField(jthis, field, value.c);
-        }else if(type.isShort()) {
+        } else if (type.isShort()) {
             env->SetShortField(jthis, field, value.s);
-        }else if(type.isByte()) {
+        } else if (type.isByte()) {
             env->SetByteField(jthis, field, value.b);
-        }else if(type.isInt()) {
+        } else if (type.isInt()) {
             env->SetIntField(jthis, field, value.i);
-        }else if(type.isLong()) {
+        } else if (type.isLong()) {
             env->SetIntField(jthis, field, value.j);
-        }else if(type.isFloat()) {
+        } else if (type.isFloat()) {
             env->SetFloatField(jthis, field, value.f);
-        }else if(type.isDouble()) {
+        } else if (type.isDouble()) {
             env->SetDoubleField(jthis, field, value.d);
-        }else if(type.isObject()) {
+        } else if (type.isObject()) {
             env->SetObjectField(jthis, field, value.l);
-        }else{
+        } else {
             assert(false);
         }
 
@@ -191,10 +196,12 @@ namespace {
                 fieldClassObject, "java/lang/Class", "getName",
                 "Ljava/lang/String;");
 
-        jni_utils::JniType fieldType = jni_utils::JniType::fromString(jstringToString(fieldTypeJNIName));
+        jni_utils::JniType fieldType = jni_utils::JniType::fromString(
+                jstringToString(fieldTypeJNIName));
         jvalue ret = seval_to_jvalule(env, fieldType, value, ok);
-        if(ok) {
-            jfieldID fieldId = env->GetFieldID(env->GetObjectClass(obj), fieldName.c_str(), fieldType.toString().c_str());
+        if (ok) {
+            jfieldID fieldId = env->GetFieldID(env->GetObjectClass(obj), fieldName.c_str(),
+                                               fieldType.toString().c_str());
             ok &= setJobjectFieldByType(env, fieldType, obj, fieldId, ret);
         }
         return ok;
@@ -332,18 +339,15 @@ namespace {
                 return nullptr;
             if (_jsProxy)
                 return _jsProxy;
-            _jsObject = se::Object::createObjectWithClass(__jsb_jni_jobject);
-            _jsObject->setPrivateData(this);
-            _jsProxy = _jsObject->proxyTo(sProxyObject);
+            _jsTarget = se::Object::createObjectWithClass(__jsb_jni_jobject);
+            _jsTarget->setPrivateData(this);
+            _jsProxy = _jsTarget->proxyTo(sProxyObject);
 #if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jobject"));
             _jsProxy->setProperty(JS_JNI_JCLASS_TYPE,
                                   se::Value(getJObjectClass(_javaObject)));
 #endif
-            auto f1 = _jsProxy->getPrivateFieldCount();
-            auto f2 = _jsObject->getPrivateFieldCount();
-
-            _jsProxy->attachObject(_jsObject);
+            _jsProxy->attachObject(_jsTarget);
 
             return _jsProxy;
         }
@@ -356,7 +360,7 @@ namespace {
 
         se::Object *getProxy() const { return _jsProxy; }
 
-        se::Object *getUnderlineJSObject() const { return _jsObject; }
+        se::Object *getUnderlineJSObject() const { return _jsTarget; }
 
         bool findMethods(const std::string &name, const std::string &signature,
                          std::vector<JMethod> &method);
@@ -366,7 +370,7 @@ namespace {
     private:
         jobject _javaObject = nullptr;
         se::Object *_jsProxy = nullptr;
-        se::Object *_jsObject = nullptr;
+        se::Object *_jsTarget = nullptr;
     };
 
     JValueWrapper *JObjectWrapper::getFieldValue(const std::string &name) {
@@ -553,6 +557,33 @@ namespace {
         }
         return true;
     }
+
+    class JPathWrapper {
+    public:
+        JPathWrapper() = default;
+
+        se::Object *asJSObject() {
+            if (_jsProxy) { return _jsProxy; }
+            _jsTarget = se::Object::createObjectWithClass(__jsb_jni_path);
+            _jsTarget->setPrivateData(this);
+            _jsProxy = _jsTarget->proxyTo(sPathProxObject);
+            _jsProxy->setProperty(JS_JNI_TAG_PATH, se::Value(""));
+            #if JS_JNI_DEBUG
+            _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jpath"));
+            #endif
+            _jsProxy->attachObject(_jsTarget);
+            return _jsProxy;
+        }
+
+        se::Object *getProxy() const { return _jsProxy; }
+
+        se::Object *getUnderlineJSObject() const { return _jsTarget; }
+
+    private:
+        jclass _currentClass = {};
+        se::Object *_jsTarget = nullptr;
+        se::Object *_jsProxy = nullptr;
+    };
 
     bool
     getJFieldByType1D(JNIEnv *env, jobject jthis, const jni_utils::JniType &type, jfieldID fieldId,
@@ -754,6 +785,22 @@ static bool js_jni_helper_getActivity(se::State &s) {
 }
 
 SE_BIND_FUNC(js_jni_helper_getActivity)
+
+static bool js_jni_jmethod_path_finalize(se::State &s) {
+    auto *cobj = (JPathWrapper *) s.nativeThisObject();
+    delete cobj;
+    return true;
+}
+
+SE_BIND_FINALIZE_FUNC(js_jni_jmethod_path_finalize)
+
+static bool js_register_jni_path(se::Object *obj) {
+    auto cls = se::Class::create("jpath", obj, nullptr, nullptr);
+    cls->defineFinalizeFunction(_SE(js_jni_jmethod_path_finalize));
+    __jsb_jni_path = cls;
+    return true;
+}
+
 
 static bool js_jni_helper_setClassLoaderFrom(se::State &s) {
     const int argCnt = s.args().size();
@@ -980,6 +1027,11 @@ static bool js_jni_proxy_fields(se::State &s) {
 
 SE_BIND_FUNC(js_jni_proxy_fields)
 
+
+// query fields of instance
+
+
+
 static bool js_jni_proxy_object_method_apply(se::State &s) {
     auto *env = JniHelper::getEnv();
     auto *self = s.getJSThisObject();
@@ -1026,6 +1078,56 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
 
 SE_BIND_FUNC(js_jni_proxy_object_method_apply)
 
+
+// query fields of instance
+static bool js_jni_create_java(se::State &s) {
+    auto *env = JniHelper::getEnv();
+    int argCnt = s.args().size();
+    if (argCnt != 0) {
+        SE_REPORT_ERROR("wrong number of arguments: %d, 0 expected",
+                        (int) argCnt);
+        return false;
+    }
+
+    auto *p = new JPathWrapper();
+    s.rval().setObject(p->asJSObject());
+    return true;
+}
+
+SE_BIND_FUNC(js_jni_create_java)
+
+// query fields of instance
+static bool js_jni_proxy_java_path_get(se::State &s) {
+    auto *env = JniHelper::getEnv();
+    auto argCnt = s.args().size();
+    if (argCnt < 2) {
+        SE_REPORT_ERROR("wrong number of arguments: %d, 2+ expected", (int) argCnt);
+        return false;
+    }
+    assert(s.args()[0].isObject());
+    assert(s.args()[1].isString());
+
+    auto *target = s.args()[0].toObject();
+    auto field = s.args()[1].toString();
+
+    bool ok = false;
+
+    auto *ctx = (JPathWrapper *) target->getPrivateData();
+    if(ctx && field[0] != '_'){
+        se::Value outputPath;
+        se::Object *underline = ctx->getUnderlineJSObject();
+        underline->getProperty(JS_JNI_TAG_PATH, &outputPath);
+        std::string newpath = outputPath.toString() + "." + field;
+        underline->setProperty(JS_JNI_TAG_PATH, se::Value(newpath));
+        s.rval().setObject(ctx->asJSObject());
+        return true;
+    }
+    return false;
+}
+
+SE_BIND_FUNC(js_jni_proxy_java_path_get)
+
+
 static void setup_proxy_object() {
     sProxyObject = se::Object::createPlainObject();
     sProxyObject->defineFunction("apply", _SE(js_jni_proxy_apply));
@@ -1041,6 +1143,12 @@ static void setup_proxy_object() {
     sJavaObjectFieldsUnbound =
             se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_fields));
     sJavaObjectFieldsUnbound->root();
+
+    sPathProxObject = se::Object::createPlainObject();
+//    sPathProxObject->defineFunction("apply", _SE(js_jni_proxy_apply));
+    sPathProxObject->defineFunction("get", _SE(js_jni_proxy_java_path_get));
+//    sPathProxObject->defineFunction("set", _SE(js_jni_proxy_set));
+    sPathProxObject->root();
 
     sJavaObjectMethodApplyUnbound = se::Object::createFunctionObject(nullptr,
                                                                      _SE(js_jni_proxy_object_method_apply));
@@ -1059,6 +1167,10 @@ bool jsb_register_jni_manual(se::Object *obj) {
     js_register_jni_jobject(ns);
     js_register_jni_helper(ns);
     js_register_jni_jmethod_invoke_instance(ns);
+    js_register_jni_path(ns);
+
+    se::Object *functionJava = se::Object::createFunctionObject(nullptr, _SE(js_jni_create_java));
+    ns->setProperty("java", se::Value(functionJava));
 
     return true;
 }
