@@ -372,6 +372,16 @@ namespace se {
         return _obj.handle(__isolate)->InternalFieldCount();
     }
 
+
+    bool Object::hasRealNamedProperty(const char *name)
+    {
+        v8::HandleScope handle_scope(__isolate);
+        v8::Local<v8::Object> self = _obj.handle(__isolate);
+
+        v8::Local<v8::String> key = v8::String::NewFromUtf8(__isolate, name).ToLocalChecked();
+        return  self->HasRealNamedProperty(__isolate->GetCurrentContext(), key).FromJust();
+    }
+
     bool Object::getRealNamedProperty(const char *name, Value *data)
     {
         assert(data != nullptr);

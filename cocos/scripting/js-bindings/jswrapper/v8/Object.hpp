@@ -155,6 +155,8 @@ namespace se {
 
         bool getRealNamedProperty(const char *name, Value* value);
 
+        bool hasRealNamedProperty(const char *name);
+
         /**
          *  @brief Sets a property to an object.
          *  @param[in] name A utf-8 string containing the property's name.

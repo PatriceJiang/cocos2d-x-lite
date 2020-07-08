@@ -8,6 +8,9 @@
 #include <jni.h>
 #include <string>
 #include <vector>
+#include <stack>
+#include <algorithm>
+#include <regex>
 
 #define JS_JNI_DEBUG 1
 #define JS_JNI_TAG_TYPE "jni_obj_type"
@@ -20,7 +23,6 @@ using cocos2d::JniMethodInfo;
 namespace {
     se::Class *__jsb_jni_jobject = nullptr;
     se::Class *__jsb_jni_jmethod_invoke_instance = nullptr;
-    se::Class *__jsb_jni_path = nullptr;
 
     se::Object *sProxyObject = nullptr;
     se::Object *sPathProxObject = nullptr;
@@ -28,6 +30,8 @@ namespace {
     se::Object *sJavaObjectFieldsUnbound = nullptr;
     se::Object *sJavaObjectMethodApplyUnbound = nullptr;
 } // namespace
+
+SE_DECLARE_FUNC(js_jni_proxy_java_path_base);
 
 namespace {
 
@@ -230,6 +234,29 @@ namespace {
         }
 
         return fieldList;
+    }
+
+
+    bool findClassByPath(const std::string &path, se::Object *args) {
+
+        JNIEnv *env = JniHelper::getEnv();
+        std::stack<jclass> classStack;
+        jclass prevClass = nullptr;
+        jclass tmpClass = nullptr;
+
+        std::string classPath = std::regex_replace(path, std::regex("\\."), "/");
+
+        // test class path
+        tmpClass = env->FindClass(classPath.c_str());
+        if (tmpClass == nullptr || env->ExceptionCheck()) env->ExceptionClear();
+
+        jobjectArray constructors = (jobjectArray) JniHelper::callObjectObjectMethod(tmpClass, "java/lang/Class", "getConstructors", "[Ljava/lang/relfect/Constructor;");
+        int constructLen = env->GetArrayLength(constructors);
+        for(int i = 0;i < constructLen; i++) {
+            //TODO find by signature
+        }
+
+        return false;
     }
 
 
@@ -562,27 +589,39 @@ namespace {
     public:
         JPathWrapper() = default;
 
+        JPathWrapper(const std::string &path) {
+            _path = path;
+        }
+
         se::Object *asJSObject() {
             if (_jsProxy) { return _jsProxy; }
-            _jsTarget = se::Object::createObjectWithClass(__jsb_jni_path);
+            _jsTarget = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_java_path_base));
             _jsTarget->setPrivateData(this);
+            _jsTarget->_setFinalizeCallback([](void *data){
+               if(data) {
+                   delete (JPathWrapper*) data;
+               }
+            });
             _jsProxy = _jsTarget->proxyTo(sPathProxObject);
-            _jsProxy->setProperty(JS_JNI_TAG_PATH, se::Value(""));
+            _jsProxy->setProperty(JS_JNI_TAG_PATH, se::Value(_path));
             #if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jpath"));
             #endif
+
+
+
             _jsProxy->attachObject(_jsTarget);
             return _jsProxy;
         }
 
         se::Object *getProxy() const { return _jsProxy; }
-
         se::Object *getUnderlineJSObject() const { return _jsTarget; }
 
     private:
         jclass _currentClass = {};
         se::Object *_jsTarget = nullptr;
         se::Object *_jsProxy = nullptr;
+        std::string _path;
     };
 
     bool
@@ -785,21 +824,6 @@ static bool js_jni_helper_getActivity(se::State &s) {
 }
 
 SE_BIND_FUNC(js_jni_helper_getActivity)
-
-static bool js_jni_jmethod_path_finalize(se::State &s) {
-    auto *cobj = (JPathWrapper *) s.nativeThisObject();
-    delete cobj;
-    return true;
-}
-
-SE_BIND_FINALIZE_FUNC(js_jni_jmethod_path_finalize)
-
-static bool js_register_jni_path(se::Object *obj) {
-    auto cls = se::Class::create("jpath", obj, nullptr, nullptr);
-    cls->defineFinalizeFunction(_SE(js_jni_jmethod_path_finalize));
-    __jsb_jni_path = cls;
-    return true;
-}
 
 
 static bool js_jni_helper_setClassLoaderFrom(se::State &s) {
@@ -1096,6 +1120,43 @@ static bool js_jni_create_java(se::State &s) {
 
 SE_BIND_FUNC(js_jni_create_java)
 
+// base function of jpath
+static bool js_jni_proxy_java_path_base(se::State &s) {
+    return true;
+}
+
+SE_BIND_FUNC(js_jni_proxy_java_path_base)
+
+// construct class / or inner class
+static bool js_jni_proxy_java_path_construct(se::State &s) {
+    auto *env = JniHelper::getEnv();
+    auto argCnt = s.args().size();
+    if (argCnt < 2) {
+        SE_REPORT_ERROR("wrong number of arguments: %d, 2+ expected", (int) argCnt);
+        return false;
+    }
+    assert(s.args()[0].isObject());
+    assert(s.args()[1].isObject());
+
+    auto *target = s.args()[0].toObject();
+    auto *args = s.args()[1].toObject(); // Array
+
+    bool ok = false;
+
+    auto *ctx = (JPathWrapper *) target->getPrivateData();
+    if (ctx) {
+        se::Value path;
+        se::Object *underline = ctx->getUnderlineJSObject();
+        underline->getProperty(JS_JNI_TAG_PATH, &path);
+        std::string pathStr = path.toString();
+        JPath p;
+        findClassByPath(pathStr, p, args);
+    }
+    return false;
+}
+
+SE_BIND_FUNC(js_jni_proxy_java_path_construct)
+
 // query fields of instance
 static bool js_jni_proxy_java_path_get(se::State &s) {
     auto *env = JniHelper::getEnv();
@@ -1113,14 +1174,23 @@ static bool js_jni_proxy_java_path_get(se::State &s) {
     bool ok = false;
 
     auto *ctx = (JPathWrapper *) target->getPrivateData();
-    if(ctx && field[0] != '_'){
-        se::Value outputPath;
+    if (ctx) {
+        se::Value path;
         se::Object *underline = ctx->getUnderlineJSObject();
-        underline->getProperty(JS_JNI_TAG_PATH, &outputPath);
-        std::string newpath = outputPath.toString() + "." + field;
-        underline->setProperty(JS_JNI_TAG_PATH, se::Value(newpath));
-        s.rval().setObject(ctx->asJSObject());
-        return true;
+
+        if (underline->getRealNamedProperty(field.c_str(), &path)) {
+            s.rval() = path;
+            return true;
+        }
+        if (field[0] != '_') {
+            // field = field.substr(1);
+            underline->getProperty(JS_JNI_TAG_PATH, &path);
+            std::string pathStr = path.toString();
+            std::string newpath = pathStr.empty() ? field : pathStr + "." + field;
+            auto *newctx = new JPathWrapper(newpath);
+            s.rval().setObject(newctx->asJSObject());
+            return true;
+        }
     }
     return false;
 }
@@ -1146,6 +1216,7 @@ static void setup_proxy_object() {
 
     sPathProxObject = se::Object::createPlainObject();
 //    sPathProxObject->defineFunction("apply", _SE(js_jni_proxy_apply));
+    sPathProxObject->defineFunction("construct", _SE(js_jni_proxy_java_path_construct));
     sPathProxObject->defineFunction("get", _SE(js_jni_proxy_java_path_get));
 //    sPathProxObject->defineFunction("set", _SE(js_jni_proxy_set));
     sPathProxObject->root();
@@ -1167,7 +1238,6 @@ bool jsb_register_jni_manual(se::Object *obj) {
     js_register_jni_jobject(ns);
     js_register_jni_helper(ns);
     js_register_jni_jmethod_invoke_instance(ns);
-    js_register_jni_path(ns);
 
     se::Object *functionJava = se::Object::createFunctionObject(nullptr, _SE(js_jni_create_java));
     ns->setProperty("java", se::Value(functionJava));
