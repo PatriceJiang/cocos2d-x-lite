@@ -331,7 +331,10 @@ namespace {
 
         // test class path
         tmpClass = env->FindClass(classPath.c_str());
-        if (tmpClass == nullptr || env->ExceptionCheck()) env->ExceptionClear();
+        if (tmpClass == nullptr || env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return nullptr;
+        }
 
         jobjectArray constructors = (jobjectArray) JniHelper::callObjectObjectMethod(tmpClass,
                                                                                      "java/lang/Class",
@@ -1950,13 +1953,13 @@ static bool js_jni_proxy_java_path_set(se::State &s) {
         se::Value path;
         se::Object *underline = ctx->getUnderlineJSObject();
         underline->getProperty(JS_JNI_TAG_PATH, &path);
-        if(path.isString()) {
+        if (path.isString()) {
             std::string pathStr = path.toString();
             std::string newpath = pathStr.empty() ? field : pathStr + "." + field;
 
             se::Value fieldValue;
             if (hasStaticField(newpath)) {
-                if(!setJobjectStaticField(newpath, s.args()[2])) {
+                if (!setJobjectStaticField(newpath, s.args()[2])) {
                     se::ScriptEngine::getInstance()->throwException("can not set static property");
                     return false;
                 }
