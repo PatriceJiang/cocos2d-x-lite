@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
+#include "jni.h"
 
 namespace jni_utils {
     enum class JniTypeEnum : uint8_t {
@@ -41,6 +41,18 @@ namespace jni_utils {
             this->klassName = std::move(other.klassName);
             other.dim = 0;
             other.type = JniTypeEnum::None;
+        }
+        JniType& operator = (const JniType &o) {
+            type = o.type;
+            dim = o.dim;
+            klassName = o.klassName;
+            return *this;
+        }
+
+        JniType rankDec() const {
+            JniType b(*this);
+            b.dim -= 1;
+            return b;
         }
 
         static JniType from(JniTypeEnum e);
