@@ -27,9 +27,14 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: '../java/libs')
     implementation "org.ow2.asm:asm:8.0.1"
+    implementation "org.ow2.asm:asm-tree:8.0.1"
+    implementation "org.ow2.asm:asm-commons:8.0.1"
+    implementation "com.android.tools:r8:2.0.88"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
 }

@@ -17,6 +17,11 @@
 #define JS_JNI_JCLASS_TYPE "java_class"
 #define JS_JNI_TAG_PATH "path"
 
+#ifndef ORG_BYTECODE_GENERATOR_CLASS_NAME
+#define ORG_BYTECODE_GENERATOR_CLASS_NAME org_cocos2dx_lib_ByteCodeGenerator
+#endif
+#define JNI_BYTECODE_GENERATOR(FUNC) JNI_METHOD1(ORG_BYTECODE_GENERATOR_CLASS_NAME,FUNC)
+
 using cocos2d::JniHelper;
 using cocos2d::JniMethodInfo;
 
@@ -2082,4 +2087,12 @@ bool jsb_register_jni_manual(se::Object *obj) {
         obj->setProperty("java", se::Value(p->asJSObject()));
     }
     return true;
+}
+
+
+extern "C" {
+JNIEXPORT void JNICALL
+JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env, jobject self, jint id) {
+    SE_LOGE("registerInstance ---- ");
+}
 }
