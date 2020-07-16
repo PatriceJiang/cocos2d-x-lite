@@ -2092,7 +2092,16 @@ bool jsb_register_jni_manual(se::Object *obj) {
 
 extern "C" {
 JNIEXPORT void JNICALL
-JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env, jobject self, jint id) {
+JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env, jclass klass,  jobject self, jint id) {
     SE_LOGE("registerInstance ---- ");
+}
+
+JNIEXPORT jobject JNICALL
+JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env, jclass klass, jobject finished, jstring methodName, jobjectArray args) {
+
+
+    SE_LOGE("callJS ---- %s", jstringToString(methodName).c_str());
+    JniHelper::callObjectVoidMethod(finished, "java/util/concurrent/atomic/AtomicBoolean", "set", "(B)V", true);
+    return nullptr;
 }
 }

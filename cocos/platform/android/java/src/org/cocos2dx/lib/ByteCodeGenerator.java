@@ -20,22 +20,29 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import dalvik.system.DexClassLoader;
+import dalvik.system.PathClassLoader;
 
 public class ByteCodeGenerator {
 
 
     public static final String NATIVE_ID = "__native_id__";
-    public static final String PROXY_CLASS_NAME = "org/test/Main";
+    public static final String PROXY_CLASS_NAME = "org/cocos2dx/test/Main";
     public static final String PROXY_METHOD_NAME = "printArguments";
     public static final String LOGCAT_TAG = "Bytecode Generator";
 
@@ -105,20 +112,7 @@ public class ByteCodeGenerator {
         cn.accept(cw);
 //        Class<?> c = classLoader.defineClass(this.name.replaceAll("/", "."), cw.toByteArray());
 
-        loadJavaClassBytes(this.name, cw.toByteArray());
-
-//        FileOutputStream fos = null;
-//        try {
-//            fos = new FileOutputStream("C:/Projects/JvmTest/Abstract.class");
-//            fos.write(cw.toByteArray());
-//            fos.close();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
-        return null;
+        return loadJavaClassBytes(this.name, cw.toByteArray());
     }
 
 
@@ -130,16 +124,16 @@ public class ByteCodeGenerator {
         MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
         InsnList inst = constructor.instructions;
         inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inst.add(new InsnNode(Opcodes.DUP));
         inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, this.superClass, "<init>", "()V"));
         // update id
         inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "org/cocos2dx/lib/ByteCodeGenerator", "getId", "()I"));
         inst.add(new VarInsnNode(Opcodes.ISTORE, 1));
+        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
         inst.add(new VarInsnNode(Opcodes.ILOAD, 1));
         inst.add(new FieldInsnNode(Opcodes.PUTFIELD, this.name, NATIVE_ID, "I"));
 
 
-        inst.add(new InsnNode(Opcodes.DUP));
+        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
         inst.add(new VarInsnNode(Opcodes.ILOAD, 1));
         inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "org/cocos2dx/lib/ByteCodeGenerator", "registerInstance", "(Ljava/lang/Object;I)V"));
 
@@ -329,38 +323,51 @@ public class ByteCodeGenerator {
         return sb.toString();
     }
 
-    public static void loadJavaClassBytes(String className, byte[] data) {
+    public Class<?> loadJavaClassBytes(String className, byte[] data) {
 
-        String writableDir = Cocos2dxHelper.getWritablePath();
+        String cacheDir = Cocos2dxHelper.getCacheDir().getPath();
         String classParts [] = className.split("[./]");
-        if(!writableDir.endsWith("/")) {
-            writableDir += "/";
+        if(!cacheDir.endsWith("/")) {
+            cacheDir += "/";
         }
-        // create dirs
-        File dstDir =  new File(writableDir + join("/", Arrays.copyOfRange(classParts, 0, classParts.length - 1)));
-        if(!dstDir.exists()) {
-            if(!dstDir.mkdirs()) {
-                Log.e(LOGCAT_TAG, "failed to create dir " + dstDir.getPath());
-                return;
+
+        File saveDexDir = new File(cacheDir + "/dex");
+        if(!saveDexDir.exists()) {
+            if(!saveDexDir.mkdirs()){
+                Log.e(LOGCAT_TAG, "failed to create dir " + saveDexDir.getPath());
+                return null;
+            }
+
+        }
+
+        // save klass path
+        File generatedClassesDir = new File(cacheDir + "/genclasses");
+        if(!generatedClassesDir.exists()){
+            if(!generatedClassesDir.mkdirs()){
+                Log.e(LOGCAT_TAG, "failed to create dir " + generatedClassesDir.getPath());
+                return null;
             }
         }
-        // save klass path
-        File dstKlsDir = new File(writableDir + join("/", classParts) + ".class");
+
+        File generatedClassFile = null;
         try {
-            FileOutputStream fos = new FileOutputStream(dstKlsDir);
+            generatedClassFile = File.createTempFile("GClassFile", ".class", generatedClassesDir);
+            generatedClassFile.deleteOnExit();
+            FileOutputStream fos = new FileOutputStream(generatedClassFile);
             fos.write(data);
             fos.close();
         }catch (IOException e){
             e.printStackTrace();
-            return;
+            return null;
         }
 
-        final String klassPath = dstKlsDir.getPath();
+        final String inputGeneratedClassPath = generatedClassFile.getPath();
+        final String dexOutputPath = saveDexDir.getPath();
 
-        Thread t = new Thread(new Runnable() {
+        Thread taskGenerateDex = new Thread(new Runnable() {
             @Override
             public void run() {
-                D8.main(new String[]{klassPath});
+                D8.main(new String[]{inputGeneratedClassPath , "--output", dexOutputPath});
 //                ExceptionUtils.withMainProgramHandler(() -> {
 //                    D8Command command = (D8Command)D8Command.parse(new String[]{klassPath}, CommandLineOrigin.INSTANCE).build();
 //                    D8.run(command);
@@ -368,16 +375,55 @@ public class ByteCodeGenerator {
             }
         });
 
-        t.start();
+        taskGenerateDex.start();
         try {
-            t.join();
+            taskGenerateDex.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return;
+            return null;
         }
 
-        //TODO: load
-        Log.d(LOGCAT_TAG, "gen end");
+        File jarCacheDir = new File(cacheDir + "dexCache");
+        File dexFile = new File(dexOutputPath + "/classes.dex");
+        try{
+            if(!jarCacheDir.exists()) {
+                jarCacheDir.mkdirs();
+            }
+
+            return this.loadDexClass(dexFile, jarCacheDir);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+//            dstKlsFile.delete();
+//            dexPath.delete();
+        }
+        return null;
+    }
+
+    private Class<?> loadDexClass(File dexFile, File jarCachePath) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+
+        byte[] dex = new byte[(int) dexFile.length()];
+
+        FileInputStream fis = new FileInputStream(dexFile);
+        fis.read(dex);
+
+        File result = File.createTempFile("GenJar", ".jar", jarCachePath);
+        result.deleteOnExit();
+        JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(result));
+        //jarOut.putNextEntry(new JarEntry(this.name+".dex"));
+        jarOut.putNextEntry(new JarEntry("classes.dex"));
+        jarOut.write(dex);
+        jarOut.closeEntry();
+        jarOut.close();
+        ClassLoader loader = (ClassLoader) Class.forName("dalvik.system.DexClassLoader")
+                    .getConstructor(String.class, String.class, String.class, ClassLoader.class)
+                    .newInstance(result.getPath(), jarCachePath.getAbsolutePath(), null, getClass().getClassLoader());
+
+        Class<?> ret = null;
+        if(loader != null) {
+             ret = loader.loadClass(this.getNameDot());
+        }
+        return ret;
     }
 
 
@@ -389,17 +435,6 @@ public class ByteCodeGenerator {
 
     }
 
-    public static class MyDexClassLoader extends DexClassLoader {
-
-        public MyDexClassLoader(String dexPath, String optimizedDirectory, String librarySearchPath, ClassLoader parent) {
-            super(dexPath, optimizedDirectory, librarySearchPath, parent);
-        }
-
-        public Class defineClass(String name, byte[] b) {
-            return defineClass(name, b, 0, b.length);
-        }
-
-    }
 
     static {
         classLoader = new MyClassLoader();
@@ -407,4 +442,5 @@ public class ByteCodeGenerator {
 
 
     native static public void registerInstance(Object self, int id);
+    native static public Object callJS(AtomicBoolean finish, String methodName, Object []args);
 }
