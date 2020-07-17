@@ -86,6 +86,7 @@ public class Cocos2dxHelper {
     private static boolean sActivityVisible;
     private static String sPackageName;
     private static String sFileDirectory;
+    private static File sCacheDirectory = null;
     private static Activity sActivity = null;
     private static Cocos2dxHelperListener sCocos2dxHelperListener;
     private static Set<OnActivityResultListener> onActivityResultListeners = new LinkedHashSet<OnActivityResultListener>();
@@ -306,7 +307,10 @@ public class Cocos2dxHelper {
     }
 
     public static File getCacheDir() {
-        return Cocos2dxActivity.getContext().getCacheDir();
+        if(sCacheDirectory == null) {
+            sCacheDirectory =  Cocos2dxActivity.getContext().getCacheDir();
+        }
+        return sCacheDirectory;
     }
 
     public static String getCurrentLanguage() {

@@ -345,9 +345,13 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
 
         Cocos2dxHelper.registerBatteryLevelReceiver(this);
 
+
         onLoadNativeLibraries();
 
         sContext = this;
+
+        ByteCodeGenerator.init();  //need context
+
         this.mHandler = new Cocos2dxHandler(this);
         
         Cocos2dxHelper.init(this);
@@ -426,6 +430,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
         if (mGLSurfaceView != null) {
             Cocos2dxHelper.terminateProcess();
         }
+
     }
 
     @Override
@@ -435,7 +440,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
         msg.obj = new Cocos2dxHandler.DialogMessage(pTitle, pMessage);
         this.mHandler.sendMessage(msg);
     }
-    
+
     @Override
     public void runOnGLThread(final Runnable runnable) {
         this.mGLSurfaceView.queueEvent(runnable);

@@ -130,6 +130,25 @@ public:
     }
 
     template <typename... Ts>
+    static jdouble callObjectDoubleMethod(jobject object,
+                                       const std::string& className,
+                                       const std::string& methodName,
+                                       Ts... xs) {
+        jdouble ret = 0.0;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")D";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallDoubleMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
     static int callObjectIntMethod(jobject object,
                                        const std::string& className,
                                        const std::string& methodName,
@@ -140,6 +159,101 @@ public:
         if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallIntMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static jlong callObjectLongMethod(jobject object,
+                                   const std::string& className,
+                                   const std::string& methodName,
+                                   Ts... xs) {
+        jlong ret = 0;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")J";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallLongMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static bool callObjectBooleanMethod(jobject object,
+                                   const std::string& className,
+                                   const std::string& methodName,
+                                   Ts... xs) {
+        bool ret = false;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")Z";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallBooleanMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static bool callObjectByteMethod(jobject object,
+                                        const std::string& className,
+                                        const std::string& methodName,
+                                        Ts... xs) {
+        jbyte ret = 0;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")B";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallByteMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static jshort callObjectShortMethod(jobject object,
+                                     const std::string& className,
+                                     const std::string& methodName,
+                                     Ts... xs) {
+        jshort ret = 0;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")S";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallShortMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static jchar callObjectCharMethod(jobject object,
+                                        const std::string& className,
+                                        const std::string& methodName,
+                                        Ts... xs) {
+        jchar ret = 0;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")C";
+        if (cocos2d::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallCharMethod(object, t.methodID, convert(localRefs, t, xs)...);
             t.env->DeleteLocalRef(t.classID);
             deleteLocalRefs(t.env, localRefs);
         } else {
