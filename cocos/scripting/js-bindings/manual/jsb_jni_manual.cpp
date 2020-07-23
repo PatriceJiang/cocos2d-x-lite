@@ -45,6 +45,8 @@ namespace {
 
 SE_DECLARE_FUNC(js_jni_proxy_java_path_base);
 
+#define jstringToString(str) cocos2d::JniHelper::jstring2string((jstring)(str))
+
 namespace {
 
     class JValueWrapper;
@@ -54,13 +56,13 @@ namespace {
     class JPathWrapper;
 
     bool getJFieldByType1D(JNIEnv *env, jobject jthis,
-                           const jni_utils::JniType &type, jfieldID fieldId,
+                           const JniUtils::JniType &type, jfieldID fieldId,
                            jvalue &ret);
 
-    jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def,
+    jvalue seval_to_jvalule(JNIEnv *env, const JniUtils::JniType &def,
                             const se::Value &val, bool &ok);
 
-    bool jobject_to_seval(JNIEnv *env, const jni_utils::JniType &type, jvalue obj,
+    bool jobject_to_seval(JNIEnv *env, const JniUtils::JniType &type, jvalue obj,
                           se::Value &out);
 
     bool jobject_to_seval2(JNIEnv *env, jobject obj, se::Value &out);
@@ -70,11 +72,11 @@ namespace {
                                         int offset, bool &success);
 
     bool getJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const jni_utils::JniType &type,
+                                     const JniUtils::JniType &type,
                                      se::Value &out);
 
     bool setJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const jni_utils::JniType &type,
+                                     const JniUtils::JniType &type,
                                      const se::Value &out);
 
     std::unordered_map<std::string, se::Class *> sJClassToJSClass;
@@ -87,119 +89,28 @@ namespace {
 
     class Defer {
     public:
-        Defer(std::function<void()> x):_cb(x) {};
+        Defer(std::function<void()> x) : _cb(x) {};
+
         virtual ~Defer() {
             _cb();
         }
+
     private:
         std::function<void()> _cb;
     };
 
-    std::string jstringToString(jobject arg) {
-        auto *env = JniHelper::getEnv();
-        jstring str = (jstring) arg;
-        std::vector<char> buff;
-        int len = env->GetStringUTFLength(str);
-        buff.resize(len + 1);
-        env->GetStringUTFRegion(str, 0, len, buff.data());
-        buff[len] = '\0';
-        return buff.data();
-    }
 
     std::string jthrowableToString(jthrowable e) {
         auto *env = JniHelper::getEnv();
         jobject str = JniHelper::callObjectObjectMethod((jobject) e, "java/lang/Throwable", "toString", "Ljava/lang/String;");
-        auto ret = jstringToString(str);
+        auto ret = JniHelper::jstring2string((jstring) str);
         env->DeleteLocalRef(str);
         return ret;
     }
 
-    std::string getJObjectClass(jobject obj) {
-        auto *env = JniHelper::getEnv();
 
-        jobject classObject = env->GetObjectClass(obj);
-        jobject classNameString = JniHelper::callObjectObjectMethod(
-                classObject, "java/lang/Class", "getName", "Ljava/lang/String;");
-
-        std::string buff = jstringToString(classNameString);
-
-        env->DeleteLocalRef(classObject);
-        env->DeleteLocalRef(classNameString);
-
-        return buff;
-    }
-
-    std::string getJMethodName(jobject method) {
-        jobject methodName = JniHelper::callObjectObjectMethod(
-                method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
-        return jstringToString(methodName);
-    }
-
-    std::string getJMethodReturnType(jobject method) {
-        jobject returnType = JniHelper::callObjectObjectMethod(
-                method, "java/lang/reflect/Method", "getReturnType", "Ljava/lang/Class;");
-        jobject returnTypeName = JniHelper::callObjectObjectMethod(
-                returnType, "java/lang/Class", "getName", "Ljava/lang/String;");
-        auto jniRetType = jni_utils::JniType::fromString(jstringToString(returnTypeName));
-        return jniRetType.toString();
-    }
-
-    std::string getJConstructorSignature(JNIEnv *env, jobject constructor) {
-        std::stringstream ss;
-        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(constructor, "java/lang/reflect/Constructor", "getParameterTypes", "[Ljava/lang/Class;");
-        auto len = env->GetArrayLength(paramTypes);
-        ss << "(";
-        for (auto j = 0; j < len; j++) {
-            jobject m = env->GetObjectArrayElement(paramTypes, 0);
-            jobject paramName = JniHelper::callObjectObjectMethod(m, "java/lang/Class", "getName", "Ljava/lang/String;");
-            ss << jni_utils::JniType::reparse(jstringToString(paramName));
-        }
-        ss << ")";
-        ss << "V";
-        return ss.str();
-    }
-
-    std::string getJMethodSignature(jobject method) {
-        std::stringstream ss;
-        auto *env = JniHelper::getEnv();
-        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(
-                method, "java/lang/reflect/Method", "getParameterTypes",
-                "[Ljava/lang/Class;");
-        auto len = env->GetArrayLength(paramTypes);
-        ss << "(";
-        for (auto j = 0; j < len; j++) {
-            jobject m = env->GetObjectArrayElement(paramTypes, 0);
-            jobject paramName = JniHelper::callObjectObjectMethod(
-                    m, "java/lang/Class", "getName", "Ljava/lang/String;");
-            ss << jni_utils::JniType::reparse(jstringToString(paramName));
-        }
-        ss << ")";
-        ss << getJMethodReturnType(method);
-        return ss.str();
-    }
-
-    std::vector<std::string> getJobjectMethods(jobject obj) {
-        auto *env = JniHelper::getEnv();
-        jobject classObject = env->GetObjectClass(obj);
-        jobjectArray methods = (jobjectArray) JniHelper::callObjectObjectMethod(
-                classObject, "java/lang/Class", "getMethods",
-                "[Ljava/lang/reflect/Method;");
-        std::vector<std::string> methodList;
-        auto len = env->GetArrayLength(methods);
-        for (auto i = 0; i < len; i++) {
-            jobject method = env->GetObjectArrayElement(methods, i);
-            std::stringstream ss;
-            ss << getJMethodName(method);
-            ss << " # ";
-            ss << getJMethodSignature(method);
-            methodList.push_back(ss.str());
-        }
-
-        return methodList;
-    }
-
-    bool setJobjectFieldByType(JNIEnv *env, const jni_utils::JniType &type,
-                               jobject jthis, jfieldID field, const jvalue value) {
+    bool setObjectFieldByType(JNIEnv *env, const JniUtils::JniType &type,
+                              jobject jthis, jfieldID field, const jvalue value) {
         if (type.dim == 0) {
             if (type.isBoolean()) {
                 env->SetBooleanField(jthis, field, value.z);
@@ -246,8 +157,8 @@ namespace {
         jobject fieldClassObject = JniHelper::callObjectObjectMethod(field, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
         jobject fieldTypeJNIName = JniHelper::callObjectObjectMethod(fieldClassObject, "java/lang/Class", "getName", "Ljava/lang/String;");
 
-        jni_utils::JniType fieldType =
-                jni_utils::JniType::fromString(jstringToString(fieldTypeJNIName));
+        JniUtils::JniType fieldType =
+                JniUtils::JniType::fromString(jstringToString(fieldTypeJNIName));
         jvalue ret = seval_to_jvalule(env, fieldType, value, ok);
         if (ok) {
             jfieldID fieldId =
@@ -257,30 +168,11 @@ namespace {
                 env->ExceptionClear();
                 return false;
             }
-            ok &= setJobjectFieldByType(env, fieldType, obj, fieldId, ret);
+            ok &= setObjectFieldByType(env, fieldType, obj, fieldId, ret);
         }
         return ok;
     }
 
-    std::vector<std::string> getJobjectFields(jobject obj) {
-        auto *env = JniHelper::getEnv();
-        jobject classObject = env->GetObjectClass(obj);
-        jobjectArray fields = (jobjectArray) JniHelper::callObjectObjectMethod(classObject, "java/lang/Class", "getFields", "[Ljava/lang/reflect/Field;");
-        std::vector<std::string> fieldList;
-        auto len = env->GetArrayLength(fields);
-        for (auto i = 0; i < len; i++) {
-            jobject fieldObj = env->GetObjectArrayElement(fields, i);
-            jobject fieldName = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getName", "Ljava/lang/String;");
-            std::string name = jstringToString(fieldName);
-
-            jobject fieldClass = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
-            jobject fieldTypeName = JniHelper::callObjectObjectMethod(fieldClass, "java/lang/Class", "getName", "Ljava/lang/String;");
-            std::string fieldTypeNameStr = jstringToString(fieldTypeName);
-            fieldList.push_back(name + " # " + fieldTypeNameStr);
-        }
-
-        return fieldList;
-    }
 
     jobject invokeConstructor(JNIEnv *env, const std::string &path, jclass klass,
                               jobject constructor, se::Object *args) {
@@ -294,7 +186,7 @@ namespace {
                 args->getArrayElement(i, &argVector[i]);
             }
         }
-        auto signature = getJConstructorSignature(env, constructor);
+        auto signature = JniHelper::getConstructorSignature(env, constructor);
         bool ok = false;
 
         jmethodID initMethod = env->GetMethodID(klass, "<init>", signature.c_str());
@@ -350,66 +242,6 @@ namespace {
         return nullptr;
     }
 
-    jfieldID getJClassStaticField(JNIEnv *env, jclass klass,
-                                  const std::string &fieldName,
-                                  jni_utils::JniType &fieldType) {
-        jobject fieldObj = JniHelper::callObjectObjectMethod(klass, "java/lang/Class", "getField",
-                                                             "Ljava/lang/reflect/Field;", fieldName);
-        if (!fieldObj || env->ExceptionCheck()) {
-            env->ExceptionClear();
-            return nullptr;
-        }
-        jclass modifierClass = env->FindClass("java/lang/reflect/Modifier");
-        jfieldID modifierStaticField = env->GetStaticFieldID(modifierClass, "STATIC", "I");
-        int staticFlag = env->GetStaticIntField(modifierClass, modifierStaticField);
-        int modifiers = JniHelper::callObjectIntMethod(
-                fieldObj, "java/lang/reflect/Field", "getModifiers");
-        if ((modifiers & staticFlag) == 0) {
-            return nullptr;
-        }
-
-        if (env->ExceptionCheck()) {
-            env->ExceptionClear();
-            return nullptr;
-        }
-
-        jobject fieldClassObj = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
-        jobject fieldTypeName = JniHelper::callObjectObjectMethod(fieldClassObj, "java/lang/Class", "getName", "Ljava/lang/String;");
-        fieldType = jni_utils::JniType::fromString(jstringToString(fieldTypeName));
-        jfieldID fid = env->GetStaticFieldID(klass, fieldName.c_str(),
-                                             fieldType.toString().c_str());
-        if (!fid || env->ExceptionCheck()) {
-            env->ExceptionClear();
-            return nullptr;
-        }
-
-        return fid;
-    }
-
-    bool hasStaticField(const std::string &longPath) {
-        JNIEnv *env = JniHelper::getEnv();
-
-        std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
-        std::string fieldName;
-        std::string className;
-        jni_utils::JniType fieldType;
-        {
-            auto idx = path.rfind("/");
-            if (idx == std::string::npos) {
-                return false;
-            }
-            fieldName = path.substr(idx + 1);
-            className = path.substr(0, idx);
-        }
-
-        jclass kls = env->FindClass(className.c_str());
-        if (kls == nullptr || env->ExceptionCheck()) {
-            env->ExceptionClear();
-            return false;
-        }
-        jfieldID f = getJClassStaticField(env, kls, fieldName, fieldType);
-        return f != nullptr;
-    }
 
     bool getJobjectStaticField(const std::string &longPath, se::Value &ret) {
         JNIEnv *env = JniHelper::getEnv();
@@ -417,7 +249,7 @@ namespace {
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
         std::string fieldName;
         std::string className;
-        jni_utils::JniType fieldType;
+        JniUtils::JniType fieldType;
         {
             auto idx = path.rfind("/");
             if (idx == std::string::npos) {
@@ -432,7 +264,7 @@ namespace {
             env->ExceptionClear();
             return false;
         }
-        jfieldID f = getJClassStaticField(env, kls, fieldName, fieldType);
+        jfieldID f = JniHelper::getClassStaticField(env, kls, fieldName, fieldType);
         if (f == nullptr) {
             return false;
         }
@@ -446,7 +278,7 @@ namespace {
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
         std::string fieldName;
         std::string className;
-        jni_utils::JniType fieldType;
+        JniUtils::JniType fieldType;
         {
             auto idx = path.rfind("/");
             if (idx == std::string::npos) {
@@ -461,7 +293,7 @@ namespace {
             env->ExceptionClear();
             return false;
         }
-        jfieldID f = getJClassStaticField(env, kls, fieldName, fieldType);
+        jfieldID f = JniHelper::getClassStaticField(env, kls, fieldName, fieldType);
         if (f == nullptr) {
             std::string msg = "field '" + fieldName + "' is not found in '" + className + "'";
             se::ScriptEngine::getInstance()->throwException(msg.c_str());
@@ -473,10 +305,10 @@ namespace {
 
     class JValueWrapper {
     public:
-        JValueWrapper(const jni_utils::JniType &type_, jvalue v_)
+        JValueWrapper(const JniUtils::JniType &type_, jvalue v_)
                 : type(type_), value(v_) {}
 
-        const jni_utils::JniType &getType() const { return type; }
+        const JniUtils::JniType &getType() const { return type; }
 
         jboolean getBoolean() const {
             assert(type.isBoolean());
@@ -526,37 +358,14 @@ namespace {
         bool cast(se::Value &out);
 
     private:
-        jni_utils::JniType type;
+        JniUtils::JniType type;
         jvalue value;
     };
 
-    struct JMethod {
-        jmethodID method{};
-        std::string signature;
-    };
-
-    std::vector<JMethod> getJStaticMethodsByName(JNIEnv *env, jclass klass,
-                                                 const std::string &methodName) {
-        std::vector<JMethod> ret;
-        jobject methods = JniHelper::callObjectObjectMethod(
-                klass, "java/lang/Class", "getMethods", "[Ljava/lang/reflect/Method;");
-        int len = env->GetArrayLength((jarray) methods);
-        for (int i = 0; i < len; i++) {
-            jobject method = env->GetObjectArrayElement((jobjectArray) methods, i);
-            jobject methodNameObj = JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
-            if (jstringToString(methodNameObj) == methodName) {
-                JMethod m;
-                m.signature = getJMethodSignature(method);
-                m.method = env->GetStaticMethodID(klass, methodName.c_str(), m.signature.c_str());
-                ret.push_back(m);
-            }
-        }
-        return ret;
-    }
 
     class InvokeMethods {
     public:
-        InvokeMethods(std::string methodName, const std::vector<JMethod> &_methods,
+        InvokeMethods(std::string methodName, const std::vector<cocos2d::JniMethodSignature> &_methods,
                       JObjectWrapper *_self)
                 : methodName(std::move(methodName)), methods(_methods), self(_self) {}
 
@@ -568,7 +377,7 @@ namespace {
             return _jsobj;
         }
 
-        std::vector<JMethod> methods;
+        std::vector<cocos2d::JniMethodSignature> methods;
         JObjectWrapper *self = nullptr;
         std::string methodName;
 
@@ -603,7 +412,7 @@ namespace {
             _jsTarget->setPrivateData(this);
             _jsProxy = _jsTarget->proxyTo(sProxyObject);
 
-            _classPath = getJObjectClass(_javaObject);
+            _classPath = JniHelper::getObjectClass(_javaObject);
 #if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jobject"));
             _jsProxy->setProperty(JS_JNI_JCLASS_TYPE,
@@ -631,7 +440,7 @@ namespace {
         se::Object *getUnderlineJSObject() const { return _jsTarget; }
 
         bool findMethods(const std::string &name, const std::string &signature,
-                         std::vector<JMethod> &method);
+                         std::vector<cocos2d::JniMethodSignature> &method);
 
         JValueWrapper *getFieldValue(const std::string &name);
 
@@ -651,7 +460,7 @@ namespace {
 
     JValueWrapper *JObjectWrapper::getFieldValue(const std::string &name) {
         auto *env = JniHelper::getEnv();
-        std::string klassName = getJObjectClass(_javaObject);
+        std::string klassName = JniHelper::getObjectClass(_javaObject);
         jclass klassObject = env->GetObjectClass(_javaObject);
         jobject fieldObj = JniHelper::callObjectObjectMethod(klassObject, "java/lang/Class", "getField", "Ljava/lang/reflect/Field;", name);
         if (fieldObj == nullptr || env->ExceptionCheck()) {
@@ -663,8 +472,8 @@ namespace {
         jobject fieldTypeName = JniHelper::callObjectObjectMethod(
                 fieldType, "java/lang/Class", "getName", "Ljava/lang/String;");
         std::string fieldNameStr = jstringToString(fieldTypeName);
-        jni_utils::JniType jniFieldType =
-                jni_utils::JniType::fromString(fieldNameStr);
+        JniUtils::JniType jniFieldType =
+                JniUtils::JniType::fromString(fieldNameStr);
         jfieldID fieldId =
                 env->GetFieldID(env->GetObjectClass(_javaObject), name.c_str(), jniFieldType.toString().c_str());
         if (fieldId == nullptr || env->ExceptionCheck()) {
@@ -684,11 +493,11 @@ namespace {
 
     bool JObjectWrapper::findMethods(const std::string &name,
                                      const std::string &signature,
-                                     std::vector<JMethod> &list) {
+                                     std::vector<cocos2d::JniMethodSignature> &list) {
         auto *env = JniHelper::getEnv();
-        std::string klassName = getJObjectClass(_javaObject);
+        std::string klassName = JniHelper::getObjectClass(_javaObject);
         jclass jobjClass = env->GetObjectClass(_javaObject);
-        JMethod oMethod;
+        cocos2d::JniMethodSignature oMethod;
         if (!signature.empty()) {
             jmethodID mid =
                     env->GetMethodID(jobjClass, klassName.c_str(), signature.c_str());
@@ -711,11 +520,11 @@ namespace {
             auto len = env->GetArrayLength(methodsArray);
             for (int i = 0; i < len; i++) {
                 jobject methodObj = env->GetObjectArrayElement(methodsArray, i);
-                std::string methodName = getJMethodName(methodObj);
+                std::string methodName = JniHelper::getMethodName(methodObj);
                 if (methodName != name) {
                     continue;
                 }
-                auto sig = getJMethodSignature(methodObj);
+                auto sig = JniHelper::getMethodSignature(methodObj);
                 jmethodID mid = env->GetMethodID(jobjClass, name.c_str(), sig.c_str());
                 if (mid == nullptr || env->ExceptionCheck()) {
                     env->ExceptionClear();
@@ -821,7 +630,7 @@ namespace {
             se::Object *array = se::Object::createArrayObject(len);
             jboolean isCopy = false;
 
-            jni_utils::JniType type2 = type;
+            JniUtils::JniType type2 = type;
             type2.dim -= 1;
             for (auto i = 0; i < len; i++) {
                 se::Value tmpSeValue;
@@ -883,7 +692,7 @@ namespace {
     };
 
     bool getJFieldByType1D(JNIEnv *env, jobject jthis,
-                           const jni_utils::JniType &type, jfieldID fieldId,
+                           const JniUtils::JniType &type, jfieldID fieldId,
                            jvalue &ret) {
         if (type.dim == 0) {
             if (type.isBoolean()) {
@@ -914,7 +723,7 @@ namespace {
         return true;
     }
 
-    bool callJMethodByReturnType(const jni_utils::JniType &rType, jobject jthis,
+    bool callJMethodByReturnType(const JniUtils::JniType &rType, jobject jthis,
                                  jmethodID method,
                                  const std::vector<jvalue> &jvalueArray,
                                  se::Value &out) {
@@ -954,7 +763,7 @@ namespace {
         return true;
     }
 
-    bool callStaticMethodByType(const jni_utils::JniType &rType, jclass jthis,
+    bool callStaticMethodByType(const JniUtils::JniType &rType, jclass jthis,
                                 jmethodID method,
                                 const std::vector<jvalue> &jvalueArray,
                                 se::Value &out) {
@@ -989,7 +798,7 @@ namespace {
         return true;
     }
 
-    jvalue seval_to_jvalule(JNIEnv *env, const jni_utils::JniType &def,
+    jvalue seval_to_jvalule(JNIEnv *env, const JniUtils::JniType &def,
                             const se::Value &val, bool &ok) {
         jvalue ret = {};
         ok = false;
@@ -1061,7 +870,7 @@ namespace {
                 return ret;
             }
 
-            jni_utils::JniType decayDef = def;
+            JniUtils::JniType decayDef = def;
             decayDef.dim -= 1;
 
             se::Object *jsArray = val.toObject();
@@ -1179,7 +988,7 @@ namespace {
             return ret;
 
         } else {
-            jni_utils::JniType decayDef = def;
+            JniUtils::JniType decayDef = def;
             decayDef.dim -= 1;
             if (!val.isObject() || !val.toObject()->isArray()) {
                 SE_LOGE("incorrect jni type, don't know how to convert %s from js value "
@@ -1223,14 +1032,14 @@ namespace {
                                         int offset, bool &success) {
         bool convertOk = false;
         success = false;
-        std::vector<jni_utils::JniType> argTypes = jni_utils::exactArgsFromSignature(signature, convertOk);
+        std::vector<JniUtils::JniType> argTypes = JniUtils::exactArgsFromSignature(signature, convertOk);
         if (!convertOk) {
             SE_LOGE("failed to parse signature \"%s\"", signature.c_str());
             return {};
         }
 
         if (argTypes.size() != args.size() - offset) {
-            SE_LOGE("arguments size %d does not match function signature \"%s\"", (int)args.size(), signature.c_str());
+            SE_LOGE("arguments size %d does not match function signature \"%s\"", (int) args.size(), signature.c_str());
             return {};
         }
 
@@ -1250,7 +1059,7 @@ namespace {
         return ret;
     }
 
-    bool jobject_to_seval(JNIEnv *env, const jni_utils::JniType &type, jvalue v,
+    bool jobject_to_seval(JNIEnv *env, const JniUtils::JniType &type, jvalue v,
                           se::Value &out) {
         if (type.dim == 0) {
             if (type.isBoolean()) {
@@ -1381,8 +1190,8 @@ namespace {
             return true;
         }
         tmp.l = v;
-        std::string typeString = getJObjectClass(v);
-        auto type = jni_utils::JniType::fromString(typeString);
+        std::string typeString = JniHelper::getObjectClass(v);
+        auto type = JniUtils::JniType::fromString(typeString);
         return jobject_to_seval(env, type, tmp, out);
     }
 
@@ -1407,7 +1216,7 @@ namespace {
                 return data->getJavaObject();
             } else {
                 bool ok = false;
-                jni_utils::JniType def = jni_utils::JniType::from(jni_utils::JniTypeEnum::Object_L);
+                JniUtils::JniType def = JniUtils::JniType::from(JniUtils::JniTypeEnum::Object_L);
                 //TODO: mutiple dimension
                 jvalue rt = seval_to_jvalule(env, def, input, ok);
                 return rt.l;
@@ -1417,7 +1226,7 @@ namespace {
     }
 
     bool getJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const jni_utils::JniType &type,
+                                     const JniUtils::JniType &type,
                                      se::Value &out) {
         if (type.dim == 0) {
             if (type.isBoolean()) {
@@ -1465,7 +1274,7 @@ namespace {
     }
 
     bool setJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const jni_utils::JniType &type,
+                                     const JniUtils::JniType &type,
                                      const se::Value &in) {
         if (type.dim == 0) {
             if (type.isBoolean() && in.isBoolean()) {
@@ -1526,7 +1335,7 @@ namespace {
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
         std::string fieldName;
         std::string className;
-        jni_utils::JniType fieldType;
+        JniUtils::JniType fieldType;
         {
             auto idx = path.rfind("/");
             if (idx == std::string::npos) {
@@ -1541,7 +1350,7 @@ namespace {
             env->ExceptionClear();
             return false;
         }
-        std::vector<JMethod> methods = getJStaticMethodsByName(env, kls, fieldName);
+        std::vector<cocos2d::JniMethodSignature> methods = JniHelper::getStaticMethodsByName(env, kls, fieldName);
 
         return !methods.empty();
     }
@@ -1553,7 +1362,7 @@ namespace {
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
         std::string fieldName;
         std::string className;
-        jni_utils::JniType fieldType;
+        JniUtils::JniType fieldType;
         {
             auto idx = path.rfind("/");
             if (idx == std::string::npos) {
@@ -1568,13 +1377,13 @@ namespace {
             env->ExceptionClear();
             return false;
         }
-        std::vector<JMethod> methods = getJStaticMethodsByName(env, kls, fieldName);
+        std::vector<cocos2d::JniMethodSignature> methods = JniHelper::getStaticMethodsByName(env, kls, fieldName);
 
-        for (JMethod &m : methods) {
+        for (cocos2d::JniMethodSignature &m : methods) {
             std::vector<jvalue> newArgs =
                     convertFuncArgs(env, m.signature, args, 0, ok);
             if (ok) {
-                auto rType = jni_utils::JniType::fromString(m.signature.substr(m.signature.rfind(")") + 1));
+                auto rType = JniUtils::JniType::fromString(m.signature.substr(m.signature.rfind(")") + 1));
                 ok = callStaticMethodByType(rType, kls, m.method, newArgs, out);
                 if (ok) {
                     return true;
@@ -1938,7 +1747,7 @@ static bool js_jni_proxy_get(se::State &s) {
             }
         }
         {
-            std::vector<JMethod> methods;
+            std::vector<cocos2d::JniMethodSignature> methods;
             if (inner->findMethods(method, "", methods) && !methods.empty()) {
                 auto *ctx = new InvokeMethods(method, methods, inner);
                 s.rval().setObject(sJavaObjectMethodApplyUnbound->bindThis(ctx->asJSObject()));
@@ -1994,7 +1803,7 @@ static bool js_jni_proxy_methods(se::State &s) {
     assert(jsThis);
     auto *jobjWrapper = (JObjectWrapper *) jsThis->getPrivateData();
     jobject jobj = jobjWrapper->getJavaObject();
-    auto methodNames = getJobjectMethods(jobj);
+    auto methodNames = JniHelper::getObjectMethods(jobj);
     auto *array = se::Object::createArrayObject(methodNames.size());
     for (int i = 0; i < methodNames.size(); i++) {
         array->setArrayElement(i, se::Value(methodNames[i]));
@@ -2013,7 +1822,7 @@ static bool js_jni_proxy_fields(se::State &s) {
     assert(jsThis);
     auto *jobjWrapper = (JObjectWrapper *) jsThis->getPrivateData();
     jobject jobj = jobjWrapper->getJavaObject();
-    auto fieldNames = getJobjectFields(jobj);
+    auto fieldNames = JniHelper::getObjectFields(jobj);
     auto *array = se::Object::createArrayObject(fieldNames.size());
     for (int i = 0; i < fieldNames.size(); i++) {
         array->setArrayElement(i, se::Value(fieldNames[i]));
@@ -2071,7 +1880,7 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
             return false;
         }
         std::string returnType = m.signature.substr(m.signature.find(')') + 1);
-        jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
+        JniUtils::JniType rType = JniUtils::JniType::fromString(returnType);
         ok = callJMethodByReturnType(rType, jthis, m.method, jvalueArray, s.rval());
         if (env->ExceptionCheck()) {
             jthrowable e = env->ExceptionOccurred();
@@ -2084,15 +1893,14 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
         }
         return ok;
     } else {
-        // TODO: match signature by type test, should not try all methods
-        for (const JMethod &m : ctx->methods) {
-            auto argsFromSignature = jni_utils::exactArgsFromSignature(m.signature, ok);
+        for (const cocos2d::JniMethodSignature &m : ctx->methods) {
+            auto argsFromSignature = JniUtils::exactArgsFromSignature(m.signature, ok);
             if (argsFromSignature.size() == argCnt) {
                 std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0, ok);
                 if (!ok)
                     continue;
                 std::string returnType = m.signature.substr(m.signature.find(')') + 1);
-                jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
+                JniUtils::JniType rType = JniUtils::JniType::fromString(returnType);
                 ok = callJMethodByReturnType(rType, jthis, m.method, jvalueArray, s.rval());
                 if (!ok || env->ExceptionCheck()) {
                     env->ExceptionClear();
@@ -2179,7 +1987,7 @@ static bool js_jni_proxy_java_path_set(se::State &s) {
             std::string newpath = pathStr.empty() ? field : pathStr + "." + field;
 
             se::Value fieldValue;
-            if (hasStaticField(newpath)) {
+            if (JniHelper::hasStaticField(newpath)) {
                 if (!setJobjectStaticField(newpath, s.args()[2])) {
                     se::ScriptEngine::getInstance()->throwException(
                             "can not set static property");
@@ -2246,7 +2054,6 @@ static bool js_jni_proxy_java_path_get(se::State &s) {
             return true;
         }
     }
-    // se::ScriptEngine::getInstance()->throwException("no binding field '" + field + "' found");
     return true;
 }
 
@@ -2267,8 +2074,6 @@ static void setup_proxy_object() {
     sJavaObjectFieldsUnbound->root();
 
     sPathProxObject = se::Object::createPlainObject();
-    //    sPathProxObject->defineFunction("apply",
-    //    _SE(js_jni_proxy_java_path_apply));
     sPathProxObject->defineFunction("construct", _SE(js_jni_proxy_java_path_construct));
     sPathProxObject->defineFunction("get", _SE(js_jni_proxy_java_path_get));
     sPathProxObject->defineFunction("set", _SE(js_jni_proxy_java_path_set));
@@ -2307,8 +2112,6 @@ JNIEXPORT void JNICALL JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env,
                                                                 jclass klass,
                                                                 jobject self,
                                                                 jint id) {
-    SE_LOGE("registerInstance ---- ");
-
     auto &item = sJavaObjectMapToJS[id];
     if (item.jThis != nullptr) {
         delete item.jThis;
@@ -2322,11 +2125,9 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
                                                          jobject finished,
                                                          jstring methodName,
                                                          jobjectArray args) {
-
     se::AutoHandleScope scope;
-    SE_LOGE("callJS ---- %s", jstringToString(methodName).c_str());
 
-    Defer setState([&](){
+    Defer setState([&]() {
         JniHelper::callObjectVoidMethod(
                 finished, "java/util/concurrent/atomic/AtomicBoolean", "set", true);
     });
@@ -2362,7 +2163,7 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
     if (!jsProperty.isObject() || !jsProperty.toObject()->isFunction()) {
         SE_LOGE("funtion '%s' not found in js config object, id %d", functionName.c_str(), keyInt);
         auto keys = configObject->keys();
-        SE_LOGE(" %d keys", (int)keys.size());
+        SE_LOGE(" %d keys", (int) keys.size());
         for (auto &k : keys) {
             SE_LOGE("   %s", k.c_str());
         }

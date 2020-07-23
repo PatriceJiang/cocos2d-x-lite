@@ -33,6 +33,8 @@ THE SOFTWARE.
 #include <functional>
 #include "base/ccMacros.h"
 #include "math/Vec3.h"
+#include "scripting/js-bindings/jswrapper/SeApi.h"
+#include "scripting/js-bindings/manual/jsb_jni_utils.h"
 
 //The macro must be used this way to find the native method. The principle is not well understood.
 #define JNI_METHOD2(CLASS2,FUNC2) Java_##CLASS2##_##FUNC2
@@ -47,6 +49,11 @@ typedef struct JniMethodInfo_
     jmethodID   methodID;
 } JniMethodInfo;
 
+
+struct CC_DLL JniMethodSignature {
+    jmethodID method{};
+    std::string signature;
+};
 
 class CC_DLL JniHelper
 {
@@ -462,6 +469,18 @@ public:
         }
         return ret;
     }
+
+    static std::vector<JniMethodSignature> getStaticMethodsByName(JNIEnv *env, jclass klass, const std::string &methodName);
+    static std::vector<std::string> getObjectMethods(jobject obj);
+    static std::string getMethodSignature(jobject method);
+    static std::string getMethodName(jobject method);
+    static std::string getMethodReturnType(jobject method);
+    static std::string getConstructorSignature(JNIEnv *env, jobject constructor);
+    static std::string getObjectClass(jobject obj);
+    static std::vector<std::string> getObjectFields(jobject obj);
+    static jfieldID getClassStaticField(JNIEnv *env, jclass klass,const std::string &fieldName,JniUtils::JniType &fieldType);
+    static bool hasStaticField(const std::string &longPath);
+
 private:
     static JNIEnv* cacheEnv(JavaVM* jvm);
 

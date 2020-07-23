@@ -4,7 +4,7 @@
 #include <cassert>
 #include <regex>
 
-namespace jni_utils {
+namespace JniUtils {
 
     JniType JniType::from(JniTypeEnum e) {
         JniType ret;
@@ -82,37 +82,37 @@ namespace jni_utils {
             d--;
         }
         switch (type) {
-            case jni_utils::JniTypeEnum::None:
+            case JniUtils::JniTypeEnum::None:
                 ss << "";
                 break;
-            case jni_utils::JniTypeEnum::Void_V:
+            case JniUtils::JniTypeEnum::Void_V:
                 ss << "V";
                 break;
-            case jni_utils::JniTypeEnum::Boolean_Z:
+            case JniUtils::JniTypeEnum::Boolean_Z:
                 ss << "Z";
                 break;
-            case jni_utils::JniTypeEnum::Char_C:
+            case JniUtils::JniTypeEnum::Char_C:
                 ss << "C";
                 break;
-            case jni_utils::JniTypeEnum::Byte_B:
+            case JniUtils::JniTypeEnum::Byte_B:
                 ss << "B";
                 break;
-            case jni_utils::JniTypeEnum::Short_S:
+            case JniUtils::JniTypeEnum::Short_S:
                 ss << "S";
                 break;
-            case jni_utils::JniTypeEnum::Int_I:
+            case JniUtils::JniTypeEnum::Int_I:
                 ss << "I";
                 break;
-            case jni_utils::JniTypeEnum::Long_J:
+            case JniUtils::JniTypeEnum::Long_J:
                 ss << "J";
                 break;
-            case jni_utils::JniTypeEnum::Float_F:
+            case JniUtils::JniTypeEnum::Float_F:
                 ss << "F";
                 break;
-            case jni_utils::JniTypeEnum::Double_D:
+            case JniUtils::JniTypeEnum::Double_D:
                 ss << "D";
                 break;
-            case jni_utils::JniTypeEnum::Object_L:
+            case JniUtils::JniTypeEnum::Object_L:
                 ss << "L" << klassName << ";";
                 break;
             default:
@@ -179,7 +179,7 @@ namespace jni_utils {
         return false;
     }
 
-    std::vector<jni_utils::JniType>
+    std::vector<JniUtils::JniType>
     exactArgsFromSignature(const std::string &signature, bool &success) {
         int i = 0;
         const int e = signature.length();
@@ -195,11 +195,11 @@ namespace jni_utils {
         const char *data = signature.data() + 1;
         size_t max_length = qtR - 1;
         size_t delta = 0;
-        jni_utils::JniType localType;
+        JniUtils::JniType localType;
         bool ok = false;
-        std::vector<jni_utils::JniType> argTypeList;
+        std::vector<JniUtils::JniType> argTypeList;
         do {
-            ok = jni_utils::parseSigType(data, max_length, &delta, &localType);
+            ok = JniUtils::parseSigType(data, max_length, &delta, &localType);
             if (ok) {
                 argTypeList.push_back(std::move(localType));
                 data += delta;

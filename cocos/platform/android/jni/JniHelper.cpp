@@ -26,9 +26,11 @@ THE SOFTWARE.
 #include "platform/android/jni/JniHelper.h"
 #include <android/log.h>
 #include <string.h>
+#include <regex>
 #include <pthread.h>
 
 #include "base/ccUTF8.h"
+
 
 #define  LOG_TAG    "JniHelper"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
@@ -313,6 +315,191 @@ namespace cocos2d {
 
     void JniHelper::reportError(const std::string& className, const std::string& methodName, const std::string& signature) {
         LOGE("Failed to find static java method. Class name: %s, method name: %s, signature: %s ",  className.c_str(), methodName.c_str(), signature.c_str());
+    }
+
+    std::vector<JniMethodSignature> JniHelper::getStaticMethodsByName(JNIEnv *env, jclass klass, const std::string &methodName) {
+        std::vector<JniMethodSignature> ret;
+        jobject methods = JniHelper::callObjectObjectMethod(
+                klass, "java/lang/Class", "getMethods", "[Ljava/lang/reflect/Method;");
+        int len = env->GetArrayLength((jarray) methods);
+        for (int i = 0; i < len; i++) {
+            jobject method = env->GetObjectArrayElement((jobjectArray) methods, i);
+            jobject methodNameObj = JniHelper::callObjectObjectMethod(method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
+            if (jstring2string((jstring)methodNameObj) == methodName) {
+                JniMethodSignature m;
+                m.signature = getMethodSignature(method);
+                m.method = env->GetStaticMethodID(klass, methodName.c_str(), m.signature.c_str());
+                ret.push_back(m);
+            }
+        }
+        return ret;
+    }
+
+    std::vector<std::string> JniHelper::getObjectMethods(jobject obj) {
+        auto *env = JniHelper::getEnv();
+        jobject classObject = env->GetObjectClass(obj);
+        jobjectArray methods = (jobjectArray) JniHelper::callObjectObjectMethod(
+                classObject, "java/lang/Class", "getMethods",
+                "[Ljava/lang/reflect/Method;");
+        std::vector<std::string> methodList;
+        auto len = env->GetArrayLength(methods);
+        for (auto i = 0; i < len; i++) {
+            jobject method = env->GetObjectArrayElement(methods, i);
+            std::stringstream ss;
+            ss << getMethodName(method);
+            ss << " # ";
+            ss << getMethodSignature(method);
+            methodList.push_back(ss.str());
+        }
+
+        return methodList;
+    }
+
+
+    std::string JniHelper::getMethodSignature(jobject method) {
+        std::stringstream ss;
+        auto *env = JniHelper::getEnv();
+        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(
+                method, "java/lang/reflect/Method", "getParameterTypes",
+                "[Ljava/lang/Class;");
+        auto len = env->GetArrayLength(paramTypes);
+        ss << "(";
+        for (auto j = 0; j < len; j++) {
+            jobject m = env->GetObjectArrayElement(paramTypes, 0);
+            jobject paramName = JniHelper::callObjectObjectMethod(
+                    m, "java/lang/Class", "getName", "Ljava/lang/String;");
+            ss << JniUtils::JniType::reparse(jstring2string((jstring)paramName));
+        }
+        ss << ")";
+        ss << getMethodReturnType(method);
+        return ss.str();
+    }
+
+    std::string JniHelper::getMethodName(jobject method) {
+        jobject methodName = JniHelper::callObjectObjectMethod(
+                method, "java/lang/reflect/Method", "getName", "Ljava/lang/String;");
+        return jstring2string((jstring)methodName);
+    }
+
+    std::string JniHelper::getMethodReturnType(jobject method) {
+        jobject returnType = JniHelper::callObjectObjectMethod(
+                method, "java/lang/reflect/Method", "getReturnType", "Ljava/lang/Class;");
+        jobject returnTypeName = JniHelper::callObjectObjectMethod(
+                returnType, "java/lang/Class", "getName", "Ljava/lang/String;");
+        auto jniRetType = JniUtils::JniType::fromString(jstring2string((jstring)returnTypeName));
+        return jniRetType.toString();
+    }
+
+    std::string JniHelper::getConstructorSignature(JNIEnv *env, jobject constructor) {
+        std::stringstream ss;
+        jobjectArray paramTypes = (jobjectArray) JniHelper::callObjectObjectMethod(constructor, "java/lang/reflect/Constructor", "getParameterTypes", "[Ljava/lang/Class;");
+        auto len = env->GetArrayLength(paramTypes);
+        ss << "(";
+        for (auto j = 0; j < len; j++) {
+            jobject m = env->GetObjectArrayElement(paramTypes, 0);
+            jobject paramName = JniHelper::callObjectObjectMethod(m, "java/lang/Class", "getName", "Ljava/lang/String;");
+            ss << JniUtils::JniType::reparse(jstring2string((jstring)paramName));
+        }
+        ss << ")";
+        ss << "V";
+        return ss.str();
+    }
+
+    std::string JniHelper::getObjectClass(jobject obj) {
+        auto *env = JniHelper::getEnv();
+
+        jobject classObject = env->GetObjectClass(obj);
+        jobject classNameString = JniHelper::callObjectObjectMethod(
+                classObject, "java/lang/Class", "getName", "Ljava/lang/String;");
+
+        std::string buff = jstring2string((jstring)classNameString);
+
+        env->DeleteLocalRef(classObject);
+        env->DeleteLocalRef(classNameString);
+
+        return buff;
+    }
+
+    std::vector<std::string> JniHelper::getObjectFields(jobject obj) {
+        auto *env = JniHelper::getEnv();
+        jobject classObject = env->GetObjectClass(obj);
+        jobjectArray fields = (jobjectArray) JniHelper::callObjectObjectMethod(classObject, "java/lang/Class", "getFields", "[Ljava/lang/reflect/Field;");
+        std::vector<std::string> fieldList;
+        auto len = env->GetArrayLength(fields);
+        for (auto i = 0; i < len; i++) {
+            jobject fieldObj = env->GetObjectArrayElement(fields, i);
+            jobject fieldName = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getName", "Ljava/lang/String;");
+            std::string name = jstring2string((jstring)fieldName);
+
+            jobject fieldClass = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
+            jobject fieldTypeName = JniHelper::callObjectObjectMethod(fieldClass, "java/lang/Class", "getName", "Ljava/lang/String;");
+            std::string fieldTypeNameStr = jstring2string((jstring)fieldTypeName);
+            fieldList.push_back(name + " # " + fieldTypeNameStr);
+        }
+
+        return fieldList;
+    }
+
+    jfieldID JniHelper::getClassStaticField(JNIEnv *env, jclass klass,
+                                  const std::string &fieldName,
+                                  JniUtils::JniType &fieldType) {
+        jobject fieldObj = JniHelper::callObjectObjectMethod(klass, "java/lang/Class", "getField",
+                                                             "Ljava/lang/reflect/Field;", fieldName);
+        if (!fieldObj || env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return nullptr;
+        }
+        jclass modifierClass = env->FindClass("java/lang/reflect/Modifier");
+        jfieldID modifierStaticField = env->GetStaticFieldID(modifierClass, "STATIC", "I");
+        int staticFlag = env->GetStaticIntField(modifierClass, modifierStaticField);
+        int modifiers = JniHelper::callObjectIntMethod(
+                fieldObj, "java/lang/reflect/Field", "getModifiers");
+        if ((modifiers & staticFlag) == 0) {
+            return nullptr;
+        }
+
+        if (env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return nullptr;
+        }
+
+        jobject fieldClassObj = JniHelper::callObjectObjectMethod(fieldObj, "java/lang/reflect/Field", "getType", "Ljava/lang/Class;");
+        jobject fieldTypeName = JniHelper::callObjectObjectMethod(fieldClassObj, "java/lang/Class", "getName", "Ljava/lang/String;");
+        fieldType = JniUtils::JniType::fromString(jstring2string((jstring)fieldTypeName));
+        jfieldID fid = env->GetStaticFieldID(klass, fieldName.c_str(),
+                                             fieldType.toString().c_str());
+        if (!fid || env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return nullptr;
+        }
+
+        return fid;
+    }
+
+
+    bool JniHelper::hasStaticField(const std::string &longPath) {
+        JNIEnv *env = JniHelper::getEnv();
+
+        std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
+        std::string fieldName;
+        std::string className;
+        JniUtils::JniType fieldType;
+        {
+            auto idx = path.rfind("/");
+            if (idx == std::string::npos) {
+                return false;
+            }
+            fieldName = path.substr(idx + 1);
+            className = path.substr(0, idx);
+        }
+
+        jclass kls = env->FindClass(className.c_str());
+        if (kls == nullptr || env->ExceptionCheck()) {
+            env->ExceptionClear();
+            return false;
+        }
+        jfieldID f = getClassStaticField(env, kls, fieldName, fieldType);
+        return f != nullptr;
     }
 
 } //namespace cocos2d

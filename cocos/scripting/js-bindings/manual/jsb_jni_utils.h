@@ -6,7 +6,7 @@
 #include <vector>
 #include "jni.h"
 
-namespace jni_utils {
+namespace JniUtils {
     enum class JniTypeEnum : uint8_t {
         None,
         Void_V,
@@ -90,7 +90,7 @@ namespace jni_utils {
         inline const std::string &getClassName() const { return klassName; }
     };
 
-    std::vector<jni_utils::JniType>
+    std::vector<JniUtils::JniType>
     exactArgsFromSignature(const std::string &signature, bool &success);
 
     bool parseSigType(const char *data, size_t max_length, size_t *len,
