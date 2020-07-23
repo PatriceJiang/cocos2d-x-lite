@@ -1,29 +1,21 @@
-package org.cocos2dx.test;
-
-import android.util.Log;
-
-import org.cocos2dx.lib.ByteCodeGenerator;
-import org.cocos2dx.lib.Cocos2dxHelper;
+package org.cocos2dx.lib;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Main {
+public class JSFunctionProxy {
 
     final static int MAX_WAIT = 300000;
     final static int TICK = 3; //millis
-    public static void printArgumentsV(final Object [] args) {
+
+    public static void printArgumentsV(final Object[] args) {
         String methodName = Thread.currentThread().getStackTrace()[3].getMethodName();
-        Log.e("Inspect function ", methodName);
-        for(Object x : args) {
-            Log.e("  Inspect arguments", x.toString());
-        }
 
         final AtomicBoolean finished = new AtomicBoolean(false);
 
-        if(Cocos2dxHelper.inRendererThread()) {
-             ByteCodeGenerator.callJS(finished, methodName, args);
-             return;
-        }else {
+        if (Cocos2dxHelper.inRendererThread()) {
+            ByteCodeGenerator.callJS(finished, methodName, args);
+            return;
+        } else {
             Cocos2dxHelper.runOnGLThread(new Runnable() {
                 @Override
                 public void run() {

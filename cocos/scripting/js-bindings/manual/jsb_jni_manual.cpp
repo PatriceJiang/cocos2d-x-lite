@@ -85,6 +85,16 @@ namespace {
     };
     std::unordered_map<int, JavaToJSTuple> sJavaObjectMapToJS;
 
+    class Defer {
+    public:
+        Defer(std::function<void()> x):_cb(x) {};
+        virtual ~Defer() {
+            _cb();
+        }
+    private:
+        std::function<void()> _cb;
+    };
+
     std::string jstringToString(jobject arg) {
         auto *env = JniHelper::getEnv();
         jstring str = (jstring) arg;
@@ -735,7 +745,7 @@ namespace {
             } else if (type.isInt()) {
                 out.setInt32(value.i);
             } else if (type.isLong()) {
-                out.setInt32((int32_t) value.l); // use double ??
+                out.setInt32(static_cast<int32_t>(value.j)); // use double ??
             } else if (type.isFloat()) {
                 out.setFloat(value.f);
             } else if (type.isDouble()) {
@@ -1220,7 +1230,7 @@ namespace {
         }
 
         if (argTypes.size() != args.size() - offset) {
-            SE_LOGE("arguments size %d does not match function signature \"%s\"", args.size(), signature.c_str());
+            SE_LOGE("arguments size %d does not match function signature \"%s\"", (int)args.size(), signature.c_str());
             return {};
         }
 
@@ -1743,7 +1753,7 @@ static jobject genAnonymousJavaObject(const std::string &className, const std::s
         env->ExceptionClear();
         return nullptr;
     }
-    jmethodID generateMID = env->GetStaticMethodID(bcClass, "generate", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
+    jmethodID generateMID = env->GetStaticMethodID(bcClass, "newInstance", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
     jobject ret = env->CallStaticObjectMethod(bcClass, generateMID, classNameJ, superClassNameJ, interfacesJ);
     env->DeleteLocalRef(stringClass);
     env->DeleteLocalRef(classNameJ);
@@ -2316,6 +2326,11 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
     se::AutoHandleScope scope;
     SE_LOGE("callJS ---- %s", jstringToString(methodName).c_str());
 
+    Defer setState([&](){
+        JniHelper::callObjectVoidMethod(
+                finished, "java/util/concurrent/atomic/AtomicBoolean", "set", true);
+    });
+
     int argCnt = env->GetArrayLength(args);
     jobject mapKey = env->GetObjectArrayElement(args, 0);
     jobject thisObject = env->GetObjectArrayElement(args, 1);
@@ -2347,7 +2362,7 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
     if (!jsProperty.isObject() || !jsProperty.toObject()->isFunction()) {
         SE_LOGE("funtion '%s' not found in js config object, id %d", functionName.c_str(), keyInt);
         auto keys = configObject->keys();
-        SE_LOGE(" %d keys", keys.size());
+        SE_LOGE(" %d keys", (int)keys.size());
         for (auto &k : keys) {
             SE_LOGE("   %s", k.c_str());
         }
@@ -2361,9 +2376,6 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
         SE_LOGE("failed to call js function '%s' from js config object", functionName.c_str());
         return nullptr;
     }
-
-    JniHelper::callObjectVoidMethod(
-            finished, "java/util/concurrent/atomic/AtomicBoolean", "set", true);
 
     if (ret.isNullOrUndefined()) {
         return nullptr;
