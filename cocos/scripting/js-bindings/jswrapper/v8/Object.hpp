@@ -293,6 +293,9 @@ namespace se {
          */
         void clearPrivateData(bool clearMapping = true);
 
+
+        std::vector<std::string> keys() const;
+
         /**
          *  @brief Roots an object from garbage collection.
          *  @note Use this method when you want to store an object in a global or on the heap, where the garbage collector will not be able to discover your reference to it.

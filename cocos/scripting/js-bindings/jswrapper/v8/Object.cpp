@@ -884,6 +884,21 @@ namespace se {
         return *jsonStr;
     }
 
+    std::vector<std::string> Object::keys() const
+    {
+        v8::HandleScope scope(__isolate);
+        v8::Local<v8::Context> context = __isolate->GetCurrentContext();
+        v8::Local<v8::Array> keyArr =  _obj.handle()->GetOwnPropertyNames(context).ToLocalChecked();
+        std::vector<std::string> ret;
+        auto len = keyArr->Length();
+        for(auto i = 0;i  < len; i++) {
+            v8::Local<v8::Value> attr = keyArr->Get(context, i).ToLocalChecked();
+            v8::String::Utf8Value attrStr(__isolate, attr);
+            ret.emplace_back(*attrStr);
+        }
+        return ret;
+    }
+
     Object * Object::bindThis(se::Object *p)
     {
         v8::HandleScope scope(__isolate);

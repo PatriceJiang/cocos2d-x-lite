@@ -16,6 +16,7 @@
 #define JS_JNI_TAG_TYPE "jni_obj_type"
 #define JS_JNI_JCLASS_TYPE "java_class"
 #define JS_JNI_TAG_PATH "path"
+#define JS_JNI_PROXY_TARGET "proxy_target"
 
 #ifndef ORG_BYTECODE_GENERATOR_CLASS_NAME
 #define ORG_BYTECODE_GENERATOR_CLASS_NAME org_cocos2dx_lib_ByteCodeGenerator
@@ -569,9 +570,12 @@ namespace {
             if (obj) {
                 _javaObject = JniHelper::getEnv()->NewGlobalRef(obj);
             }
+            SE_LOGD("new JObjectWrapper %p", this);
         }
 
         virtual ~JObjectWrapper() {
+
+            SE_LOGD("delete JObjectWrapper %p, jobject %p", this, _javaObject);
             if (_javaObject) {
                 JniHelper::getEnv()->DeleteGlobalRef(_javaObject);
                 _javaObject = nullptr;
@@ -586,17 +590,25 @@ namespace {
             _jsTarget = se::Object::createObjectWithClass(__jsb_jni_jobject);
             _jsTarget->setPrivateData(this);
             _jsProxy = _jsTarget->proxyTo(sProxyObject);
+
+            _classPath = getJObjectClass(_javaObject);
 #if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jobject"));
             _jsProxy->setProperty(JS_JNI_JCLASS_TYPE,
-                                  se::Value(getJObjectClass(_javaObject)));
+                                  se::Value(_classPath));
 #endif
-            _jsProxy->attachObject(_jsTarget);
+            _jsProxy->setProperty(JS_JNI_PROXY_TARGET, se::Value(_jsTarget));
+//            _jsProxy->attachObject(_jsTarget)
+
+            _jsProxy->root();
 
             return _jsProxy;
         }
 
-        jobject getJavaObject() const { return _javaObject; }
+        jobject getJavaObject() const {
+            assert(_javaObject);
+            return _javaObject;
+        }
 
         jclass getClass() const {
             return JniHelper::getEnv()->GetObjectClass(_javaObject);
@@ -611,10 +623,18 @@ namespace {
 
         JValueWrapper *getFieldValue(const std::string &name);
 
+        std::string toString() const {
+            char buff[256] = {0};
+            snprintf(buff, 255, "jobject %p, proxy %p, target: %p", (void *) _javaObject, _jsProxy, _jsTarget);
+            return buff;
+        }
+
     private:
         jobject _javaObject = nullptr;
         se::Object *_jsProxy = nullptr;
         se::Object *_jsTarget = nullptr;
+
+        std::string _classPath;
     };
 
     JValueWrapper *JObjectWrapper::getFieldValue(const std::string &name) {
@@ -890,9 +910,9 @@ namespace {
         jvalue jRet = {};
 
         if (rType.isVoid()) {
-            if(jvalueArray.size() == 0) {
+            if (jvalueArray.size() == 0) {
                 env->CallVoidMethod(jthis, method);
-            }else {
+            } else {
                 env->CallVoidMethodA(jthis, method, jvalueArray.data());
             }
         } else if (rType.isBoolean()) {
@@ -985,14 +1005,24 @@ namespace {
                     ret.l = env->NewStringUTF(jsstring.c_str());
                 } else if (val.isObject()) {
                     se::Object *seObj = val.toObject();
-                    auto *jo = static_cast<JObjectWrapper *>(seObj->getPrivateData());
-                    if (!jo) {
-                        SE_LOGE("incorrect jni type, don't know how to convert pure js "
-                                "object %s to java value %s",
-                                val.toStringForce().c_str(), def.toString().c_str());
+                    se::Value target;
+                    seObj->getProperty(JS_JNI_PROXY_TARGET, &target);
+                    if (target.isObject()) {
+                        auto *jo = (JObjectWrapper *) target.toObject()->getPrivateData();
+                        if (!jo) {
+                            ok = false;
+                            SE_LOGE("incorrect jni type, don't know how to convert pure js "
+                                    "object %s to java value %s, object_type: %s",
+                                    val.toStringForce().c_str(), def.toString().c_str(), target.toStringForce().c_str());
+
+                        } else {
+                            ret.l = jo->getJavaObject();
+                        }
+
+                    } else {
+                        ok = false;
+                        SE_LOGE("incorrect jni type, not a proxy object");
                     }
-                    assert(jo);
-                    ret.l = jo->getJavaObject();
                 } else {
                     ok = false;
                     SE_LOGE(
@@ -1353,15 +1383,15 @@ namespace {
         } else if (input.isNumber()) {
             jclass kls = env->FindClass("java/lang/Double");
             jmethodID methodId = env->GetMethodID(kls, "<init>", "(D)V");
-            ret = env->NewObject(kls, methodId, (jdouble)input.toNumber());
+            ret = env->NewObject(kls, methodId, (jdouble) input.toNumber());
         } else if (input.isString()) {
             ret = env->NewStringUTF(input.toString().c_str());
         } else if (input.isNullOrUndefined()) {
             return nullptr;
         } else if (input.isObject()) {
             se::Object *obj = input.toObject();
-            auto *data = (JObjectWrapper*) obj->getPrivateData();
-            if(data) {
+            auto *data = (JObjectWrapper *) obj->getPrivateData();
+            if (data) {
                 return data->getJavaObject();
             } else {
                 bool ok = false;
@@ -1687,6 +1717,29 @@ static bool js_jni_helper_newObject(se::State &s) {
 
 SE_BIND_FUNC(js_jni_helper_newObject)
 
+static jobject genAnonymousJavaObject(const std::string &className, const std::string &parentClassStr, const std::vector<std::string> &interfacesList) {
+    JNIEnv *env = JniHelper::getEnv();
+    jclass stringClass = env->FindClass("java/lang/String");
+    jobject classNameJ = env->NewStringUTF(className.c_str());
+    jobject superClassNameJ = env->NewStringUTF(parentClassStr.c_str());
+    jobjectArray interfacesJ = env->NewObjectArray(interfacesList.size(), stringClass, nullptr);
+    for (int i = 0; i < interfacesList.size(); i++) {
+        jobject tmpStr = env->NewStringUTF(interfacesList[i].c_str());
+        env->SetObjectArrayElement(interfacesJ, i, tmpStr);
+        env->DeleteLocalRef(tmpStr);
+    }
+    jclass bcClass = env->FindClass("org/cocos2dx/lib/ByteCodeGenerator");
+    jmethodID generateMID = env->GetStaticMethodID(bcClass, "generate", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
+    jobject ret = env->CallStaticObjectMethod(bcClass, generateMID, classNameJ, superClassNameJ, interfacesJ);
+    env->DeleteLocalRef(stringClass);
+    env->DeleteLocalRef(classNameJ);
+    env->DeleteLocalRef(superClassNameJ);
+    env->DeleteLocalRef(interfacesJ);
+    env->DeleteLocalRef(bcClass);
+    return ret;
+}
+
+
 static bool js_jni_helper_impl(se::State &s) {
     static int genObjId = 10000;
     const int argCnt = s.args().size();
@@ -1694,13 +1747,19 @@ static bool js_jni_helper_impl(se::State &s) {
     jobject ret = nullptr;
     bool ok;
 
-    if (argCnt != 1) {
+    if (argCnt == 0 || argCnt > 2) {
         SE_REPORT_ERROR("wrong number of arguments: %d", (int) argCnt);
         return false;
     }
     assert(s.args()[0].isObject());
-    se::Object *cfg = s.args()[0].toObject();
-    if(!cfg->hasRealNamedProperty("parentClass") && !cfg->hasRealNamedProperty("interfaces")) {
+    if (argCnt == 2) {
+        if (!s.args()[1].isObject() || !s.args()[1].toObject()->isFunction()) {
+            SE_REPORT_ERROR("arg 1 : function expected");
+            return false;
+        }
+    }
+    se::Object *instanceCfg = s.args()[0].toObject();
+    if (!instanceCfg->hasRealNamedProperty("parentClass") && !instanceCfg->hasRealNamedProperty("interfaces")) {
         se::ScriptEngine::getInstance()->throwException("both `parentClass` & `interfaces` are not set!");
         return false;
     }
@@ -1709,63 +1768,54 @@ static bool js_jni_helper_impl(se::State &s) {
     std::string parentClassStr;
     std::string className;
     std::vector<std::string> interfacesList;
-    cfg->getProperty("parentClass", &parentClass);
-    cfg->getProperty("interfaces", &interfaces);
+    instanceCfg->getProperty("parentClass", &parentClass);
+    instanceCfg->getProperty("interfaces", &interfaces);
 
     {
         std::stringstream ss;
-        ss << "pkg/GenObj_"  <<genObjId++;
+        ss << "pkg/GenObj_" << genObjId++;
         className = ss.str();
     }
-    if(parentClass.isString()) parentClassStr = parentClass.toString();
-    if(interfaces.isObject() && interfaces.toObject()->isArray()) {
+    if (parentClass.isString()) parentClassStr = parentClass.toString();
+    if (interfaces.isObject() && interfaces.toObject()->isArray()) {
         se::Object *array = interfaces.toObject();
         uint32_t len = 0;
         array->getArrayLength(&len);
         se::Value tmp;
-        for(int i= 0;i<len;i++) {
+        for (int i = 0; i < len; i++) {
             array->getArrayElement(i, &tmp);
-            if(tmp.isString()) {
+            if (tmp.isString()) {
                 interfacesList.push_back(tmp.toString());
             }
         }
     }
 
-    JNIEnv *env = JniHelper::getEnv();
-    jclass stringClass = env->FindClass("java/lang/String");
-    jobject classNameJ = env->NewStringUTF(className.c_str());
-    jobject superClassNameJ = env->NewStringUTF(parentClassStr.c_str());
-    jobjectArray  interfacesJ = env->NewObjectArray(interfacesList.size(), stringClass, nullptr);
-    for(int i = 0;i < interfacesList.size(); i++)
-    {
-        jobject tmpStr = env->NewStringUTF(interfacesList[i].c_str());
-        env->SetObjectArrayElement(interfacesJ, i, tmpStr);
-    }
-    {
-        jobject bc = JniHelper::newObject("org/cocos2dx/lib/ByteCodeGenerator");
-        jclass bcClass = env->FindClass("org/cocos2dx/lib/ByteCodeGenerator");
-        jmethodID generateMID = env->GetStaticMethodID(bcClass, "generate", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
-        jobject ret = env->CallStaticObjectMethod(bcClass, generateMID, classNameJ, superClassNameJ, interfacesJ);
-
-        if(ret) {
+    if (argCnt == 1) {
+        auto *env = JniHelper::getEnv();
+        jobject ret = genAnonymousJavaObject(className, parentClassStr, interfacesList);
+        if (ret) {
             jclass tmpClass = env->GetObjectClass(ret);
             jfieldID idField = env->GetFieldID(tmpClass, "__native_id__", "I");
-            int fieldId = env->GetIntField(ret, idField);
+            int instID = env->GetIntField(ret, idField);
 
 
-            auto * wrap = new JObjectWrapper(ret);
+            auto *wrap = new JObjectWrapper(ret);
             auto *jsObj = wrap->asJSObject();
             s.rval().setObject(jsObj);
-            // register JS object
 
-            auto &item = sJavaObjectMapToJS[fieldId];
-            item.jsConfig = cfg;
-            cfg->incRef();
+            auto &item = sJavaObjectMapToJS[instID];
+            item.jsConfig = instanceCfg;
+            jsObj->attachObject(instanceCfg);
+            instanceCfg->incRef();
 
-            SE_LOGE("binding jsconfig: %s", cfg->toJSON().c_str());
-
-
+            SE_LOGE("binding jsconfig: %s, cfg: %p, id %d", instanceCfg->toJSON().c_str(), instanceCfg, instID);
+            auto keys = instanceCfg->keys();
+            for (auto &k : keys) {
+                SE_LOGE(" key %s", k.c_str());
+            }
         }
+    } else if (argCnt == 2) {
+
     }
     return true;
 }
@@ -1781,9 +1831,9 @@ static bool js_register_jni_helper(se::Object *obj) {
     }
     auto *helperObj = helperVal.toObject();
     helperObj->defineFunction("getActivity", _SE(js_jni_helper_getActivity));
-    helperObj->defineFunction("setClassLoaderFrom",_SE(js_jni_helper_setClassLoaderFrom));
+    helperObj->defineFunction("setClassLoaderFrom", _SE(js_jni_helper_setClassLoaderFrom));
     helperObj->defineFunction("newObject", _SE(js_jni_helper_newObject));
-    helperObj->defineFunction("setStaticField",_SE(js_jni_helper_setStaticField));
+    helperObj->defineFunction("setStaticField", _SE(js_jni_helper_setStaticField));
     helperObj->defineFunction("impl", _SE(js_jni_helper_impl));
     return true;
 }
@@ -1974,6 +2024,15 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
         std::string returnType = m.signature.substr(m.signature.find(')') + 1);
         jni_utils::JniType rType = jni_utils::JniType::fromString(returnType);
         ok = callJMethodByReturnType(rType, jthis, m.method, jvalueArray, s.rval());
+        if (env->ExceptionCheck()) {
+            jthrowable e = env->ExceptionOccurred();
+            env->ExceptionClear();
+            if (e) {
+                auto printStackTrace = env->GetMethodID(env->GetObjectClass(e), "printStackTrace", "()V");
+                env->CallVoidMethod(e, printStackTrace);
+            }
+            se::ScriptEngine::getInstance()->throwException("java exception caught");
+        }
         return ok;
     } else {
         // TODO: match signature by type test, should not try all methods
@@ -2208,14 +2267,6 @@ JNIEXPORT void JNICALL JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env,
     item.jThis = new JObjectWrapper(self);
 }
 
-//JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
-//                                                         jclass klass,
-//                                                         jobject finished,
-//                                                         jstring methodName,
-//                                                         jobjectArray args) {
-//    return nullptr;
-//
-//}
 
 JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
                                                          jclass klass,
@@ -2223,6 +2274,7 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
                                                          jstring methodName,
                                                          jobjectArray args) {
 
+    se::AutoHandleScope scope;
     SE_LOGE("callJS ---- %s", jstringToString(methodName).c_str());
 
     int argCnt = env->GetArrayLength(args);
@@ -2233,6 +2285,7 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
 
     int keyInt = JniHelper::callObjectIntMethod(mapKey, "java/lang/Integer", "intValue");
     auto &item = sJavaObjectMapToJS[keyInt];
+
 
     assert(env->IsSameObject(thisObject, item.jThis->getJavaObject()));
 
@@ -2253,14 +2306,19 @@ JNIEXPORT jobject JNICALL JNI_BYTECODE_GENERATOR(callJS)(JNIEnv *env,
     configObject->getProperty(functionName.c_str(), &jsProperty);
 
     if (!jsProperty.isObject() || !jsProperty.toObject()->isFunction()) {
-        SE_LOGE("funtion '%s' not found in js config object", functionName.c_str());
-        SE_LOGE(" config object: %s", configObject->toString().c_str());
+        SE_LOGE("funtion '%s' not found in js config object, id %d", functionName.c_str(), keyInt);
+        auto keys = configObject->keys();
+        SE_LOGE(" %d keys", keys.size());
+        for (auto &k : keys) {
+            SE_LOGE("   %s", k.c_str());
+        }
+        SE_LOGE(" config object: %s, addr: %p, keys: ", configObject->toString().c_str(), configObject);
         return nullptr;
     }
 
     se::Object *jsFunction = jsProperty.toObject();
     se::Value ret;
-    if(!jsFunction->call(jsArgs, item.jThis->asJSObject(), &ret)){
+    if (!jsFunction->call(jsArgs, item.jThis->asJSObject(), &ret)) {
         SE_LOGE("failed to call js function '%s' from js config object", functionName.c_str());
         return nullptr;
     }
