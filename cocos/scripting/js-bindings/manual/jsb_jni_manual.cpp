@@ -11,6 +11,8 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <cocos/platform/CCApplication.h>
+#include <cocos/base/CCScheduler.h>
 
 #define JS_JNI_DEBUG 1
 #define JS_JNI_TAG_TYPE "jni_obj_type"
@@ -1728,7 +1730,19 @@ static jobject genAnonymousJavaObject(const std::string &className, const std::s
         env->SetObjectArrayElement(interfacesJ, i, tmpStr);
         env->DeleteLocalRef(tmpStr);
     }
+
+#if 0
     jclass bcClass = env->FindClass("org/cocos2dx/lib/ByteCodeGenerator");
+#else
+    jobject classNameJobj = env->NewStringUTF("org/cocos2dx/lib/ByteCodeGenerator");
+    jclass bcClass = (jclass) env->CallObjectMethod(JniHelper::classloader, JniHelper::loadclassMethod_methodID, classNameJobj);
+    env->DeleteLocalRef(classNameJobj);
+#endif
+
+    if (bcClass == nullptr || env->ExceptionCheck()) {
+        env->ExceptionClear();
+        return nullptr;
+    }
     jmethodID generateMID = env->GetStaticMethodID(bcClass, "generate", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
     jobject ret = env->CallStaticObjectMethod(bcClass, generateMID, classNameJ, superClassNameJ, interfacesJ);
     env->DeleteLocalRef(stringClass);
@@ -1739,6 +1753,22 @@ static jobject genAnonymousJavaObject(const std::string &className, const std::s
     return ret;
 }
 
+static se::Object *registerAnonymousJavaObject(JNIEnv *env, jobject ret, se::Object *instanceCfg) {
+
+    jclass tmpClass = env->GetObjectClass(ret);
+    jfieldID idField = env->GetFieldID(tmpClass, "__native_id__", "I");
+    int instID = env->GetIntField(ret, idField);
+
+
+    auto *wrap = new JObjectWrapper(ret);
+    auto *jsObj = wrap->asJSObject();
+
+    auto &item = sJavaObjectMapToJS[instID];
+    item.jsConfig = instanceCfg;
+    jsObj->attachObject(instanceCfg);
+    instanceCfg->incRef();
+    return jsObj;
+}
 
 static bool js_jni_helper_impl(se::State &s) {
     static int genObjId = 10000;
@@ -1792,30 +1822,39 @@ static bool js_jni_helper_impl(se::State &s) {
 
     if (argCnt == 1) {
         auto *env = JniHelper::getEnv();
-        jobject ret = genAnonymousJavaObject(className, parentClassStr, interfacesList);
-        if (ret) {
-            jclass tmpClass = env->GetObjectClass(ret);
-            jfieldID idField = env->GetFieldID(tmpClass, "__native_id__", "I");
-            int instID = env->GetIntField(ret, idField);
-
-
-            auto *wrap = new JObjectWrapper(ret);
-            auto *jsObj = wrap->asJSObject();
-            s.rval().setObject(jsObj);
-
-            auto &item = sJavaObjectMapToJS[instID];
-            item.jsConfig = instanceCfg;
-            jsObj->attachObject(instanceCfg);
-            instanceCfg->incRef();
-
-            SE_LOGE("binding jsconfig: %s, cfg: %p, id %d", instanceCfg->toJSON().c_str(), instanceCfg, instID);
-            auto keys = instanceCfg->keys();
-            for (auto &k : keys) {
-                SE_LOGE(" key %s", k.c_str());
-            }
+        jobject wrap = genAnonymousJavaObject(className, parentClassStr, interfacesList);
+        if (wrap) {
+            s.rval().setObject(registerAnonymousJavaObject(env, wrap, instanceCfg));
         }
     } else if (argCnt == 2) {
+        se::Object *cb = s.args()[1].toObject();
+        cb->incRef();
+        instanceCfg->incRef();
+        std::thread t([cb, instanceCfg, className, parentClassStr, interfacesList]() {
+            auto *env = JniHelper::getEnv();
+            jobject anonyJObj = genAnonymousJavaObject(className, parentClassStr, interfacesList);
+            jobject globlAnonyJobj = env->NewGlobalRef(anonyJObj);
+            cocos2d::Application::getInstance()->getScheduler()->performFunctionInCocosThread([instanceCfg, cb, globlAnonyJobj, anonyJObj]() {
+                auto *env = JniHelper::getEnv();
+                se::AutoHandleScope scope;
+                se::ValueArray cbArgs;
+                cbArgs.resize(1);
+                cbArgs[0].setUndefined();
+                if (!anonyJObj) {
+                    cb->call(cbArgs, nullptr);
+                } else {
+                    se::Object *wrap = registerAnonymousJavaObject(env, globlAnonyJobj, instanceCfg);
+                    cbArgs[0].setObject(wrap);
+                    cb->call(cbArgs, nullptr);
+                }
+                instanceCfg->decRef();
+                cb->decRef();
+                env->DeleteGlobalRef(globlAnonyJobj);
+            });
 
+        });
+        t.detach();
+        s.rval().setUndefined();
     }
     return true;
 }
