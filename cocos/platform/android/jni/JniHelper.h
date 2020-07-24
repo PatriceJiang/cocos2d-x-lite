@@ -478,7 +478,8 @@ public:
     static std::string getConstructorSignature(JNIEnv *env, jobject constructor);
     static std::string getObjectClass(jobject obj);
     static std::vector<std::string> getObjectFields(jobject obj);
-    static jfieldID getClassStaticField(JNIEnv *env, jclass klass,const std::string &fieldName,JniUtils::JniType &fieldType);
+    static jobject getObjectFieldObject(jobject obj, const std::string &fieldName);
+    static jfieldID getClassStaticField(JNIEnv *env, jclass classObj, const std::string &fieldName, JniUtils::JniType &fieldType);
     static bool hasStaticField(const std::string &longPath);
     static jclass findClass(const char *);
 private:

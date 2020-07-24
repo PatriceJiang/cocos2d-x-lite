@@ -65,7 +65,7 @@ public class ByteCodeGenerator {
      * @param interfaces
      * @return
      */
-    public static Object newInstance(String name, String className, String[] interfaces) {
+    public static Object newInstance(String className, String[] interfaces) {
         ByteCodeGenerator bc = new ByteCodeGenerator();
 //        bc.setClassName(name);
         bc.setSuperClass(className);
