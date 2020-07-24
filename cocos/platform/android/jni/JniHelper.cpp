@@ -493,13 +493,17 @@ namespace cocos2d {
             className = path.substr(0, idx);
         }
 
-        jclass kls = env->FindClass(className.c_str());
+        jclass kls = _getClassID(className.c_str());
         if (kls == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return false;
         }
         jfieldID f = getClassStaticField(env, kls, fieldName, fieldType);
         return f != nullptr;
+    }
+
+    jclass JniHelper::findClass(const char *classPath) {
+        return _getClassID(classPath);
     }
 
 } //namespace cocos2d

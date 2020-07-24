@@ -480,7 +480,7 @@ public:
     static std::vector<std::string> getObjectFields(jobject obj);
     static jfieldID getClassStaticField(JNIEnv *env, jclass klass,const std::string &fieldName,JniUtils::JniType &fieldType);
     static bool hasStaticField(const std::string &longPath);
-
+    static jclass findClass(const char *);
 private:
     static JNIEnv* cacheEnv(JavaVM* jvm);
 
@@ -559,6 +559,7 @@ private:
     static std::string getJNISignature(T x, Ts... xs) {
         return getJNISignature(x) + getJNISignature(xs...);
     }
+
 public:
     static void reportError(const std::string& className, const std::string& methodName, const std::string& signature);
 };

@@ -10,6 +10,8 @@
 #include <regex>
 #include <stack>
 #include <string>
+#include <utility>
+#include <memory>
 #include <vector>
 #include <cocos/platform/CCApplication.h>
 #include <cocos/base/CCScheduler.h>
@@ -29,29 +31,25 @@
 using cocos2d::JniHelper;
 using cocos2d::JniMethodInfo;
 
-namespace {
-    se::Class *__jsb_jni_jobject = nullptr;
-    se::Class *__jsb_jni_jmethod_invoke_instance = nullptr;
-
-    se::Object *sProxyObject = nullptr;
-    se::Object *sPathProxObject = nullptr;
-    se::Object *sJavaObjectMethodsUnbound = nullptr;
-    se::Object *sJavaObjectFieldsUnbound = nullptr;
-    se::Object *sJavaObjectMethodApplyUnbound = nullptr;
-
-    se::Object *sJavaStaticMethodApplyUnbound = nullptr;
-
-} // namespace
-
 SE_DECLARE_FUNC(js_jni_proxy_java_path_base);
 
 #define jstringToString(str) cocos2d::JniHelper::jstring2string((jstring)(str))
 
 namespace {
 
-    class JValueWrapper;
+    se::Class *__jsb_jni_jobject = nullptr;
+    se::Class *__jsb_jni_jmethod_invoke_instance = nullptr;
 
-    class JObjectWrapper;
+    se::Object *sJavaObjectProxy = nullptr;
+    se::Object *sJavaObjectStubProxy = nullptr;
+    se::Object *sJavaObjectMethodsUnboundFunc = nullptr;
+    se::Object *sJavaObjectFieldsUnboundFunc = nullptr;
+    se::Object *sJavaObjectMethodApplyUnboundFunc = nullptr;
+    se::Object *sJavaStaticMethodApplyUnboundFunc = nullptr;
+
+    class JValue;
+
+    class JObject;
 
     class JPathWrapper;
 
@@ -67,29 +65,28 @@ namespace {
 
     bool jobject_to_seval2(JNIEnv *env, jobject obj, se::Value &out);
 
-    std::vector<jvalue> convertFuncArgs(JNIEnv *env, const std::string &signature,
+    std::vector<jvalue> jsArgs2JavaArgs(JNIEnv *env, const std::string &signature,
                                         const std::vector<se::Value> &args,
                                         int offset, bool &success);
 
-    bool getJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const JniUtils::JniType &type,
-                                     se::Value &out);
+    bool getJavaObjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
+                                        const JniUtils::JniType &type,
+                                        se::Value &out);
 
-    bool setJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const JniUtils::JniType &type,
-                                     const se::Value &out);
+    bool setJavaObjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
+                                        const JniUtils::JniType &type,
+                                        const se::Value &in);
 
-    std::unordered_map<std::string, se::Class *> sJClassToJSClass;
 
     struct JavaToJSTuple {
-        JObjectWrapper *jThis = nullptr;
+        JObject *jThis = nullptr;
         se::Object *jsConfig = nullptr;
     };
     std::unordered_map<int, JavaToJSTuple> sJavaObjectMapToJS;
 
     class Defer {
     public:
-        Defer(std::function<void()> x) : _cb(x) {};
+        Defer(std::function<void()> x) : _cb(std::move(x)) {};
 
         virtual ~Defer() {
             _cb();
@@ -141,8 +138,8 @@ namespace {
         return true;
     }
 
-    bool setJobjectField(jobject obj, const std::string &fieldName,
-                         const se::Value &value, bool &hasField) {
+    bool setJavaObjectField(jobject obj, const std::string &fieldName,
+                            const se::Value &value, bool &hasField) {
         auto *env = JniHelper::getEnv();
         bool ok = false;
         jobject classObject = env->GetObjectClass(obj);
@@ -161,8 +158,7 @@ namespace {
                 JniUtils::JniType::fromString(jstringToString(fieldTypeJNIName));
         jvalue ret = seval_to_jvalule(env, fieldType, value, ok);
         if (ok) {
-            jfieldID fieldId =
-                    env->GetFieldID(env->GetObjectClass(obj), fieldName.c_str(),
+            jfieldID fieldId = env->GetFieldID(env->GetObjectClass(obj), fieldName.c_str(),
                                     fieldType.toString().c_str());
             if (!fieldId || env->ExceptionCheck()) {
                 env->ExceptionClear();
@@ -176,7 +172,6 @@ namespace {
 
     jobject invokeConstructor(JNIEnv *env, const std::string &path, jclass klass,
                               jobject constructor, se::Object *args) {
-        jobjectArray arguments = (jobjectArray) JniHelper::callObjectObjectMethod(constructor, "java/lang/reflect/Constructor", "getParameterTypes", "[Ljava/lang/Class;");
         std::vector<se::Value> argVector;
         {
             uint32_t argLen = 0;
@@ -195,7 +190,7 @@ namespace {
             return nullptr;
         }
 
-        std::vector<jvalue> jargs = convertFuncArgs(env, signature, argVector, 0, ok);
+        std::vector<jvalue> jargs = jsArgs2JavaArgs(env, signature, argVector, 0, ok);
         if (!ok) {
             return nullptr;
         }
@@ -219,7 +214,7 @@ namespace {
         std::string classPath = std::regex_replace(path, std::regex("\\."), "/");
 
         // test class path
-        tmpClass = env->FindClass(classPath.c_str());
+        tmpClass = JniHelper::findClass(classPath.c_str());
         if (tmpClass == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return nullptr;
@@ -243,7 +238,7 @@ namespace {
     }
 
 
-    bool getJobjectStaticField(const std::string &longPath, se::Value &ret) {
+    bool getJavaObjectStaticField(const std::string &longPath, se::Value &ret) {
         JNIEnv *env = JniHelper::getEnv();
 
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
@@ -259,7 +254,7 @@ namespace {
             className = path.substr(0, idx);
         }
 
-        jclass kls = env->FindClass(className.c_str());
+        jclass kls = JniHelper::findClass(className.c_str());
         if (kls == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return false;
@@ -269,10 +264,10 @@ namespace {
             return false;
         }
 
-        return getJobjectStaticFieldByType(env, kls, f, fieldType, ret);
+        return getJavaObjectStaticFieldByType(env, kls, f, fieldType, ret);
     }
 
-    bool setJobjectStaticField(const std::string &longPath, const se::Value &ret) {
+    bool setJavaObjectStaticField(const std::string &longPath, const se::Value &ret) {
         JNIEnv *env = JniHelper::getEnv();
 
         std::string path = std::regex_replace(longPath, std::regex("\\."), "/");
@@ -288,7 +283,7 @@ namespace {
             className = path.substr(0, idx);
         }
 
-        jclass kls = env->FindClass(className.c_str());
+        jclass kls = JniHelper::findClass(className.c_str());
         if (kls == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return false;
@@ -300,12 +295,12 @@ namespace {
             return false;
         }
 
-        return setJobjectStaticFieldByType(env, kls, f, fieldType, ret);
+        return setJavaObjectStaticFieldByType(env, kls, f, fieldType, ret);
     }
 
-    class JValueWrapper {
+    class JValue {
     public:
-        JValueWrapper(const JniUtils::JniType &type_, jvalue v_)
+        JValue(const JniUtils::JniType &type_, jvalue v_)
                 : type(type_), value(v_) {}
 
         const JniUtils::JniType &getType() const { return type; }
@@ -363,11 +358,11 @@ namespace {
     };
 
 
-    class InvokeMethods {
+    class JNamedMethodsInfo {
     public:
-        InvokeMethods(std::string methodName, const std::vector<cocos2d::JniMethodSignature> &_methods,
-                      JObjectWrapper *_self)
-                : methodName(std::move(methodName)), methods(_methods), self(_self) {}
+        JNamedMethodsInfo(std::string methodName, std::vector<cocos2d::JniMethodSignature> _methods,
+                          JObject *_self)
+                : methodName(std::move(methodName)), methods(std::move(_methods)), self(_self) {}
 
         se::Object *asJSObject() {
             if (_jsobj)
@@ -378,23 +373,23 @@ namespace {
         }
 
         std::vector<cocos2d::JniMethodSignature> methods;
-        JObjectWrapper *self = nullptr;
+        JObject *self = nullptr;
         std::string methodName;
 
     private:
         se::Object *_jsobj = nullptr;
     };
 
-    class JObjectWrapper {
+    class JObject {
     public:
-        explicit JObjectWrapper(jobject obj) {
+        explicit JObject(jobject obj) {
             if (obj) {
                 _javaObject = JniHelper::getEnv()->NewGlobalRef(obj);
             }
             SE_LOGD("new JObjectWrapper %p", this);
         }
 
-        virtual ~JObjectWrapper() {
+        virtual ~JObject() {
 
             SE_LOGD("delete JObjectWrapper %p, jobject %p", this, _javaObject);
             if (_javaObject) {
@@ -410,17 +405,13 @@ namespace {
                 return _jsProxy;
             _jsTarget = se::Object::createObjectWithClass(__jsb_jni_jobject);
             _jsTarget->setPrivateData(this);
-            _jsProxy = _jsTarget->proxyTo(sProxyObject);
+            _jsProxy = _jsTarget->proxyTo(sJavaObjectProxy);
 
             _classPath = JniHelper::getObjectClass(_javaObject);
-#if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jobject"));
-            _jsProxy->setProperty(JS_JNI_JCLASS_TYPE,
-                                  se::Value(_classPath));
-#endif
+            _jsProxy->setProperty(JS_JNI_JCLASS_TYPE,se::Value(_classPath));
             _jsProxy->setProperty(JS_JNI_PROXY_TARGET, se::Value(_jsTarget));
 //            _jsProxy->attachObject(_jsTarget)
-
             _jsProxy->root();
 
             return _jsProxy;
@@ -435,14 +426,12 @@ namespace {
             return JniHelper::getEnv()->GetObjectClass(_javaObject);
         }
 
-        se::Object *getProxy() const { return _jsProxy; }
-
         se::Object *getUnderlineJSObject() const { return _jsTarget; }
 
         bool findMethods(const std::string &name, const std::string &signature,
                          std::vector<cocos2d::JniMethodSignature> &method);
 
-        JValueWrapper *getFieldValue(const std::string &name);
+        std::unique_ptr<JValue> getFieldValue(const std::string &name);
 
         std::string toString() const {
             char buff[256] = {0};
@@ -458,7 +447,7 @@ namespace {
         std::string _classPath;
     };
 
-    JValueWrapper *JObjectWrapper::getFieldValue(const std::string &name) {
+    std::unique_ptr<JValue> JObject::getFieldValue(const std::string &name) {
         auto *env = JniHelper::getEnv();
         std::string klassName = JniHelper::getObjectClass(_javaObject);
         jclass klassObject = env->GetObjectClass(_javaObject);
@@ -488,12 +477,12 @@ namespace {
         if (!getJFieldByType1D(env, _javaObject, jniFieldType, fieldId, ret)) {
             return nullptr;
         }
-        return new JValueWrapper(jniFieldType, ret);
+        return std::make_unique<JValue>(jniFieldType, ret);
     }
 
-    bool JObjectWrapper::findMethods(const std::string &name,
-                                     const std::string &signature,
-                                     std::vector<cocos2d::JniMethodSignature> &list) {
+    bool JObject::findMethods(const std::string &name,
+                              const std::string &signature,
+                              std::vector<cocos2d::JniMethodSignature> &list) {
         auto *env = JniHelper::getEnv();
         std::string klassName = JniHelper::getObjectClass(_javaObject);
         jclass jobjClass = env->GetObjectClass(_javaObject);
@@ -540,7 +529,7 @@ namespace {
         return true;
     }
 
-    bool JValueWrapper::cast(se::Value &out) {
+    bool JValue::cast(se::Value &out) {
         auto *env = JniHelper::getEnv();
         if (type.dim == 0) {
             if (type.isBoolean()) {
@@ -563,7 +552,7 @@ namespace {
                 if (type.getClassName() == "java/lang/String") {
                     out.setString(jstringToString(value.l));
                 } else {
-                    auto *obj = new JObjectWrapper(value.l);
+                    auto *obj = new JObject(value.l);
                     out.setObject(obj->asJSObject());
                 }
             }
@@ -618,7 +607,7 @@ namespace {
                     if (type.klassName == "java/lang/String") {
                         array->setArrayElement(i, se::Value(jstringToString(ele)));
                     } else {
-                        auto *obj = new JObjectWrapper(ele);
+                        auto *obj = new JObject(ele);
                         array->setArrayElement(i, se::Value(obj->asJSObject()));
                     }
                 }
@@ -636,7 +625,7 @@ namespace {
                 se::Value tmpSeValue;
                 jvalue jvalueTmp;
                 jvalueTmp.l = env->GetObjectArrayElement((jobjectArray) jarr, i);
-                JValueWrapper tmpJwrapper(type2, jvalueTmp);
+                JValue tmpJwrapper(type2, jvalueTmp);
                 tmpJwrapper.cast(tmpSeValue);
                 array->setArrayElement(i, tmpSeValue);
             }
@@ -649,7 +638,7 @@ namespace {
     public:
         JPathWrapper() = default;
 
-        JPathWrapper(const std::string &path) { _path = path; }
+        JPathWrapper(const std::string &path):_path(path) { }
 
         se::Object *asJSObject() {
             if (_jsProxy) {
@@ -662,7 +651,7 @@ namespace {
                     delete (JPathWrapper *) data;
                 }
             });
-            _jsProxy = _jsTarget->proxyTo(sPathProxObject);
+            _jsProxy = _jsTarget->proxyTo(sJavaObjectStubProxy);
             _jsProxy->setProperty(JS_JNI_TAG_PATH, se::Value(_path));
 #if JS_JNI_DEBUG
             _jsProxy->setProperty(JS_JNI_TAG_TYPE, se::Value("jpath"));
@@ -758,7 +747,7 @@ namespace {
             assert(false);
             return false;
         }
-        JValueWrapper wrap(rType, jRet);
+        JValue wrap(rType, jRet);
         wrap.cast(out);
         return true;
     }
@@ -793,7 +782,7 @@ namespace {
             assert(false);
             return false;
         }
-        JValueWrapper wrap(rType, jRet);
+        JValue wrap(rType, jRet);
         wrap.cast(out);
         return true;
     }
@@ -829,7 +818,7 @@ namespace {
                     se::Value target;
                     seObj->getProperty(JS_JNI_PROXY_TARGET, &target);
                     if (target.isObject()) {
-                        auto *jo = (JObjectWrapper *) target.toObject()->getPrivateData();
+                        auto *jo = (JObject *) target.toObject()->getPrivateData();
                         if (!jo) {
                             ok = false;
                             SE_LOGE("incorrect jni type, don't know how to convert pure js "
@@ -958,7 +947,7 @@ namespace {
                 env->SetDoubleArrayRegion(dst, 0, len, tmpArray.data());
                 ret.l = dst;
             } else if (def.isObject()) {
-                jclass kls = env->FindClass(def.getClassName().c_str());
+                jclass kls = JniHelper::findClass(def.getClassName().c_str());
                 if (!kls || env->ExceptionCheck()) {
                     env->ExceptionClear();
                     ok = false;
@@ -1001,7 +990,7 @@ namespace {
             uint32_t len;
             se::Object *jsArray = val.toObject();
             jsArray->getArrayLength(&len);
-            jclass kls = env->FindClass("java/lang/Object");
+            jclass kls = JniHelper::findClass("java/lang/Object");
             if (!kls || env->ExceptionCheck()) {
                 env->ExceptionClear();
                 ok = false;
@@ -1027,7 +1016,7 @@ namespace {
         return ret;
     }
 
-    std::vector<jvalue> convertFuncArgs(JNIEnv *env, const std::string &signature,
+    std::vector<jvalue> jsArgs2JavaArgs(JNIEnv *env, const std::string &signature,
                                         const std::vector<se::Value> &args,
                                         int offset, bool &success) {
         bool convertOk = false;
@@ -1099,7 +1088,7 @@ namespace {
                 } else if (type.klassName == "java/lang/String") {
                     out.setString(jstringToString(l));
                 } else {
-                    JObjectWrapper *w = new JObjectWrapper(v.l);
+                    auto *w = new JObject(v.l);
                     out.setObject(w->asJSObject());
                 }
 
@@ -1155,7 +1144,7 @@ namespace {
             } else if (type.isObject()) {
                 for (int i = 0; i < len; i++) {
                     jobject t = env->GetObjectArrayElement((jobjectArray) arr, i);
-                    JObjectWrapper *jw = new JObjectWrapper(t);
+                    JObject *jw = new JObject(t);
                     jsArr->setArrayElement(i, se::Value(jw->asJSObject()));
                 }
             } else {
@@ -1198,11 +1187,11 @@ namespace {
     jobject seval_to_jobject(JNIEnv *env, const se::Value &input) {
         jobject ret = nullptr;
         if (input.isBoolean()) {
-            jclass kls = env->FindClass("java/lang/Boolean");
+            jclass kls = JniHelper::findClass("java/lang/Boolean");
             jmethodID methodId = env->GetMethodID(kls, "<init>", "(Z)V");
             ret = env->NewObject(kls, methodId, input.toBoolean());
         } else if (input.isNumber()) {
-            jclass kls = env->FindClass("java/lang/Double");
+            jclass kls = JniHelper::findClass("java/lang/Double");
             jmethodID methodId = env->GetMethodID(kls, "<init>", "(D)V");
             ret = env->NewObject(kls, methodId, (jdouble) input.toNumber());
         } else if (input.isString()) {
@@ -1211,7 +1200,7 @@ namespace {
             return nullptr;
         } else if (input.isObject()) {
             se::Object *obj = input.toObject();
-            auto *data = (JObjectWrapper *) obj->getPrivateData();
+            auto *data = (JObject *) obj->getPrivateData();
             if (data) {
                 return data->getJavaObject();
             } else {
@@ -1225,9 +1214,9 @@ namespace {
         return ret;
     }
 
-    bool getJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const JniUtils::JniType &type,
-                                     se::Value &out) {
+    bool getJavaObjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
+                                        const JniUtils::JniType &type,
+                                        se::Value &out) {
         if (type.dim == 0) {
             if (type.isBoolean()) {
                 auto v = env->GetStaticBooleanField(kls, field);
@@ -1255,10 +1244,10 @@ namespace {
                 out.setNumber(v);
             } else if (type.isObject()) {
                 auto v = env->GetStaticObjectField(kls, field);
-                if (env->IsInstanceOf(v, env->FindClass("java/lang/String"))) {
+                if (env->IsInstanceOf(v, JniHelper::findClass("java/lang/String"))) {
                     out.setString(jstringToString(v));
                 } else {
-                    auto *w = new JObjectWrapper(v);
+                    auto *w = new JObject(v);
                     out.setObject(w->asJSObject());
                 }
             } else {
@@ -1273,9 +1262,9 @@ namespace {
         return true;
     }
 
-    bool setJobjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
-                                     const JniUtils::JniType &type,
-                                     const se::Value &in) {
+    bool setJavaObjectStaticFieldByType(JNIEnv *env, jclass kls, jfieldID field,
+                                        const JniUtils::JniType &type,
+                                        const se::Value &in) {
         if (type.dim == 0) {
             if (type.isBoolean() && in.isBoolean()) {
                 env->SetStaticBooleanField(kls, field, (jboolean) in.toBoolean());
@@ -1302,7 +1291,7 @@ namespace {
                         return false;
                     }
                     se::Object *jsObj = in.toObject();
-                    JObjectWrapper *jo = (JObjectWrapper *) jsObj->getPrivateData();
+                    JObject *jo = (JObject *) jsObj->getPrivateData();
                     if (jo == nullptr) {
                         return false;
                     }
@@ -1345,7 +1334,7 @@ namespace {
             className = path.substr(0, idx);
         }
 
-        jclass kls = env->FindClass(className.c_str());
+        jclass kls = JniHelper::findClass(className.c_str());
         if (kls == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return false;
@@ -1372,7 +1361,7 @@ namespace {
             className = path.substr(0, idx);
         }
 
-        jclass kls = env->FindClass(className.c_str());
+        jclass kls = JniHelper::findClass(className.c_str());
         if (kls == nullptr || env->ExceptionCheck()) {
             env->ExceptionClear();
             return false;
@@ -1381,7 +1370,7 @@ namespace {
 
         for (cocos2d::JniMethodSignature &m : methods) {
             std::vector<jvalue> newArgs =
-                    convertFuncArgs(env, m.signature, args, 0, ok);
+                    jsArgs2JavaArgs(env, m.signature, args, 0, ok);
             if (ok) {
                 auto rType = JniUtils::JniType::fromString(m.signature.substr(m.signature.rfind(")") + 1));
                 ok = callStaticMethodByType(rType, kls, m.method, newArgs, out);
@@ -1393,24 +1382,12 @@ namespace {
         return false;
     }
 
-    void installJavaClass(const std::string &javaClass, se::Class *seClass) {
-        sJClassToJSClass[javaClass] = seClass;
-    }
-
-    se::Class *findJSClass(const std::string &javaClass) {
-        auto itr = sJClassToJSClass.find(javaClass);
-        if (itr == sJClassToJSClass.end()) {
-            return nullptr;
-        }
-        return itr->second;
-    }
-
 } // namespace
 
 SE_DECLARE_FUNC(js_jni_proxy_methods);
 
 static bool js_jni_jobject_finalize(se::State &s) {
-    auto *cobj = (JObjectWrapper *) s.nativeThisObject();
+    auto *cobj = (JObject *) s.nativeThisObject();
     delete cobj;
     return true;
 }
@@ -1425,7 +1402,7 @@ static bool js_register_jni_jobject(se::Object *obj) {
 }
 
 static bool js_jni_jmethod_invoke_instance_finalize(se::State &s) {
-    auto *cobj = (InvokeMethods *) s.nativeThisObject();
+    auto *cobj = (JNamedMethodsInfo *) s.nativeThisObject();
     delete cobj;
     return true;
 }
@@ -1442,7 +1419,7 @@ static bool js_register_jni_jmethod_invoke_instance(se::Object *obj) {
 static bool js_jni_helper_getActivity(se::State &s) {
     auto *env = JniHelper::getEnv();
     jobject activity = JniHelper::getActivity();
-    auto *obj = new JObjectWrapper(JniHelper::getActivity());
+    auto *obj = new JObject(JniHelper::getActivity());
     s.rval().setObject(obj->asJSObject());
     return true;
 }
@@ -1454,7 +1431,7 @@ static bool js_jni_helper_setClassLoaderFrom(se::State &s) {
     if (argCnt == 1) {
         SE_PRECONDITION2(s.args()[0].isObject(), false, "jobject expected!");
         auto *obj = s.args()[0].toObject();
-        auto *jobj = (JObjectWrapper *) obj->getPrivateData();
+        auto *jobj = (JObject *) obj->getPrivateData();
         JniHelper::setClassLoaderFrom(jobj->getJavaObject());
         return true;
     }
@@ -1484,7 +1461,7 @@ static bool js_jni_helper_setStaticField(se::State &s) {
     std::string classPath = std::regex_replace(s.args()[0].toString(), std::regex("\\."), "/");
     std::string fieldName = s.args()[1].toString();
 
-    if (setJobjectStaticField(classPath + "/" + fieldName, s.args()[2])) {
+    if (setJavaObjectStaticField(classPath + "/" + fieldName, s.args()[2])) {
         return true;
     }
     se::ScriptEngine::getInstance()->throwException("failed to set " + classPath +
@@ -1522,7 +1499,7 @@ static bool js_jni_helper_newObject(se::State &s) {
         // ...
         auto klassPath = s.args()[0].toString();
         signature = s.args()[1].toString();
-        std::vector<jvalue> jvalueArray = convertFuncArgs(JniHelper::getEnv(), signature, s.args(), 2, ok);
+        std::vector<jvalue> jvalueArray = jsArgs2JavaArgs(JniHelper::getEnv(), signature, s.args(), 2, ok);
 
         if (JniHelper::getMethodInfo(methodInfo, klassPath.c_str(), "<init>", signature.c_str())) {
             ret = methodInfo.env->NewObjectA(methodInfo.classID, methodInfo.methodID, jvalueArray.data());
@@ -1531,7 +1508,7 @@ static bool js_jni_helper_newObject(se::State &s) {
             return false;
         }
     }
-    auto *jobjWrapper = new JObjectWrapper(ret);
+    auto *jobjWrapper = new JObject(ret);
     s.rval().setObject(jobjWrapper->asJSObject());
     return true;
 }
@@ -1540,7 +1517,7 @@ SE_BIND_FUNC(js_jni_helper_newObject)
 
 static jobject genAnonymousJavaObject(const std::string &className, const std::string &parentClassStr, const std::vector<std::string> &interfacesList) {
     JNIEnv *env = JniHelper::getEnv();
-    jclass stringClass = env->FindClass("java/lang/String");
+    jclass stringClass = JniHelper::findClass("java/lang/String");
     jobject classNameJ = env->NewStringUTF(className.c_str());
     jobject superClassNameJ = env->NewStringUTF(parentClassStr.c_str());
     jobjectArray interfacesJ = env->NewObjectArray(interfacesList.size(), stringClass, nullptr);
@@ -1551,7 +1528,7 @@ static jobject genAnonymousJavaObject(const std::string &className, const std::s
     }
 
 #if 0
-    jclass bcClass = env->FindClass("org/cocos2dx/lib/ByteCodeGenerator");
+    jclass bcClass = JniHelper::findClass("org/cocos2dx/lib/ByteCodeGenerator");
 #else
     jobject classNameJobj = env->NewStringUTF("org/cocos2dx/lib/ByteCodeGenerator");
     jclass bcClass = (jclass) env->CallObjectMethod(JniHelper::classloader, JniHelper::loadclassMethod_methodID, classNameJobj);
@@ -1579,7 +1556,7 @@ static se::Object *registerAnonymousJavaObject(JNIEnv *env, jobject ret, se::Obj
     int instID = env->GetIntField(ret, idField);
 
 
-    auto *wrap = new JObjectWrapper(ret);
+    auto *wrap = new JObject(ret);
     auto *jsObj = wrap->asJSObject();
 
     auto &item = sJavaObjectMapToJS[instID];
@@ -1719,18 +1696,18 @@ static bool js_jni_proxy_get(se::State &s) {
     //    }
 
     if (method == "$methods") {
-        se::Object *funcObj = sJavaObjectMethodsUnbound->bindThis(target);
+        se::Object *funcObj = sJavaObjectMethodsUnboundFunc->bindThis(target);
         s.rval().setObject(funcObj);
         return true;
     } else if (method == "$fields") {
-        se::Object *funcObj = sJavaObjectFieldsUnbound->bindThis(target);
+        se::Object *funcObj = sJavaObjectFieldsUnboundFunc->bindThis(target);
         s.rval().setObject(funcObj);
         return true;
     }
 
     se::Value outvalue;
 
-    auto *inner = (JObjectWrapper *) target->getPrivateData();
+    auto *inner = (JObject *) target->getPrivateData();
     if (inner) {
 
         if (inner->getUnderlineJSObject()->getRealNamedProperty(method.c_str(), &outvalue)) {
@@ -1739,7 +1716,7 @@ static bool js_jni_proxy_get(se::State &s) {
         }
 
         {
-            JValueWrapper *field = inner->getFieldValue(method);
+            auto field = inner->getFieldValue(method);
             if (field) {
                 field->cast(outvalue);
                 s.rval() = outvalue;
@@ -1749,14 +1726,12 @@ static bool js_jni_proxy_get(se::State &s) {
         {
             std::vector<cocos2d::JniMethodSignature> methods;
             if (inner->findMethods(method, "", methods) && !methods.empty()) {
-                auto *ctx = new InvokeMethods(method, methods, inner);
-                s.rval().setObject(sJavaObjectMethodApplyUnbound->bindThis(ctx->asJSObject()));
+                auto *ctx = new JNamedMethodsInfo(method, methods, inner);
+                s.rval().setObject(sJavaObjectMethodApplyUnboundFunc->bindThis(ctx->asJSObject()));
                 return true;
             }
         }
     }
-
-    SE_LOGE("try to find field '%s'", method.c_str());
 
     return true;
 }
@@ -1776,11 +1751,11 @@ static bool js_jni_proxy_set(se::State &s) {
     auto prop = s.args()[1].toString();
     s.rval().setBoolean(true); // always return true
 
-    auto *inner = (JObjectWrapper *) target->getPrivateData();
+    auto *inner = (JObject *) target->getPrivateData();
     if (inner) {
         bool fieldFound = false;
         auto ok =
-                setJobjectField(inner->getJavaObject(), prop, s.args()[2], fieldFound);
+                setJavaObjectField(inner->getJavaObject(), prop, s.args()[2], fieldFound);
         if (fieldFound) {
             if (!ok) {
                 se::ScriptEngine::getInstance()->throwException("failed to set field '" + prop + "'");
@@ -1801,7 +1776,7 @@ static bool js_jni_proxy_methods(se::State &s) {
     int argCnt = s.args().size();
     auto *jsThis = s.getJSThisObject();
     assert(jsThis);
-    auto *jobjWrapper = (JObjectWrapper *) jsThis->getPrivateData();
+    auto *jobjWrapper = (JObject *) jsThis->getPrivateData();
     jobject jobj = jobjWrapper->getJavaObject();
     auto methodNames = JniHelper::getObjectMethods(jobj);
     auto *array = se::Object::createArrayObject(methodNames.size());
@@ -1820,7 +1795,7 @@ static bool js_jni_proxy_fields(se::State &s) {
     int argCnt = s.args().size();
     auto *jsThis = s.getJSThisObject();
     assert(jsThis);
-    auto *jobjWrapper = (JObjectWrapper *) jsThis->getPrivateData();
+    auto *jobjWrapper = (JObject *) jsThis->getPrivateData();
     jobject jobj = jobjWrapper->getJavaObject();
     auto fieldNames = JniHelper::getObjectFields(jobj);
     auto *array = se::Object::createArrayObject(fieldNames.size());
@@ -1868,13 +1843,13 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
     auto argCnt = s.args().size();
     bool ok = false;
 
-    auto *ctx = (InvokeMethods *) self->getPrivateData();
+    auto *ctx = (JNamedMethodsInfo *) self->getPrivateData();
     auto jthis = ctx->self->getJavaObject();
     auto throwException =
             "method '" + ctx->methodName + "' is not found, or signature mismatch!";
     if (ctx->methods.size() == 1) {
         auto &m = ctx->methods[0];
-        std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0, ok);
+        std::vector<jvalue> jvalueArray = jsArgs2JavaArgs(env, m.signature, s.args(), 0, ok);
         if (!ok) {
             se::ScriptEngine::getInstance()->throwException(throwException);
             return false;
@@ -1896,7 +1871,7 @@ static bool js_jni_proxy_object_method_apply(se::State &s) {
         for (const cocos2d::JniMethodSignature &m : ctx->methods) {
             auto argsFromSignature = JniUtils::exactArgsFromSignature(m.signature, ok);
             if (argsFromSignature.size() == argCnt) {
-                std::vector<jvalue> jvalueArray = convertFuncArgs(env, m.signature, s.args(), 0, ok);
+                std::vector<jvalue> jvalueArray = jsArgs2JavaArgs(env, m.signature, s.args(), 0, ok);
                 if (!ok)
                     continue;
                 std::string returnType = m.signature.substr(m.signature.find(')') + 1);
@@ -1945,7 +1920,7 @@ static bool js_jni_proxy_java_path_construct(se::State &s) {
         std::string pathStr = path.toString();
         jobject ret = constructByClassPath(pathStr, args);
         if (ret) {
-            auto *jobjWrapper = new JObjectWrapper(ret);
+            auto *jobjWrapper = new JObject(ret);
             s.rval().setObject(jobjWrapper->asJSObject());
             return true;
         }
@@ -1983,12 +1958,12 @@ static bool js_jni_proxy_java_path_set(se::State &s) {
         se::Object *underline = ctx->getUnderlineJSObject();
         underline->getProperty(JS_JNI_TAG_PATH, &path);
         if (path.isString()) {
-            std::string pathStr = path.toString();
+            auto& pathStr = path.toString();
             std::string newpath = pathStr.empty() ? field : pathStr + "." + field;
 
             se::Value fieldValue;
             if (JniHelper::hasStaticField(newpath)) {
-                if (!setJobjectStaticField(newpath, s.args()[2])) {
+                if (!setJavaObjectStaticField(newpath, s.args()[2])) {
                     se::ScriptEngine::getInstance()->throwException(
                             "can not set static property");
                     return false;
@@ -2038,14 +2013,14 @@ static bool js_jni_proxy_java_path_get(se::State &s) {
             std::string newpath = pathStr.empty() ? field : pathStr + "." + field;
 
             se::Value fieldValue;
-            if (getJobjectStaticField(newpath, fieldValue)) {
+            if (getJavaObjectStaticField(newpath, fieldValue)) {
                 s.rval() = fieldValue;
                 return true;
             }
 
             auto *newctx = new JPathWrapper(newpath);
             if (hasStaticMethod(newpath)) {
-                se::Object *func = sJavaStaticMethodApplyUnbound->bindThis(newctx->getUnderlineJSObject());
+                se::Object *func = sJavaStaticMethodApplyUnboundFunc->bindThis(newctx->getUnderlineJSObject());
                 s.rval().setObject(func);
                 return true;
             }
@@ -2060,30 +2035,29 @@ static bool js_jni_proxy_java_path_get(se::State &s) {
 SE_BIND_FUNC(js_jni_proxy_java_path_get)
 
 static void setup_proxy_object() {
-    sProxyObject = se::Object::createPlainObject();
-    sProxyObject->defineFunction("apply", _SE(js_jni_proxy_apply));
-    sProxyObject->defineFunction("get", _SE(js_jni_proxy_get));
-    sProxyObject->defineFunction("set", _SE(js_jni_proxy_set));
-    //    sProxyObject->defineFunction("_methods", _SE(js_jni_proxy_methods));
-    sProxyObject->root(); // unroot somewhere
+    sJavaObjectProxy = se::Object::createPlainObject();
+    sJavaObjectProxy->defineFunction("apply", _SE(js_jni_proxy_apply));
+    sJavaObjectProxy->defineFunction("get", _SE(js_jni_proxy_get));
+    sJavaObjectProxy->defineFunction("set", _SE(js_jni_proxy_set));
+    sJavaObjectProxy->root(); // unroot somewhere
 
-    sJavaObjectMethodsUnbound = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_methods));
-    sJavaObjectMethodsUnbound->root();
+    sJavaObjectStubProxy = se::Object::createPlainObject();
+    sJavaObjectStubProxy->defineFunction("construct", _SE(js_jni_proxy_java_path_construct));
+    sJavaObjectStubProxy->defineFunction("get", _SE(js_jni_proxy_java_path_get));
+    sJavaObjectStubProxy->defineFunction("set", _SE(js_jni_proxy_java_path_set));
+    sJavaObjectStubProxy->root();
 
-    sJavaObjectFieldsUnbound = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_fields));
-    sJavaObjectFieldsUnbound->root();
+    sJavaObjectMethodsUnboundFunc = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_methods));
+    sJavaObjectMethodsUnboundFunc->root();
 
-    sPathProxObject = se::Object::createPlainObject();
-    sPathProxObject->defineFunction("construct", _SE(js_jni_proxy_java_path_construct));
-    sPathProxObject->defineFunction("get", _SE(js_jni_proxy_java_path_get));
-    sPathProxObject->defineFunction("set", _SE(js_jni_proxy_java_path_set));
-    sPathProxObject->root();
+    sJavaObjectFieldsUnboundFunc = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_fields));
+    sJavaObjectFieldsUnboundFunc->root();
 
-    sJavaObjectMethodApplyUnbound = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_object_method_apply));
-    sJavaObjectMethodApplyUnbound->root();
+    sJavaObjectMethodApplyUnboundFunc = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_object_method_apply));
+    sJavaObjectMethodApplyUnboundFunc->root();
 
-    sJavaStaticMethodApplyUnbound = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_static_method_apply));
-    sJavaStaticMethodApplyUnbound->root();
+    sJavaStaticMethodApplyUnboundFunc = se::Object::createFunctionObject(nullptr, _SE(js_jni_proxy_static_method_apply));
+    sJavaStaticMethodApplyUnboundFunc->root();
 }
 
 bool jsb_register_jni_manual(se::Object *obj) {
@@ -2116,7 +2090,7 @@ JNIEXPORT void JNICALL JNI_BYTECODE_GENERATOR(registerInstance)(JNIEnv *env,
     if (item.jThis != nullptr) {
         delete item.jThis;
     }
-    item.jThis = new JObjectWrapper(self);
+    item.jThis = new JObject(self);
 }
 
 
