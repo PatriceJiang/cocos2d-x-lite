@@ -443,7 +443,7 @@ namespace {
         _jsProxy->setProperty(JS_JNI_JCLASS_TYPE, se::Value(_classPath));
         _jsProxy->setProperty(JS_JNI_PROXY_TARGET, se::Value(_jsTarget));
 
-        // _jsProxy->root(); // TODO: prevent GC in script
+        _jsProxy->root(); // TODO: prevent GC in script
 
         return _jsProxy;
     }

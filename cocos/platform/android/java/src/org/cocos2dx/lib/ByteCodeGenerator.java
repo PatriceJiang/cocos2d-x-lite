@@ -41,7 +41,7 @@ public class ByteCodeGenerator {
 
     public static final String NATIVE_ID = "__native_id__";
     public static final String PROXY_CLASS_NAME = "org/cocos2dx/lib/JSFunctionProxy";
-    public static final String PROXY_METHOD_NAME = "printArguments";
+    public static final String PROXY_METHOD_NAME = "dispatchToJS_";
     public static final String LOGCAT_TAG = "Bytecode Generator";
 
     static int object_id = 10000;
@@ -186,8 +186,8 @@ public class ByteCodeGenerator {
      * Create folders for bytecode/class data
      */
     static public void init() {
-        renameAndDelete(ByteCodeGenerator.getDexDir());
-        renameAndDelete(ByteCodeGenerator.getGenClassDir());
+//        renameAndDelete(ByteCodeGenerator.getDexDir());
+//        renameAndDelete(ByteCodeGenerator.getGenClassDir());
 //        renameAndDelete(ByteCodeGenerator.getJarCacheDir());
     }
 
@@ -402,11 +402,40 @@ public class ByteCodeGenerator {
         inst.add(new InsnNode(Opcodes.DUP));
         inst.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "toArray", "()[Ljava/lang/Object;"));
 
+        int rType = method.ret.getSort();
+        boolean returnObject = rType == Type.OBJECT || rType == Type.ARRAY;
+        String proxyMethodName = PROXY_METHOD_NAME + (returnObject ? "L" : method.ret.toString());
+        inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, PROXY_CLASS_NAME, proxyMethodName, "([Ljava/lang/Object;)" + (returnObject ? "Ljava/lang/Object;" : method.ret.toString())));
+        if(returnObject && !method.ret.toString().equals("Ljava/lang/Object;")) {
+            String desc = method.ret.getDescriptor();
+            inst.add(new TypeInsnNode(Opcodes.CHECKCAST, desc.substring(1, desc.length() - 1)));
+        }
 
-        String proxyMethodName = PROXY_METHOD_NAME + method.ret.toString();
-        inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, PROXY_CLASS_NAME, proxyMethodName, "([Ljava/lang/Object;)" + method.ret.toString()));
-
-        inst.add(new InsnNode(Opcodes.RETURN));
+        switch (rType) {
+            case Type.VOID:
+                inst.add(new InsnNode(Opcodes.RETURN));
+                break;
+            case Type.BOOLEAN:
+            case Type.BYTE:
+            case Type.CHAR:
+            case Type.INT:
+            case Type.SHORT:
+                inst.add(new InsnNode(Opcodes.IRETURN));
+                break;
+            case Type.FLOAT:
+                inst.add(new InsnNode(Opcodes.FRETURN));
+                break;
+            case Type.DOUBLE:
+                inst.add(new InsnNode(Opcodes.DRETURN));
+                break;
+            case Type.LONG:
+                inst.add(new InsnNode(Opcodes.LRETURN));
+                break;
+            case Type.ARRAY:
+            case Type.OBJECT:
+            default:
+                inst.add(new InsnNode(Opcodes.ARETURN));
+        }
         classNode.methods.add(mn);
     }
 
