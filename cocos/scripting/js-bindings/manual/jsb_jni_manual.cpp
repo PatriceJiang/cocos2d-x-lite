@@ -885,7 +885,6 @@ namespace {
         }
 
         if (argTypes.size() != args.size() - offset) {
-            SE_LOGE("arguments size %d does not match function signature \"%s\"", (int) args.size(), signature.c_str());
             return {};
         }
 
@@ -1003,8 +1002,9 @@ namespace {
             } else if (type.isObject()) {
                 for (int i = 0; i < len; i++) {
                     jobject t = env->GetObjectArrayElement((jobjectArray) arr, i);
-                    JObject *jw = new JObject(t);
-                    jsArr->setArrayElement(i, se::Value(jw->asJSObject()));
+                    se::Value tmp;
+                    jobject_to_seval2(env, t, tmp);
+                    jsArr->setArrayElement(i, tmp);
                 }
             } else {
                 assert(false);
