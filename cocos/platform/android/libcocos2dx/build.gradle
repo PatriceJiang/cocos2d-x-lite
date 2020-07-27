@@ -32,9 +32,11 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: '../java/libs')
-    implementation "org.ow2.asm:asm:8.0.1"
-    implementation "org.ow2.asm:asm-tree:8.0.1"
-    implementation "org.ow2.asm:asm-commons:8.0.1"
-    implementation "com.android.tools:r8:2.0.88"
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
+//    implementation "org.ow2.asm:asm:8.0.1"
+//    implementation "org.ow2.asm:asm-tree:8.0.1"
+//    implementation "org.ow2.asm:asm-commons:8.0.1"
+//    implementation "com.android.tools:r8:2.0.88"
+//    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.9'
+    implementation 'com.linkedin.dexmaker:dexmaker:2.28.0'
+    //androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito:2.28.0'
 }

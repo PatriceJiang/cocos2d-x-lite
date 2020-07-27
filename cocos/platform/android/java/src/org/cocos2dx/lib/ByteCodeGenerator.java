@@ -3,28 +3,22 @@ package org.cocos2dx.lib;
 
 import android.util.Log;
 
-import com.android.tools.r8.D8;
-
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.FieldNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
+import com.android.dx.Code;
+import com.android.dx.DexMaker;
+import com.android.dx.FieldId;
+import com.android.dx.Local;
+import com.android.dx.MethodId;
+import com.android.dx.TypeId;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -35,6 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+
+import javax.xml.validation.TypeInfoProvider;
 
 public class ByteCodeGenerator {
 
@@ -51,73 +47,203 @@ public class ByteCodeGenerator {
     static class MethodRecord {
         public int modifiers;
         public String signature;
-        public String desc;
-        public Type[] args;
-        public Type ret;
+        public Method method;
         public String name;
     }
 
-    /**
-     * Create a instance of specificate superclass & interfaces
-     *
-     * @param name
-     * @param className
-     * @param interfaces
-     * @return
-     */
-    public static Object newInstance(String className, String[] interfaces) {
+
+    public static <T, G extends T> Object newInstance(String className, String[] interfaces) {
+
         ByteCodeGenerator bc = new ByteCodeGenerator();
 //        bc.setClassName(name);
         bc.setSuperClass(className);
         bc.setInterfaces(interfaces);
-        bc.setClassName("pkg/anonymous/K_"+bc.getHashKeyForAnonymousClass());
+        bc.setClassName("pkg/anonymous/K_" + bc.getHashKeyForAnonymousClass());
 
-        Class<?> kls = null;
+        DexMaker maker = new DexMaker();
+        TypeId<?> superClass = TypeId.get("L" + bc.superClass + ";");
+        TypeId<?>[] interfaceTypes = new TypeId<?>[bc.interfaces.size()];
+        for (int i = 0; i < bc.interfaces.size(); i++) {
+            String interfaceName = bc.interfaces.get(i);
+            interfaceTypes[i] = TypeId.get("L" + interfaceName + ";");
+        }
+        TypeId<?> generatedType = TypeId.get("L" + className + ";");
+        maker.declare(generatedType, bc.getClassNameWithDots() + ".generated", Modifier.PUBLIC, superClass, interfaceTypes);
 
-        if(classLoaders.containsKey(bc.getClassNameWithDots())) {
-            try {
-                kls =  classLoaders.get(bc.getClassNameWithDots()).loadClass(bc.getClassNameWithDots());
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                kls = null;
+        FieldId<?, Integer> native_id = generatedType.getField(TypeId.INT, NATIVE_ID);
+
+        MethodId<T, ?> superInit = (MethodId<T, ?>) superClass.getConstructor();
+        MethodId<?, ?> initMethod = generatedType.getConstructor();
+
+        Code constructorCode = maker.declare(initMethod, Modifier.PUBLIC);
+        Local<Integer> id = constructorCode.newLocal(TypeId.INT);
+        Local<G> thisObj = (Local<G>) constructorCode.getThis(generatedType);
+        constructorCode.invokeDirect(superInit, null, thisObj);
+        MethodId<ByteCodeGenerator, Integer> getIdMethod = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.INT, "getId");
+        constructorCode.invokeStatic(getIdMethod, id);
+        constructorCode.sput(native_id, id);
+        MethodId<ByteCodeGenerator, Void> registerThis = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.VOID, "registerInstance", TypeId.OBJECT, TypeId.INT);
+        constructorCode.invokeStatic(registerThis, null, thisObj, id);
+        constructorCode.returnVoid();
+
+    /*
+        List<MethodRecord> virtualMethods = bc.findAllVirtualMethod();
+        for (MethodRecord m : virtualMethods) {
+            TypeId<?> returnType = TypeId.get(m.method.getReturnType());
+            TypeId<?> argTypes[] = getMethodArguments(m.method);
+            MethodId<?, ?> mId = generatedType.getMethod(returnType, m.name, argTypes);
+            MethodId<Object[], Void> arrayConstructor = TypeId.get(Object[].class).getConstructor(TypeId.INT);
+//            MethodId<List, Void> arrayAdd = TypeId.get(List.class).getMethod(TypeId.VOID, "add", TypeId.OBJECT);
+
+            int modifier = m.modifiers & (~Modifier.ABSTRACT);
+            Code funcCode = maker.declare(mId, modifier);
+
+            Local<?> funcThisObj = funcCode.getThis(generatedType);
+            Local<Object[]> arglist = funcCode.newLocal(TypeId.get(Object[].class));
+            Local<Integer> nativeId = funcCode.newLocal(TypeId.INT);
+            Local<?> finalRet = funcCode.newLocal(returnType);
+
+            Local<Integer> intRet = null;
+            Local<Boolean> boolRet = null;
+            Local<Short> shortRet = null;
+            Local<Byte> byteRet = null;
+            Local<Character> charRet = null;
+            Local<Long> longRet = null;
+            Local<Float> floatRet= null;
+            Local<Double> doubleRet = null;
+            Local<Object> objectRet = null;
+            if (returnType == TypeId.INT) {
+                intRet = funcCode.newLocal(TypeId.INT);
+            } else if (returnType == TypeId.BOOLEAN) {
+                boolRet = funcCode.newLocal(TypeId.BOOLEAN);
+            } else if (returnType == TypeId.SHORT) {
+                shortRet = funcCode.newLocal(TypeId.SHORT);
+            } else if (returnType == TypeId.BYTE) {
+                byteRet = funcCode.newLocal(TypeId.BYTE);
+            } else if (returnType == TypeId.CHAR) {
+                charRet = funcCode.newLocal(TypeId.CHAR);
+            } else if (returnType == TypeId.LONG) {
+                longRet = funcCode.newLocal(TypeId.LONG);
+            } else if (returnType == TypeId.FLOAT) {
+                floatRet = funcCode.newLocal(TypeId.FLOAT);
+            } else if (returnType == TypeId.DOUBLE) {
+                doubleRet = funcCode.newLocal(TypeId.DOUBLE);
+            } else if (returnType != TypeId.VOID) {
+                objectRet = funcCode.newLocal(TypeId.OBJECT);
             }
-        }else if(bc.getJarFile().exists()) {
-            ClassLoader loader = bc.cacheClassLoader(bc.getJarFile());
-            if(loader!=null) {
-                try {
-                    kls = loader.loadClass(bc.getClassNameWithDots());
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    kls = null;
-                }
+
+            Local<Integer> arraySize = funcCode.newLocal(TypeId.INT);
+            Local<Integer> arrayIdx = funcCode.newLocal(TypeId.INT);
+
+            funcCode.loadConstant(arraySize, argTypes.length + 2);
+            funcCode.loadConstant(arrayIdx, 0);
+
+
+            funcCode.invokeDirect(arrayConstructor, null, arglist, arraySize);
+            funcCode.invokeStatic(getIdMethod, nativeId);
+            funcCode.aput(arglist, arrayIdx, nativeId);
+            funcCode.loadConstant(arrayIdx, 1);
+            funcCode.aput(arglist, arrayIdx, funcThisObj);
+
+            for (int i = 0; i < argTypes.length; i++) {
+                funcCode.loadConstant(arrayIdx, 2 + i);
+                funcCode.aput(arglist, arrayIdx, funcCode.getParameter(i, argTypes[i]));
+//                funcCode.invokeVirtual(arrayAdd, null, arglist, funcCode.getParameter(i, argTypes[i]));
+            }
+
+            final String dispatchPrefix = "dispatchToJS_";
+
+            if (returnType == TypeId.VOID) {
+                MethodId<?, ?> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.VOID, dispatchPrefix + "V", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, null, arglist);
+                funcCode.returnVoid();
+            } else if (returnType == TypeId.INT) {
+                MethodId<?, Integer> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.INT, dispatchPrefix + "I", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, intRet, arglist);
+                funcCode.returnValue(intRet);
+            } else if (returnType == TypeId.BOOLEAN) {
+                MethodId<?, Boolean> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.BOOLEAN, dispatchPrefix + "Z", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, boolRet, arglist);
+                funcCode.returnValue(boolRet);
+            } else if (returnType == TypeId.SHORT) {
+                MethodId<?, Short> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.SHORT, dispatchPrefix + "S", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, shortRet, arglist);
+                funcCode.returnValue(shortRet);
+            } else if (returnType == TypeId.BYTE) {
+                MethodId<?, Byte> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.BYTE, dispatchPrefix + "B", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, byteRet, arglist);
+                funcCode.returnValue(byteRet);
+            } else if (returnType == TypeId.CHAR) {
+                MethodId<?, Character> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.CHAR, dispatchPrefix + "C", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, charRet, arglist);
+                funcCode.returnValue(charRet);
+            } else if (returnType == TypeId.LONG) {
+                MethodId<?, Long> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.LONG, dispatchPrefix + "J", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, longRet, arglist);
+                funcCode.returnValue(longRet);
+            } else if (returnType == TypeId.FLOAT) {
+                MethodId<?, Float> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.FLOAT, dispatchPrefix + "F", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, floatRet, arglist);
+                funcCode.returnValue(floatRet);
+            } else if (returnType == TypeId.DOUBLE) {
+                MethodId<?, Double> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.DOUBLE, dispatchPrefix + "D", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, doubleRet, arglist);
+                funcCode.returnValue(doubleRet);
+            } else {
+                MethodId<?, Object> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.OBJECT, dispatchPrefix + "L", TypeId.get(Object[].class));
+                funcCode.invokeStatic(dispatch, objectRet, arglist);
+                funcCode.cast(finalRet, objectRet);
+                funcCode.returnValue(finalRet);
             }
         }
-
-        if(kls == null) {
-            kls = bc.generateClass();
+    */
+        // Create the dex file and load it.
+        File outputDir = new File(getJarCacheDir(), bc.getHashKeyForAnonymousClass());
+        if(!outputDir.exists()){
+            outputDir.mkdirs();
         }
 
-        if (kls != null) {
-            Log.d(LOGCAT_TAG, kls.getCanonicalName());
-            try {
-                return kls.newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
+        File jarDir = getGenClassDir();
+        if(!jarDir.exists()) {
+            jarDir.mkdirs();
         }
+
+
+        try {
+
+            File fp = File.createTempFile("DexMaker",".dex", jarDir);
+            FileOutputStream fos = new FileOutputStream(fp);
+            fos.write(maker.generate());
+            fos.close();
+            ClassLoader loader = maker.generateAndLoad(ByteCodeGenerator.class.getClassLoader(), outputDir);
+            Class<?> generatedClass = loader.loadClass(bc.getClassNameWithDots());
+            return generatedClass.newInstance();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        }
+
         return null;
+    }
+
+    public static TypeId<?>[] getMethodArguments(Method m) {
+        Class<?> types[] = m.getParameterTypes();
+        TypeId<?> ret[] = new TypeId<?>[types.length];
+        for (int i = 0; i < types.length; i++) {
+            ret[i] = TypeId.get(types[i]);
+        }
+        return ret;
     }
 
 
     private String superClass = "java/lang/Object";
     private ArrayList<String> interfaces = new ArrayList<>();
     private String className;
-    private ClassNode classNode;
 
     public ByteCodeGenerator() {
-        classNode = new ClassNode();
     }
 
     public void setClassName(String className) {
@@ -147,35 +273,8 @@ public class ByteCodeGenerator {
     }
 
     /**
-     * Generate `.class` with ASM
-     * Convert `.class` to `.dex`
-     * Load `.dex` with ClassLoader
-     * @return Class object
-     */
-    public Class<?> generateClass() {
-
-        classNode.version = Opcodes.V1_6;
-        classNode.access = Opcodes.ACC_PUBLIC | Opcodes.ACC_SUPER;
-        classNode.name = this.className;
-        classNode.superName = this.superClass;
-        if (!this.interfaces.isEmpty()) {
-            classNode.interfaces.addAll(this.interfaces);
-        }
-
-        implDefaultConstructor();
-        implAddIdentifyField();
-        List<MethodRecord> methods = findAllVirtualMethod();
-        for (MethodRecord m : methods) {
-            implAbstractFunction(m);
-        }
-
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        classNode.accept(cw);
-        return convertToDexAndLoadClass(this.className, cw.toByteArray());
-    }
-
-    /**
      * ID for objects generated by `newInstance`
+     *
      * @return ID
      */
     public static int getId() {
@@ -231,6 +330,7 @@ public class ByteCodeGenerator {
 
     /**
      * Redirect Java callback to JS object function attribute
+     *
      * @param finish
      * @param methodName
      * @param args
@@ -240,207 +340,8 @@ public class ByteCodeGenerator {
 
 
     /**
-     * Implement default constructor for anonymous class
-     */
-    private void implDefaultConstructor() {
-        MethodNode constructor = new MethodNode(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
-        InsnList inst = constructor.instructions;
-        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, this.superClass, "<init>", "()V"));
-        // update id
-        inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "org/cocos2dx/lib/ByteCodeGenerator", "getId", "()I"));
-        inst.add(new VarInsnNode(Opcodes.ISTORE, 1));
-        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inst.add(new VarInsnNode(Opcodes.ILOAD, 1));
-        inst.add(new FieldInsnNode(Opcodes.PUTFIELD, this.className, NATIVE_ID, "I"));
-
-        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inst.add(new VarInsnNode(Opcodes.ILOAD, 1));
-        inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "org/cocos2dx/lib/ByteCodeGenerator", "registerInstance", "(Ljava/lang/Object;I)V"));
-
-        constructor.maxLocals = 2;
-        constructor.maxStack = 2;
-
-        inst.add(new InsnNode(Opcodes.RETURN));
-
-
-        classNode.methods.add(constructor);
-    }
-
-    /**
-     * Add `__native_id__` field for object
-     */
-    private void implAddIdentifyField() {
-        FieldNode fn = new FieldNode(Opcodes.ACC_PUBLIC, NATIVE_ID, "I", null, null);
-        classNode.fields.add(fn);
-    }
-
-    /**
-     * Implement abstract method, dispatch to JSFunctionProxy
-     * @param method
-     */
-    private void implAbstractFunction(MethodRecord method) {
-        int modifier = method.modifiers & (~Opcodes.ACC_ABSTRACT);
-        MethodNode mn = new MethodNode(modifier, method.name, method.desc, null, null);
-
-        int argumentCnt = method.args.length;
-
-
-        int slotSize = 0;
-        for (int i = 0; i < argumentCnt; i++) {
-            slotSize += method.args[i].getSize();
-        }
-
-
-        mn.maxLocals = slotSize + 2;
-        mn.maxStack = 6;
-
-        InsnList inst = mn.instructions;
-        /*
-         list = new ArrayList
-         */
-        inst.add(new TypeInsnNode(Opcodes.NEW, "java/util/ArrayList"));
-        inst.add(new InsnNode(Opcodes.DUP));
-        inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/util/ArrayList", "<init>", "()V"));
-
-        // setup objectID key
-        /*
-         id = new Integer(__native_id__);
-         list.add(id);
-         */
-        inst.add(new InsnNode(Opcodes.DUP));
-        inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Integer"));
-        inst.add(new InsnNode(Opcodes.DUP));
-        inst.add(new VarInsnNode(Opcodes.ALOAD, 0)); // this
-        inst.add(new FieldInsnNode(Opcodes.GETFIELD, this.className, NATIVE_ID, "I"));
-        inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Integer", "<init>", "(I)V"));
-        inst.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "add", "(Ljava/lang/Object;)Z"));
-        inst.add(new InsnNode(Opcodes.POP));
-
-        // push this
-        /*
-         list.add(this);
-         */
-        inst.add(new InsnNode(Opcodes.DUP));
-        inst.add(new VarInsnNode(Opcodes.ALOAD, 0));
-        inst.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "add", "(Ljava/lang/Object;)Z"));
-        inst.add(new InsnNode(Opcodes.POP));
-
-
-        // push other arguments
-        /*
-         list.add(); // other arguments
-        */
-        int slotOffset = 1;  // first is this object
-        int typeSize = 0;
-        for (int i = 0; i < argumentCnt; i++) {
-            Type t = method.args[i];
-            typeSize = t.getSize();
-            inst.add(new InsnNode(Opcodes.DUP));
-            switch (t.getSort()) {
-                case Type.BOOLEAN:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Boolean"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.ILOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Boolean", "<init>", "(Z)V"));
-                    break;
-                case Type.CHAR:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Character"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.ILOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Character", "<init>", "(C)V"));
-                    break;
-                case Type.BYTE:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Byte"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.ILOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Byte", "<init>", "(B)V"));
-                    break;
-                case Type.SHORT:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Short"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.ILOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Short", "<init>", "(S)V"));
-                    break;
-                case Type.INT:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Integer"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.ILOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Integer", "<init>", "(I)V"));
-                    break;
-                case Type.LONG:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Long"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.LLOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Long", "<init>", "(J)V"));
-                    break;
-                case Type.FLOAT:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Float"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.FLOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Float", "<init>", "(F)V"));
-                    break;
-                case Type.DOUBLE:
-                    inst.add(new TypeInsnNode(Opcodes.NEW, "java/lang/Double"));
-                    inst.add(new InsnNode(Opcodes.DUP));
-                    inst.add(new VarInsnNode(Opcodes.DLOAD, slotOffset));
-                    inst.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/Double", "<init>", "(D)V"));
-                    break;
-                case Type.OBJECT:
-                    //TODO: cast type
-                    inst.add(new VarInsnNode(Opcodes.ALOAD, slotOffset));
-                    break;
-                default:
-                    break;
-
-            }
-            inst.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "add", "(Ljava/lang/Object;)Z"));
-
-            inst.add(new InsnNode(Opcodes.POP)); // pop boolean from List.add
-            slotOffset += typeSize;
-        }
-        inst.add(new InsnNode(Opcodes.DUP));
-        inst.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/List", "toArray", "()[Ljava/lang/Object;"));
-
-        int rType = method.ret.getSort();
-        boolean returnObject = rType == Type.OBJECT || rType == Type.ARRAY;
-        String proxyMethodName = PROXY_METHOD_NAME + (returnObject ? "L" : method.ret.toString());
-        inst.add(new MethodInsnNode(Opcodes.INVOKESTATIC, PROXY_CLASS_NAME, proxyMethodName, "([Ljava/lang/Object;)" + (returnObject ? "Ljava/lang/Object;" : method.ret.toString())));
-        if(returnObject && !method.ret.toString().equals("Ljava/lang/Object;")) {
-            String desc = method.ret.getDescriptor();
-            inst.add(new TypeInsnNode(Opcodes.CHECKCAST, desc.substring(1, desc.length() - 1)));
-        }
-
-        switch (rType) {
-            case Type.VOID:
-                inst.add(new InsnNode(Opcodes.RETURN));
-                break;
-            case Type.BOOLEAN:
-            case Type.BYTE:
-            case Type.CHAR:
-            case Type.INT:
-            case Type.SHORT:
-                inst.add(new InsnNode(Opcodes.IRETURN));
-                break;
-            case Type.FLOAT:
-                inst.add(new InsnNode(Opcodes.FRETURN));
-                break;
-            case Type.DOUBLE:
-                inst.add(new InsnNode(Opcodes.DRETURN));
-                break;
-            case Type.LONG:
-                inst.add(new InsnNode(Opcodes.LRETURN));
-                break;
-            case Type.ARRAY:
-            case Type.OBJECT:
-            default:
-                inst.add(new InsnNode(Opcodes.ARETURN));
-        }
-        classNode.methods.add(mn);
-    }
-
-    /**
      * Query all `abstract` methods
+     *
      * @return
      */
     private List<MethodRecord> findAllVirtualMethod() {
@@ -458,16 +359,14 @@ public class ByteCodeGenerator {
     private MethodRecord recordAbstractMethod(Method m) {
         MethodRecord vm = new MethodRecord();
         vm.modifiers = m.getModifiers();
-        vm.signature = Type.getType(m).toString();
-        vm.desc = Type.getMethodDescriptor(m).toString();
-        vm.args = Type.getArgumentTypes(m);
-        vm.ret = Type.getReturnType(m);
+        vm.method = m;
         vm.name = m.getName();
         return vm;
     }
 
     /**
      * Query all abstract methods for single class
+     *
      * @param classPath
      * @return
      */
@@ -482,7 +381,7 @@ public class ByteCodeGenerator {
                 if ((modifiers & Modifier.ABSTRACT) != 0
                         && (modifiers & Modifier.STATIC) == 0
                         && (modifiers & Modifier.PUBLIC) != 0) {
-                   // System.out.println("impl method " + m.getName());
+                    // System.out.println("impl method " + m.getName());
                     methods.add(m);
                 }
             }
@@ -508,12 +407,12 @@ public class ByteCodeGenerator {
         // With the java libraries
         ArrayList<String> list = new ArrayList<>();
         list.add(this.superClass.trim());
-        for(String intf: this.interfaces) {
+        for (String intf : this.interfaces) {
             list.add(intf.trim());
         }
         Collections.sort(list);
         StringBuilder sb = new StringBuilder();
-        for(String it: list){
+        for (String it : list) {
             sb.append(it);
         }
 
@@ -522,77 +421,6 @@ public class ByteCodeGenerator {
             digest.reset();
             digest.update(sb.toString().getBytes("utf8"));
             return String.format("%040x", new BigInteger(1, digest.digest()));
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public Class<?> convertToDexAndLoadClass(String className, byte[] data) {
-
-
-        File saveDexDir = getDexDir();
-        if (!saveDexDir.exists()) {
-            if (!saveDexDir.mkdirs()) {
-                Log.e(LOGCAT_TAG, "failed to create dir " + saveDexDir.getPath());
-                return null;
-            }
-
-        }
-
-        // save klass path
-        File generatedClassesDir = getGenClassDir();
-        if (!generatedClassesDir.exists()) {
-            if (!generatedClassesDir.mkdirs()) {
-                Log.e(LOGCAT_TAG, "failed to create dir " + generatedClassesDir.getPath());
-                return null;
-            }
-        }
-
-        File generatedClassFile = null;
-        try {
-            generatedClassFile = File.createTempFile("GClassFile", ".class", generatedClassesDir);
-            FileOutputStream fos = new FileOutputStream(generatedClassFile);
-            fos.write(data);
-            fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        final String inputGeneratedClassPath = generatedClassFile.getPath();
-
-        File dexOuptTmpDir = null;
-        try {
-            dexOuptTmpDir = File.createTempFile("CompiledDex", ".dir", saveDexDir);
-            if (dexOuptTmpDir.exists()) {
-                dexOuptTmpDir.delete();
-            }
-            dexOuptTmpDir.mkdirs();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        final String dexOutputPath = dexOuptTmpDir.getPath();
-
-        Thread taskGenerateDex = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                D8.main(new String[]{inputGeneratedClassPath, "--output", dexOutputPath});
-            }
-        });
-
-        taskGenerateDex.start();
-        try {
-            taskGenerateDex.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        File singleDexFile = new File(dexOutputPath + "/classes.dex");
-        try {
-            return this.packDexToJavaThenLoadClass(singleDexFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -601,52 +429,11 @@ public class ByteCodeGenerator {
 
     private File getJarFile() {
         File jarCacheDir = getJarCacheDir();
-        if(!jarCacheDir.exists()){
+        if (!jarCacheDir.exists()) {
             jarCacheDir.mkdirs();
         }
-        return new File(jarCacheDir, "GenJar_" + this.getHashKeyForAnonymousClass()+".jar");
+        return new File(jarCacheDir, "GenJar_" + this.getHashKeyForAnonymousClass() + ".jar");
     }
 
-    private Class<?> packDexToJavaThenLoadClass(File dexFile) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-
-        byte[] dex = new byte[(int) dexFile.length()];
-
-        FileInputStream fis = new FileInputStream(dexFile);
-        int offset = fis.read(dex);
-        while(offset < dexFile.length()) {
-            int read = fis.read(dex, offset, (int) (dexFile.length() - offset));
-            offset += read;
-        }
-
-        File result = getJarFile();
-        JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(result));
-        jarOut.putNextEntry(new JarEntry("classes.dex"));
-        jarOut.write(dex);
-        jarOut.closeEntry();
-        jarOut.close();
-        return cacheClassLoader(result).loadClass(this.getClassNameWithDots());
-    }
-
-    public ClassLoader cacheClassLoader(File result) {
-
-        try {
-            ClassLoader loader = (ClassLoader) Class.forName("dalvik.system.DexClassLoader")
-                    .getConstructor(String.class, String.class, String.class, ClassLoader.class)
-                    .newInstance(result.getPath(), result.getParentFile().getAbsolutePath(), null, getClass().getClassLoader());
-            classLoaders.put(this.getClassNameWithDots(), loader);
-            return loader;
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
 }
