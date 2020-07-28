@@ -1351,6 +1351,14 @@ static jobject genAnonymousJavaObject(const std::string &parentClassStr, const s
     }
     jmethodID generateMID = env->GetStaticMethodID(bcClass, "newInstance", "(Ljava/lang/String;[Ljava/lang/String;)Ljava/lang/Object;");
     jobject ret = env->CallStaticObjectMethod(bcClass, generateMID, superClassNameJ, interfacesJ);
+    if(env->ExceptionCheck()) {
+        jthrowable e = env->ExceptionOccurred();
+        env->ExceptionClear();
+        SE_LOGE("Failed to call newInstance:");
+        jmethodID ps = env->GetMethodID(env->GetObjectClass(e), "printStackTrace", "()V");
+        env->CallVoidMethod(e, ps);
+    }
+
     env->DeleteLocalRef(stringClass);;
     env->DeleteLocalRef(superClassNameJ);
     env->DeleteLocalRef(interfacesJ);

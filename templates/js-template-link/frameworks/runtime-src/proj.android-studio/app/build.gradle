@@ -106,7 +106,9 @@ android {
 }
 android.applicationVariants.all { variant ->
     def outputDir="${projectDir}/assets"
-    def sourceDir="${projectDir}/../../jsb-link"
+    def sourceDir="${projectDir}/../../../.."
+
+    assert file("${sourceDir}/assets").exists()
 
     delete "${outputDir}"
 

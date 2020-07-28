@@ -252,6 +252,14 @@ namespace cocos2d {
             return false;
         }
 
+        if(env->ExceptionCheck()) {
+            jthrowable e = env->ExceptionOccurred();
+            env->ExceptionClear();
+            jmethodID printStackTrace = env->GetMethodID(env->FindClass("java/lang/Throwable"), "printStackTrace", "()V");
+            LOGE("Pending Java Exception found: ");
+            env->CallVoidMethod(e, printStackTrace);
+        }
+
         jclass classID = _getClassID(className);
         if (! classID) {
             LOGE("Failed to find class %s", className);

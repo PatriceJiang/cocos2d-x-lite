@@ -1,8 +1,6 @@
 package org.cocos2dx.lib;
 
 
-import android.util.Log;
-
 import com.android.dx.Code;
 import com.android.dx.DexMaker;
 import com.android.dx.FieldId;
@@ -11,14 +9,11 @@ import com.android.dx.MethodId;
 import com.android.dx.TypeId;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -30,19 +25,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
-import javax.xml.validation.TypeInfoProvider;
-
 public class ByteCodeGenerator {
 
 
     public static final String NATIVE_ID = "__native_id__";
-    public static final String PROXY_CLASS_NAME = "org/cocos2dx/lib/JSFunctionProxy";
     public static final String PROXY_METHOD_NAME = "dispatchToJS_";
-    public static final String LOGCAT_TAG = "Bytecode Generator";
 
     static int object_id = 10000;
 
-    private static Map<String, ClassLoader> classLoaders = new ConcurrentHashMap<>();
+    private static Map<String, Class<?>> cachedClassMap = new ConcurrentHashMap<>();
 
     static class MethodRecord {
         public int modifiers;
@@ -52,13 +43,49 @@ public class ByteCodeGenerator {
     }
 
 
-    public static <T, G extends T> Object newInstance(String className, String[] interfaces) {
+    public static <T, G extends T> Object newInstance(String superClassName, String[] interfaces) {
 
         ByteCodeGenerator bc = new ByteCodeGenerator();
-//        bc.setClassName(name);
-        bc.setSuperClass(className);
+        bc.setSuperClass(superClassName);
         bc.setInterfaces(interfaces);
         bc.setClassName("pkg/anonymous/K_" + bc.getHashKeyForAnonymousClass());
+
+        Class<?> generatedClass = null;
+
+        if(cachedClassMap.containsKey(bc.getHashKeyForAnonymousClass())) {
+            generatedClass = cachedClassMap.get(bc.getHashKeyForAnonymousClass());
+            try {
+                Object ret = generatedClass.newInstance();
+                if(ret != null) {
+                    return ret;
+                }
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        if (bc.getJarFile().exists()) {
+            ClassLoader loader = bc.cacheClassLoader(bc.getJarFile());
+            try {
+                generatedClass = loader.loadClass(bc.getClassNameWithDots());
+                try {
+                    Object ret = generatedClass.newInstance();
+                    if(ret != null) {
+                        cachedClassMap.put(bc.getHashKeyForAnonymousClass(), generatedClass);
+                        return ret;
+                    }
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
 
         DexMaker maker = new DexMaker();
         TypeId<?> superClass = TypeId.get("L" + bc.superClass + ";");
@@ -67,39 +94,38 @@ public class ByteCodeGenerator {
             String interfaceName = bc.interfaces.get(i);
             interfaceTypes[i] = TypeId.get("L" + interfaceName + ";");
         }
-        TypeId<?> generatedType = TypeId.get("L" + className + ";");
+        TypeId<?> generatedType = TypeId.get("L" + bc.getClassName() + ";");
         maker.declare(generatedType, bc.getClassNameWithDots() + ".generated", Modifier.PUBLIC, superClass, interfaceTypes);
 
-        FieldId<?, Integer> native_id = generatedType.getField(TypeId.INT, NATIVE_ID);
+        FieldId<G, Integer> thisNativeIdField = (FieldId<G, Integer>) generatedType.getField(TypeId.INT, NATIVE_ID);
+        maker.declare(thisNativeIdField, Modifier.PUBLIC, null);
+        {
+            MethodId<T, ?> superInit = (MethodId<T, ?>) superClass.getConstructor();
+            MethodId<?, ?> thisInit = generatedType.getConstructor();
 
-        MethodId<T, ?> superInit = (MethodId<T, ?>) superClass.getConstructor();
-        MethodId<?, ?> initMethod = generatedType.getConstructor();
+            Code constructorCode = maker.declare(thisInit, Modifier.PUBLIC);
+            Local<Integer> constructorNativeId = constructorCode.newLocal(TypeId.INT);
+            Local<G> thisObj = (Local<G>) constructorCode.getThis(generatedType);
+            MethodId<ByteCodeGenerator, Integer> getIdMethod = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.INT, "getId");
+            MethodId<ByteCodeGenerator, Void> registerThis = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.VOID, "registerInstance", TypeId.OBJECT, TypeId.INT);
+            constructorCode.invokeDirect(superInit, null, thisObj);
+            constructorCode.invokeStatic(getIdMethod, constructorNativeId);
+            constructorCode.iput(thisNativeIdField, thisObj, constructorNativeId);
+            constructorCode.invokeStatic(registerThis, null, thisObj, constructorNativeId);
+            constructorCode.returnVoid();
+        }
 
-        Code constructorCode = maker.declare(initMethod, Modifier.PUBLIC);
-        Local<Integer> id = constructorCode.newLocal(TypeId.INT);
-        Local<G> thisObj = (Local<G>) constructorCode.getThis(generatedType);
-        constructorCode.invokeDirect(superInit, null, thisObj);
-        MethodId<ByteCodeGenerator, Integer> getIdMethod = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.INT, "getId");
-        constructorCode.invokeStatic(getIdMethod, id);
-        constructorCode.sput(native_id, id);
-        MethodId<ByteCodeGenerator, Void> registerThis = TypeId.get(ByteCodeGenerator.class).getMethod(TypeId.VOID, "registerInstance", TypeId.OBJECT, TypeId.INT);
-        constructorCode.invokeStatic(registerThis, null, thisObj, id);
-        constructorCode.returnVoid();
-
-    /*
         List<MethodRecord> virtualMethods = bc.findAllVirtualMethod();
         for (MethodRecord m : virtualMethods) {
             TypeId<?> returnType = TypeId.get(m.method.getReturnType());
-            TypeId<?> argTypes[] = getMethodArguments(m.method);
+            TypeId<?>[] argTypes = getMethodArguments(m.method);
             MethodId<?, ?> mId = generatedType.getMethod(returnType, m.name, argTypes);
-            MethodId<Object[], Void> arrayConstructor = TypeId.get(Object[].class).getConstructor(TypeId.INT);
-//            MethodId<List, Void> arrayAdd = TypeId.get(List.class).getMethod(TypeId.VOID, "add", TypeId.OBJECT);
 
             int modifier = m.modifiers & (~Modifier.ABSTRACT);
             Code funcCode = maker.declare(mId, modifier);
 
-            Local<?> funcThisObj = funcCode.getThis(generatedType);
-            Local<Object[]> arglist = funcCode.newLocal(TypeId.get(Object[].class));
+            Local<G> funcThisObj = (Local<G>) funcCode.getThis(generatedType);
+            Local<Object[]> argList = funcCode.newLocal(TypeId.get(Object[].class));
             Local<Integer> nativeId = funcCode.newLocal(TypeId.INT);
             Local<?> finalRet = funcCode.newLocal(returnType);
 
@@ -109,7 +135,7 @@ public class ByteCodeGenerator {
             Local<Byte> byteRet = null;
             Local<Character> charRet = null;
             Local<Long> longRet = null;
-            Local<Float> floatRet= null;
+            Local<Float> floatRet = null;
             Local<Double> doubleRet = null;
             Local<Object> objectRet = null;
             if (returnType == TypeId.INT) {
@@ -134,92 +160,126 @@ public class ByteCodeGenerator {
 
             Local<Integer> arraySize = funcCode.newLocal(TypeId.INT);
             Local<Integer> arrayIdx = funcCode.newLocal(TypeId.INT);
+            Local<?> argConvert = funcCode.newLocal(TypeId.OBJECT);
+            Local<Integer> nativeIdInteger = funcCode.newLocal(TypeId.get(Integer.class));
 
             funcCode.loadConstant(arraySize, argTypes.length + 2);
             funcCode.loadConstant(arrayIdx, 0);
 
-
-            funcCode.invokeDirect(arrayConstructor, null, arglist, arraySize);
-            funcCode.invokeStatic(getIdMethod, nativeId);
-            funcCode.aput(arglist, arrayIdx, nativeId);
+            // new Object[arraySize]
+            funcCode.newArray(argList, arraySize);
+            // nativeId = get __native_id__
+            funcCode.iget(thisNativeIdField, nativeId, funcThisObj);
+            // nativeId = new Integer
+            funcCode.newInstance(nativeIdInteger, TypeId.get(Integer.class).getConstructor(TypeId.INT), nativeId);
+            // arrList[0] = nativeId
+            funcCode.aput(argList, arrayIdx, nativeIdInteger);
+            // i = 1
             funcCode.loadConstant(arrayIdx, 1);
-            funcCode.aput(arglist, arrayIdx, funcThisObj);
+            // arrList[i] = this;
+            funcCode.aput(argList, arrayIdx, funcThisObj);
 
             for (int i = 0; i < argTypes.length; i++) {
                 funcCode.loadConstant(arrayIdx, 2 + i);
-                funcCode.aput(arglist, arrayIdx, funcCode.getParameter(i, argTypes[i]));
-//                funcCode.invokeVirtual(arrayAdd, null, arglist, funcCode.getParameter(i, argTypes[i]));
+                TypeId<?> argType = argTypes[i];
+                Local<?> argI = funcCode.getParameter(i, argTypes[i]);
+                if (argType == TypeId.INT) {
+                    funcCode.newInstance((Local<Integer>) argConvert, TypeId.get(Integer.class).getConstructor(TypeId.INT), (Local<Integer>) argI);
+                } else if (argType == TypeId.BOOLEAN) {
+                    funcCode.newInstance((Local<Boolean>) argConvert, TypeId.get(Boolean.class).getConstructor(TypeId.BOOLEAN), (Local<Boolean>) argI);
+                } else if (argType == TypeId.BYTE) {
+                    funcCode.newInstance((Local<Byte>) argConvert, TypeId.get(Byte.class).getConstructor(TypeId.BYTE), (Local<Byte>) argI);
+                } else if (argType == TypeId.CHAR) {
+                    funcCode.newInstance((Local<Character>) argConvert, TypeId.get(Character.class).getConstructor(TypeId.CHAR), (Local<Character>) argI);
+                } else if (argType == TypeId.SHORT) {
+                    funcCode.newInstance((Local<Short>) argConvert, TypeId.get(Short.class).getConstructor(TypeId.SHORT), (Local<Short>) argI);
+                } else if (argType == TypeId.LONG) {
+                    funcCode.newInstance((Local<Long>) argConvert, TypeId.get(Long.class).getConstructor(TypeId.LONG), (Local<Long>) argI);
+                } else if (argType == TypeId.FLOAT) {
+                    funcCode.newInstance((Local<Float>) argConvert, TypeId.get(Float.class).getConstructor(TypeId.FLOAT), (Local<Float>) argI);
+                } else if (argType == TypeId.DOUBLE) {
+                    funcCode.newInstance((Local<Double>) argConvert, TypeId.get(Double.class).getConstructor(TypeId.DOUBLE), (Local<Double>) argI);
+                } else { //object
+                    funcCode.cast((Local<Object>) argConvert, argI);
+                }
+                funcCode.aput(argList, arrayIdx, argConvert);
             }
 
-            final String dispatchPrefix = "dispatchToJS_";
+            final String dispatchPrefix = PROXY_METHOD_NAME;
 
             if (returnType == TypeId.VOID) {
                 MethodId<?, ?> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.VOID, dispatchPrefix + "V", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, null, arglist);
+                funcCode.invokeStatic(dispatch, null, argList);
                 funcCode.returnVoid();
             } else if (returnType == TypeId.INT) {
                 MethodId<?, Integer> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.INT, dispatchPrefix + "I", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, intRet, arglist);
+                funcCode.invokeStatic(dispatch, intRet, argList);
                 funcCode.returnValue(intRet);
             } else if (returnType == TypeId.BOOLEAN) {
                 MethodId<?, Boolean> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.BOOLEAN, dispatchPrefix + "Z", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, boolRet, arglist);
+                funcCode.invokeStatic(dispatch, boolRet, argList);
                 funcCode.returnValue(boolRet);
             } else if (returnType == TypeId.SHORT) {
                 MethodId<?, Short> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.SHORT, dispatchPrefix + "S", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, shortRet, arglist);
+                funcCode.invokeStatic(dispatch, shortRet, argList);
                 funcCode.returnValue(shortRet);
             } else if (returnType == TypeId.BYTE) {
                 MethodId<?, Byte> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.BYTE, dispatchPrefix + "B", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, byteRet, arglist);
+                funcCode.invokeStatic(dispatch, byteRet, argList);
                 funcCode.returnValue(byteRet);
             } else if (returnType == TypeId.CHAR) {
                 MethodId<?, Character> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.CHAR, dispatchPrefix + "C", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, charRet, arglist);
+                funcCode.invokeStatic(dispatch, charRet, argList);
                 funcCode.returnValue(charRet);
             } else if (returnType == TypeId.LONG) {
                 MethodId<?, Long> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.LONG, dispatchPrefix + "J", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, longRet, arglist);
+                funcCode.invokeStatic(dispatch, longRet, argList);
                 funcCode.returnValue(longRet);
             } else if (returnType == TypeId.FLOAT) {
                 MethodId<?, Float> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.FLOAT, dispatchPrefix + "F", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, floatRet, arglist);
+                funcCode.invokeStatic(dispatch, floatRet, argList);
                 funcCode.returnValue(floatRet);
             } else if (returnType == TypeId.DOUBLE) {
                 MethodId<?, Double> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.DOUBLE, dispatchPrefix + "D", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, doubleRet, arglist);
+                funcCode.invokeStatic(dispatch, doubleRet, argList);
                 funcCode.returnValue(doubleRet);
             } else {
                 MethodId<?, Object> dispatch = TypeId.get(JSFunctionProxy.class).getMethod(TypeId.OBJECT, dispatchPrefix + "L", TypeId.get(Object[].class));
-                funcCode.invokeStatic(dispatch, objectRet, arglist);
+                funcCode.invokeStatic(dispatch, objectRet, argList);
                 funcCode.cast(finalRet, objectRet);
                 funcCode.returnValue(finalRet);
             }
         }
-    */
+
         // Create the dex file and load it.
         File outputDir = new File(getJarCacheDir(), bc.getHashKeyForAnonymousClass());
         if(!outputDir.exists()){
             outputDir.mkdirs();
         }
 
-        File jarDir = getGenClassDir();
-        if(!jarDir.exists()) {
-            jarDir.mkdirs();
+        try {
+            generatedClass = bc.packDexToJavaThenLoadClass(maker.generate());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
         }
 
 
         try {
-
-            File fp = File.createTempFile("DexMaker",".dex", jarDir);
-            FileOutputStream fos = new FileOutputStream(fp);
-            fos.write(maker.generate());
-            fos.close();
-            ClassLoader loader = maker.generateAndLoad(ByteCodeGenerator.class.getClassLoader(), outputDir);
-            Class<?> generatedClass = loader.loadClass(bc.getClassNameWithDots());
-            return generatedClass.newInstance();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            Object ret = generatedClass.newInstance();
+            if(ret != null) {
+                cachedClassMap.put(bc.getHashKeyForAnonymousClass(), generatedClass);
+            }
+            return ret;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -250,6 +310,10 @@ public class ByteCodeGenerator {
         if (className != null && !className.isEmpty()) {
             this.className = className.replaceAll("\\.", "/");
         }
+    }
+
+    public String getClassName() {
+        return this.className;
     }
 
     public String getClassNameWithDots() {
@@ -285,9 +349,9 @@ public class ByteCodeGenerator {
      * Create folders for bytecode/class data
      */
     static public void init() {
-//        renameAndDelete(ByteCodeGenerator.getDexDir());
-//        renameAndDelete(ByteCodeGenerator.getGenClassDir());
-//        renameAndDelete(ByteCodeGenerator.getJarCacheDir());
+        renameAndDelete(ByteCodeGenerator.getDexDir());
+        renameAndDelete(ByteCodeGenerator.getGenClassDir());
+        renameAndDelete(ByteCodeGenerator.getJarCacheDir());
     }
 
     private static void renameAndDelete(File dir) {
@@ -435,5 +499,35 @@ public class ByteCodeGenerator {
         return new File(jarCacheDir, "GenJar_" + this.getHashKeyForAnonymousClass() + ".jar");
     }
 
+    private Class<?> packDexToJavaThenLoadClass(byte[] dex) throws IOException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 
+        File result = getJarFile();
+        JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(result));
+        jarOut.putNextEntry(new JarEntry("classes.dex"));
+        jarOut.write(dex);
+        jarOut.closeEntry();
+        jarOut.close();
+        return cacheClassLoader(result).loadClass(this.getClassNameWithDots());
+    }
+
+    public ClassLoader cacheClassLoader(File jarFile) {
+
+        try {
+            ClassLoader loader = (ClassLoader) Class.forName("dalvik.system.DexClassLoader")
+                    .getConstructor(String.class, String.class, String.class, ClassLoader.class)
+                    .newInstance(jarFile.getPath(), jarFile.getParentFile().getAbsolutePath(), null, getClass().getClassLoader());
+            return loader;
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
