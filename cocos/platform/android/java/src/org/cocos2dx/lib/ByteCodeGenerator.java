@@ -349,9 +349,9 @@ public class ByteCodeGenerator {
      * Create folders for bytecode/class data
      */
     static public void init() {
-        renameAndDelete(ByteCodeGenerator.getDexDir());
-        renameAndDelete(ByteCodeGenerator.getGenClassDir());
-        renameAndDelete(ByteCodeGenerator.getJarCacheDir());
+//        renameAndDelete(ByteCodeGenerator.getDexDir());
+//        renameAndDelete(ByteCodeGenerator.getGenClassDir());
+//        renameAndDelete(ByteCodeGenerator.getJarCacheDir());
     }
 
     private static void renameAndDelete(File dir) {
