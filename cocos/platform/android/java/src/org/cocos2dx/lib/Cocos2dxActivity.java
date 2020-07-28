@@ -39,6 +39,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.preference.PreferenceManager.OnActivityResultListener;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -272,11 +273,11 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
 
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         try {
-            Field field = lp.getClass().getField("layoutInDisplayCutoutMode");
+                       Field field = lp.getClass().getField("layoutInDisplayCutoutMode");
             //Field constValue = lp.getClass().getDeclaredField("LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER");
             Field constValue = lp.getClass().getDeclaredField("LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES");
             field.setInt(lp, constValue.getInt(null));
-            
+
             // https://developer.android.com/training/system-ui/immersive
             int flag = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -284,7 +285,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
 
-            flag |= immersiveSticky.getInt(null);
+//            flag |= immersiveSticky.getInt(null);
             View view = getWindow().getDecorView();
             view.setSystemUiVisibility(flag);
 
@@ -356,6 +357,9 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
         onLoadNativeLibraries();
 
         sContext = this;
+
+        ByteCodeGenerator.init();  //need context
+
         this.mHandler = new Cocos2dxHandler(this);
         
         Cocos2dxHelper.init(this);
@@ -443,7 +447,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
         msg.obj = new Cocos2dxHandler.DialogMessage(pTitle, pMessage);
         this.mHandler.sendMessage(msg);
     }
-    
+
     @Override
     public void runOnGLThread(final Runnable runnable) {
         this.mGLSurfaceView.queueEvent(runnable);
