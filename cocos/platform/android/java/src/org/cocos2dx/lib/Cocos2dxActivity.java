@@ -273,7 +273,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
 
         WindowManager.LayoutParams lp = getWindow().getAttributes();
         try {
-                       Field field = lp.getClass().getField("layoutInDisplayCutoutMode");
+            Field field = lp.getClass().getField("layoutInDisplayCutoutMode");
             //Field constValue = lp.getClass().getDeclaredField("LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER");
             Field constValue = lp.getClass().getDeclaredField("LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES");
             field.setInt(lp, constValue.getInt(null));
