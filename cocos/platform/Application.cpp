@@ -77,6 +77,12 @@ void Application::tick() {
 
     ++_totalFrames;
 
+    if(false)
+    {
+      int b;
+     b+= 1000;
+    }
+ 
     // iOS/macOS use its own fps limitation algorithm.
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_WINDOWS)
     if (dtNS < _prefererredNanosecondsPerFrame) {
