@@ -79,5 +79,5 @@ CheckOptions:
   - key:      readability-identifier-naming.VariableCase
     value:    camelBack
   - key:      readability-identifier-naming.StructCase
-    value:    CamelBack
+    value:    camelBack
 
