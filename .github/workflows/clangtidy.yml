@@ -25,9 +25,8 @@ jobs:
         run: choco install cmake
       - name: Generate Compile database
         run: |
-          external_version=`grep version external/config.json  |awk -F'"' '{print $4}'`
-          rm external/*
-          git clone --branch $external_version --depth 1 https://github.com/cocos-creator/engine-native-external external
+          rm external/config.json
+          git clone --branch v3d-gfx-30 --depth 1 https://github.com/cocos-creator/engine-native-external external
           cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       - name: Generate clang-fix.yaml
         run: clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}

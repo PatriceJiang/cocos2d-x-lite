@@ -1,16 +1,28 @@
 ---
-MainSourceFile:  'D:\Github\cocos2d-x-lite\.\cocos\platform\Application.cpp'
+MainSourceFile:  'D:\Github\cocos2d-x-lite\**/*.cpp'
 Diagnostics:
   - DiagnosticName:  clang-diagnostic-error
     DiagnosticMessage:
-      Message:         '''cocos/platform/Application.h'' file not found'
-      FilePath:        'D:\Github\cocos2d-x-lite\.\cocos\platform\Application.cpp'
-      FileOffset:      1287
+      Message:         no input files
+      FilePath:        ''
+      FileOffset:      0
       Replacements:    []
     Level:           Error
-    BuildDirectory:  'D:\Github\cocos2d-x-lite'
-    Ranges:
-      - FilePath:        'D:\Github\cocos2d-x-lite\.\cocos\platform\Application.cpp'
-        FileOffset:      1287
-        Length:          30
+    BuildDirectory:  ''
+  - DiagnosticName:  clang-diagnostic-error
+    DiagnosticMessage:
+      Message:         'no such file or directory: ''D:\Github\cocos2d-x-lite\**\*.cpp'''
+      FilePath:        ''
+      FileOffset:      0
+      Replacements:    []
+    Level:           Error
+    BuildDirectory:  ''
+  - DiagnosticName:  clang-diagnostic-error
+    DiagnosticMessage:
+      Message:         'unable to handle compilation, expected exactly one compiler job in '''''
+      FilePath:        ''
+      FileOffset:      0
+      Replacements:    []
+    Level:           Error
+    BuildDirectory:  ''
 ...
