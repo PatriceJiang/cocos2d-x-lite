@@ -21,8 +21,10 @@ jobs:
         with:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install CMake
-        run: choco install cmake
+      - name: Install CMake & Clang Tidy
+        run: 
+          choco install cmake
+          choco install clang-tidy
       - name: Generate Compile database
         run: |
           rm external/config.json
