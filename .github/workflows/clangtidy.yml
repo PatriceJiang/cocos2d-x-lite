@@ -10,13 +10,23 @@ jobs:
     # Name the Job
     name: Lint code base
     # Set the type of machine to run on
-    runs-on: ubuntu-latest
+    runs-on: windows
 
     steps:
       # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
         uses: actions/checkout@v2
-
+      - uses: jitterbit/get-changed-files@v1
+        id: listchanged
+        with:
+          format: space-delimited
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install CMake
+        run: choco install cmake
+      - name: Generate Compile database
+        run: cmake -Bbuild -GNinja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Generate clang-fix.yaml
+        run: clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
       - name: clang-tidy-action
         uses: asarium/clang-tidy-action@v1.0
         with:
