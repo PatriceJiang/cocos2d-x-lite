@@ -25,6 +25,7 @@ jobs:
         run: |
           choco install cmake
           choco install llvm
+          refreshenv
 
       - name: Generate Compile database
         run: |
