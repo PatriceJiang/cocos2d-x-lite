@@ -1,5 +1,5 @@
 ---
-MainSourceFile:  'D:\Github\cocos2d-x-lite\.\cocos\platform\Application.cpp'
+MainSourceFile:  'cocos\platform\Application.cpp'
 Diagnostics:
   - DiagnosticName:  clang-diagnostic-error
     DiagnosticMessage:
@@ -8,7 +8,7 @@ Diagnostics:
       FileOffset:      11696
       Replacements:    []
     Level:           Error
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-qualified-auto
     DiagnosticMessage:
       Message:         '''auto scriptEngine'' can be declared as ''auto *scriptEngine'''
@@ -20,7 +20,7 @@ Diagnostics:
           Length:          5
           ReplacementText: 'auto *'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-uppercase-literal-suffix
     DiagnosticMessage:
       Message:         'floating point literal has suffix ''f'', which is not uppercase'
@@ -32,7 +32,7 @@ Diagnostics:
           Length:          1
           ReplacementText: F
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in if statement condition
@@ -44,7 +44,7 @@ Diagnostics:
           Length:          77
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-isolate-declaration
     DiagnosticMessage:
       Message:         multiple declarations in a single statement reduces readability
@@ -57,7 +57,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-init-variables
     DiagnosticMessage:
       Message:         'variable ''b'' is not initialized'
@@ -69,7 +69,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' = 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-init-variables
     DiagnosticMessage:
       Message:         'variable ''cd'' is not initialized'
@@ -81,7 +81,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' = 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '1000 is a magic number; consider replacing it with a named constant'
@@ -89,7 +89,7 @@ Diagnostics:
       FileOffset:      2576
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '0.1 is a magic number; consider replacing it with a named constant'
@@ -97,7 +97,7 @@ Diagnostics:
       FileOffset:      3257
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '0.9 is a magic number; consider replacing it with a named constant'
@@ -105,7 +105,7 @@ Diagnostics:
       FileOffset:      3263
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -117,7 +117,7 @@ Diagnostics:
           Length:          135
           ReplacementText: "using SAXState = enum {\r\n    SAX_NONE = 0,\r\n    SAX_KEY,\r\n    SAX_DICT,\r\n    SAX_INT,\r\n    SAX_REAL,\r\n    SAX_STRING,\r\n    SAX_ARRAY\r\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -129,7 +129,7 @@ Diagnostics:
           Length:          97
           ReplacementText: "using SAXResult = enum {\r\n    SAX_RESULT_NONE = 0,\r\n    SAX_RESULT_DICT,\r\n    SAX_RESULT_ARRAY\r\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-special-member-functions
     DiagnosticMessage:
       Message:         'class ''DictMaker'' defines a non-default destructor but does not define a copy constructor, a copy assignment operator, a move constructor or a move assignment operator'
@@ -137,7 +137,7 @@ Diagnostics:
       FileOffset:      2130
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_resultType'' has public visibility'
@@ -145,7 +145,7 @@ Diagnostics:
       FileOffset:      2188
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-default-member-init
     DiagnosticMessage:
       Message:         'use default member initializer for ''_resultType'''
@@ -161,7 +161,7 @@ Diagnostics:
           Length:          28
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_rootDict'' has public visibility'
@@ -169,7 +169,7 @@ Diagnostics:
       FileOffset:      2215
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_rootArray'' has public visibility'
@@ -177,7 +177,7 @@ Diagnostics:
       FileOffset:      2243
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_curKey'' has public visibility'
@@ -185,7 +185,7 @@ Diagnostics:
       FileOffset:      2274
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_curValue'' has public visibility'
@@ -193,7 +193,7 @@ Diagnostics:
       FileOffset:      2318
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_state'' has public visibility'
@@ -201,7 +201,7 @@ Diagnostics:
       FileOffset:      2359
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-default-member-init
     DiagnosticMessage:
       Message:         'use default member initializer for ''_state'''
@@ -217,7 +217,7 @@ Diagnostics:
           Length:          17
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_curDict'' has public visibility'
@@ -225,7 +225,7 @@ Diagnostics:
       FileOffset:      2384
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_curArray'' has public visibility'
@@ -233,7 +233,7 @@ Diagnostics:
       FileOffset:      2412
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_dictStack'' has public visibility'
@@ -241,7 +241,7 @@ Diagnostics:
       FileOffset:      2453
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_arrayStack'' has public visibility'
@@ -249,7 +249,7 @@ Diagnostics:
       FileOffset:      2496
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-non-private-member-variables-in-classes
     DiagnosticMessage:
       Message:         'member variable ''_stateStack'' has public visibility'
@@ -257,7 +257,7 @@ Diagnostics:
       FileOffset:      2535
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-redundant-access-specifiers
     DiagnosticMessage:
       Message:         redundant access specifier has the same accessibility as the previous access specifier
@@ -274,7 +274,7 @@ Diagnostics:
         FileOffset:      2165
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-member-init
     DiagnosticMessage:
       Message:         'constructor does not initialize these fields: _curDict, _curArray'
@@ -290,7 +290,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '{}'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-equals-default
     DiagnosticMessage:
       Message:         'use ''= default'' to define a trivial destructor'
@@ -302,7 +302,7 @@ Diagnostics:
           Length:          8
           ReplacementText: '= default;'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-override
     DiagnosticMessage:
       Message:         'annotate this function with ''override'' or (rarely) ''final'''
@@ -314,7 +314,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' override'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         '''virtual'' is redundant since the function is already declared ''override'''
@@ -326,7 +326,7 @@ Diagnostics:
           Length:          8
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         '''virtual'' is redundant since the function is already declared ''override'''
@@ -338,7 +338,7 @@ Diagnostics:
           Length:          8
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -346,7 +346,7 @@ Diagnostics:
       FileOffset:      6451
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -362,7 +362,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -378,7 +378,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -394,7 +394,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -410,7 +410,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -426,7 +426,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -442,7 +442,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         '''virtual'' is redundant since the function is already declared ''override'''
@@ -454,7 +454,7 @@ Diagnostics:
           Length:          8
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -462,7 +462,7 @@ Diagnostics:
       FileOffset:      8597
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'initializing non-owner ''tinyxml2::XMLDocument *'' with a newly created ''gsl::owner<>'''
@@ -470,7 +470,7 @@ Diagnostics:
       FileOffset:      10324
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      10324
@@ -486,7 +486,7 @@ Diagnostics:
           Length:          21
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -502,7 +502,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-raw-string-literal
     DiagnosticMessage:
       Message:         escaped string literal can be written as a raw string literal
@@ -514,7 +514,7 @@ Diagnostics:
           Length:          40
           ReplacementText: 'R"(xml version="1.0" encoding="UTF-8")"'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -527,7 +527,7 @@ Diagnostics:
         FileOffset:      10324
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      10606
@@ -543,7 +543,7 @@ Diagnostics:
           Length:          106
           ReplacementText: 'R"(!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd")"'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -556,7 +556,7 @@ Diagnostics:
         FileOffset:      10324
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      10987
@@ -573,7 +573,7 @@ Diagnostics:
         FileOffset:      10324
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      11226
@@ -590,7 +590,7 @@ Diagnostics:
         FileOffset:      10324
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      11408
@@ -602,7 +602,7 @@ Diagnostics:
       FileOffset:      11539
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      11539
@@ -618,7 +618,7 @@ Diagnostics:
           Length:          21
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -634,7 +634,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-raw-string-literal
     DiagnosticMessage:
       Message:         escaped string literal can be written as a raw string literal
@@ -646,7 +646,7 @@ Diagnostics:
           Length:          40
           ReplacementText: 'R"(xml version="1.0" encoding="UTF-8")"'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -659,7 +659,7 @@ Diagnostics:
         FileOffset:      11539
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      11821
@@ -675,7 +675,7 @@ Diagnostics:
           Length:          106
           ReplacementText: 'R"(!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd")"'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -688,7 +688,7 @@ Diagnostics:
         FileOffset:      11539
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      12202
@@ -705,7 +705,7 @@ Diagnostics:
         FileOffset:      11539
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      12445
@@ -722,7 +722,7 @@ Diagnostics:
         FileOffset:      11539
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      12627
@@ -734,7 +734,7 @@ Diagnostics:
       FileOffset:      12770
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -750,7 +750,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -766,7 +766,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-no-recursion
     DiagnosticMessage:
       Message:         'function ''generateElementForDict'' is within a recursive call chain'
@@ -791,7 +791,7 @@ Diagnostics:
         FileOffset:      14024
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -807,7 +807,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-no-recursion
     DiagnosticMessage:
       Message:         'function ''generateElementForArray'' is within a recursive call chain'
@@ -815,7 +815,7 @@ Diagnostics:
       FileOffset:      15131
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -831,7 +831,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
       Message:         'variable ''s_sharedFileUtils'' is non-const and globally accessible, consider making it const'
@@ -839,7 +839,7 @@ Diagnostics:
       FileOffset:      16113
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
       Message:         'variable ''s_sharedFileUtils'' provides global access to a non-const object; consider making the pointed-to data ''const'''
@@ -847,7 +847,7 @@ Diagnostics:
       FileOffset:      16113
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -864,7 +864,7 @@ Diagnostics:
         FileOffset:      16091
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        ''
         FileOffset:      0
@@ -880,7 +880,7 @@ Diagnostics:
           Length:          22
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -896,7 +896,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'deleting a pointer through a type that is not marked ''gsl::owner<>''; consider using a smart pointer instead'
@@ -909,7 +909,7 @@ Diagnostics:
         FileOffset:      16091
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      16322
@@ -925,7 +925,7 @@ Diagnostics:
           Length:          18
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-equals-default
     DiagnosticMessage:
       Message:         'use ''= default'' to define a trivial destructor'
@@ -937,7 +937,7 @@ Diagnostics:
           Length:          4
           ReplacementText: '= default;'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -945,7 +945,7 @@ Diagnostics:
       FileOffset:      16595
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-qualified-auto
     DiagnosticMessage:
       Message:         '''auto fileutils'' can be declared as ''auto *fileutils'''
@@ -957,7 +957,7 @@ Diagnostics:
           Length:          5
           ReplacementText: 'auto *'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'calling legacy resource function without passing a ''gsl::owner<>'''
@@ -965,7 +965,7 @@ Diagnostics:
       FileOffset:      17341
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      17341
@@ -981,7 +981,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -997,7 +997,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-qualified-auto
     DiagnosticMessage:
       Message:         '''auto fs'' can be declared as ''auto *fs'''
@@ -1009,7 +1009,7 @@ Diagnostics:
           Length:          5
           ReplacementText: 'auto *'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1025,7 +1025,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1041,7 +1041,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-member-init
     DiagnosticMessage:
       Message:         'uninitialized record type: ''statBuf'''
@@ -1053,7 +1053,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '{}'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'calling legacy resource function without passing a ''gsl::owner<>'''
@@ -1061,7 +1061,7 @@ Diagnostics:
       FileOffset:      18515
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      18515
@@ -1073,7 +1073,7 @@ Diagnostics:
       FileOffset:      18701
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      18701
@@ -1085,7 +1085,7 @@ Diagnostics:
       FileOffset:      19522
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '260 is a magic number; consider replacing it with a named constant'
@@ -1093,7 +1093,7 @@ Diagnostics:
       FileOffset:      19537
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -1101,7 +1101,7 @@ Diagnostics:
       FileOffset:      19813
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      19813
@@ -1113,7 +1113,7 @@ Diagnostics:
       FileOffset:      19822
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-no-malloc
     DiagnosticMessage:
       Message:         'do not manage memory manually; consider a container or a smart pointer'
@@ -1121,7 +1121,7 @@ Diagnostics:
       FileOffset:      19839
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/FileUtils.cpp'
         FileOffset:      19839
@@ -1137,7 +1137,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''file_path'''
@@ -1150,7 +1150,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-redundant-string-init
     DiagnosticMessage:
       Message:         redundant string initialization
@@ -1162,7 +1162,7 @@ Diagnostics:
           Length:          14
           ReplacementText: file_path
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  performance-faster-string-find
     DiagnosticMessage:
       Message:         '''find_last_of'' called with a string literal consisting of a single character; consider using the more effective overload accepting a character'
@@ -1174,7 +1174,7 @@ Diagnostics:
           Length:          3
           ReplacementText: '''/'''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for constant ''front'''
@@ -1190,7 +1190,7 @@ Diagnostics:
           Length:          5
           ReplacementText: FRONT
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1206,7 +1206,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-container-size-empty
     DiagnosticMessage:
       Message:         'the ''empty'' method should be used to check for emptiness instead of ''size'''
@@ -1223,7 +1223,7 @@ Diagnostics:
         FileOffset:      164850
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -1239,7 +1239,7 @@ Diagnostics:
           Length:          169
           ReplacementText: "\n        std::string fullpath = fullPathForFilename(filename);\r\n        if (fullpath.empty())\r\n            return false;\r\n        else\r\n            return true;\r\n   "
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1255,7 +1255,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in conditional return statement
@@ -1268,7 +1268,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -1281,7 +1281,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1297,7 +1297,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1309,7 +1309,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-narrowing-conversions
     DiagnosticMessage:
       Message:         'narrowing conversion from ''unsigned int'' to signed type ''int'' is implementation-defined'
@@ -1317,7 +1317,7 @@ Diagnostics:
       FileOffset:      26623
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1329,7 +1329,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1341,7 +1341,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1353,7 +1353,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-narrowing-conversions
     DiagnosticMessage:
       Message:         'narrowing conversion from ''unsigned int'' to signed type ''int'' is implementation-defined'
@@ -1361,7 +1361,7 @@ Diagnostics:
       FileOffset:      27361
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1373,7 +1373,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1385,7 +1385,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-no-recursion
     DiagnosticMessage:
       Message:         'function ''listFilesRecursively'' is within a recursive call chain'
@@ -1406,7 +1406,7 @@ Diagnostics:
         FileOffset:      29485
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1418,7 +1418,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-narrowing-conversions
     DiagnosticMessage:
       Message:         'narrowing conversion from ''unsigned int'' to signed type ''int'' is implementation-defined'
@@ -1426,7 +1426,7 @@ Diagnostics:
       FileOffset:      28432
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1438,7 +1438,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1450,7 +1450,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1462,7 +1462,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-narrowing-conversions
     DiagnosticMessage:
       Message:         'narrowing conversion from ''unsigned int'' to signed type ''int'' is implementation-defined'
@@ -1470,7 +1470,7 @@ Diagnostics:
       FileOffset:      29170
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1482,7 +1482,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -1494,7 +1494,7 @@ Diagnostics:
           Length:          4
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''dirPath'' is unused'
@@ -1506,7 +1506,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*dirPath*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''path'' is unused'
@@ -1518,7 +1518,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ' /*path*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''path'' is unused'
@@ -1530,7 +1530,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ' /*path*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''path'' is unused'
@@ -1542,7 +1542,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ' /*path*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''oldfullpath'' is unused'
@@ -1554,7 +1554,7 @@ Diagnostics:
           Length:          11
           ReplacementText: ' /*oldfullpath*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''newfullpath'' is unused'
@@ -1566,7 +1566,7 @@ Diagnostics:
           Length:          11
           ReplacementText: ' /*newfullpath*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''path'' is unused'
@@ -1578,7 +1578,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ' /*path*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''oldname'' is unused'
@@ -1590,7 +1590,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*oldname*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''name'' is unused'
@@ -1602,7 +1602,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ' /*name*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''filepath'' is unused'
@@ -1614,7 +1614,7 @@ Diagnostics:
           Length:          8
           ReplacementText: ' /*filepath*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  performance-faster-string-find
     DiagnosticMessage:
       Message:         '''rfind'' called with a string literal consisting of a single character; consider using the more effective overload accepting a character'
@@ -1626,7 +1626,7 @@ Diagnostics:
           Length:          3
           ReplacementText: '''/'''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''normalizePath'' can be made static'
@@ -1646,7 +1646,7 @@ Diagnostics:
           Length:          5
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-init-variables
     DiagnosticMessage:
       Message:         'variable ''pos'' is not initialized'
@@ -1658,7 +1658,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' = 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  performance-faster-string-find
     DiagnosticMessage:
       Message:         '''rfind'' called with a string literal consisting of a single character; consider using the more effective overload accepting a character'
@@ -1670,7 +1670,7 @@ Diagnostics:
           Length:          3
           ReplacementText: '''/'''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -1686,7 +1686,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-deprecated-headers
     DiagnosticMessage:
       Message:         'inclusion of deprecated C++ header ''ctype.h''; consider using ''cctype'' instead'
@@ -1698,7 +1698,7 @@ Diagnostics:
           Length:          9
           ReplacementText: '<cctype>'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-deprecated-headers
     DiagnosticMessage:
       Message:         'inclusion of deprecated C++ header ''assert.h''; consider using ''cassert'' instead'
@@ -1710,7 +1710,7 @@ Diagnostics:
           Length:          10
           ReplacementText: '<cassert>'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''PVR_TEXTURE_FLAG_TYPE_MASK'' is a static definition in anonymous namespace; static is redundant here'
@@ -1722,7 +1722,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Mipmap'''
@@ -1734,7 +1734,7 @@ Diagnostics:
           Length:          6
           ReplacementText: MIPMAP
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Twiddle'''
@@ -1746,7 +1746,7 @@ Diagnostics:
           Length:          7
           ReplacementText: TWIDDLE
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Bumpmap'''
@@ -1758,7 +1758,7 @@ Diagnostics:
           Length:          7
           ReplacementText: BUMPMAP
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Tiling'''
@@ -1770,7 +1770,7 @@ Diagnostics:
           Length:          6
           ReplacementText: TILING
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Cubemap'''
@@ -1782,7 +1782,7 @@ Diagnostics:
           Length:          7
           ReplacementText: CUBEMAP
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''FalseMipCol'''
@@ -1794,7 +1794,7 @@ Diagnostics:
           Length:          11
           ReplacementText: FALSE_MIP_COL
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Volume'''
@@ -1806,7 +1806,7 @@ Diagnostics:
           Length:          6
           ReplacementText: VOLUME
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''Alpha'''
@@ -1818,7 +1818,7 @@ Diagnostics:
           Length:          5
           ReplacementText: ALPHA
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''VerticalFlip'''
@@ -1831,7 +1831,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -1839,7 +1839,7 @@ Diagnostics:
       FileOffset:      2901
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for global constant ''gPVRTexIdentifier'''
@@ -1867,7 +1867,7 @@ Diagnostics:
           Length:          17
           ReplacementText: G_PVR_TEX_IDENTIFIER
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''gPVRTexIdentifier'' is a static definition in anonymous namespace; static is redundant here'
@@ -1879,7 +1879,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''BW1bpp'''
@@ -1891,7 +1891,7 @@ Diagnostics:
           Length:          6
           ReplacementText: B_W1BPP
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''EAC_R11_Unsigned'''
@@ -1903,7 +1903,7 @@ Diagnostics:
           Length:          16
           ReplacementText: EAC_R11_UNSIGNED
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''EAC_R11_Signed'''
@@ -1915,7 +1915,7 @@ Diagnostics:
           Length:          14
           ReplacementText: EAC_R11_SIGNED
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''EAC_RG11_Unsigned'''
@@ -1927,7 +1927,7 @@ Diagnostics:
           Length:          17
           ReplacementText: EAC_R_G11_UNSIGNED
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for enum constant ''EAC_RG11_Signed'''
@@ -1939,7 +1939,7 @@ Diagnostics:
           Length:          15
           ReplacementText: EAC_R_G11_SIGNED
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -1951,7 +1951,7 @@ Diagnostics:
           Length:          78
           ReplacementText: 'using _pixel2_formathash = const std::map<PVR2TexturePixelFormat, gfx::Format>'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -1959,7 +1959,7 @@ Diagnostics:
       FileOffset:      4421
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for global constant ''v2_pixel_formathash_value'''
@@ -1987,7 +1987,7 @@ Diagnostics:
           Length:          25
           ReplacementText: V2_PIXEL_FORMATHASH_VALUE
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''v2_pixel_formathash_value'' is a static definition in anonymous namespace; static is redundant here'
@@ -1999,7 +1999,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''PVR2_MAX_TABLE_ELEMENTS'' is a static definition in anonymous namespace; static is redundant here'
@@ -2011,7 +2011,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for global constant ''v2_pixel_formathash'''
@@ -2039,7 +2039,7 @@ Diagnostics:
           Length:          19
           ReplacementText: V2_PIXEL_FORMATHASH
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''v2_pixel_formathash'' is a static definition in anonymous namespace; static is redundant here'
@@ -2051,7 +2051,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -2063,7 +2063,7 @@ Diagnostics:
           Length:          78
           ReplacementText: 'using _pixel3_formathash = const std::map<PVR3TexturePixelFormat, gfx::Format>'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -2071,7 +2071,7 @@ Diagnostics:
       FileOffset:      5889
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
       Message:         'variable ''v3_pixel_formathash_value'' is non-const and globally accessible, consider making it const'
@@ -2079,7 +2079,7 @@ Diagnostics:
       FileOffset:      5920
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for variable ''v3_pixel_formathash_value'''
@@ -2107,7 +2107,7 @@ Diagnostics:
           Length:          25
           ReplacementText: v3PixelFormathashValue
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''v3_pixel_formathash_value'' is a static definition in anonymous namespace; static is redundant here'
@@ -2119,7 +2119,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''PVR3_MAX_TABLE_ELEMENTS'' is a static definition in anonymous namespace; static is redundant here'
@@ -2131,7 +2131,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for global constant ''v3_pixel_formathash'''
@@ -2159,7 +2159,7 @@ Diagnostics:
           Length:          19
           ReplacementText: V3_PIXEL_FORMATHASH
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''v3_pixel_formathash'' is a static definition in anonymous namespace; static is redundant here'
@@ -2171,7 +2171,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -2183,7 +2183,7 @@ Diagnostics:
           Length:          418
           ReplacementText: "using PVRv2TexHeader = struct _PVRTexHeader {\r\n    unsigned int headerLength;\r\n    unsigned int height;\r\n    unsigned int width;\r\n    unsigned int numMipmaps;\r\n    unsigned int flags;\r\n    unsigned int dataLength;\r\n    unsigned int bpp;\r\n    unsigned int bitmaskRed;\r\n    unsigned int bitmaskGreen;\r\n    unsigned int bitmaskBlue;\r\n    unsigned int bitmaskAlpha;\r\n    unsigned int pvrTag;\r\n    unsigned int numSurfs;\r\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for struct ''_PVRTexHeader'''
@@ -2196,7 +2196,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -2208,7 +2208,7 @@ Diagnostics:
           Length:          362
           ReplacementText: "using PVRv3TexHeader = struct\r\n{\r\n    uint32_t version;\r\n    uint32_t flags;\r\n    uint64_t pixelFormat;\r\n    uint32_t colorSpace;\r\n    uint32_t channelType;\r\n    uint32_t height;\r\n    uint32_t width;\r\n    uint32_t depth;\r\n    uint32_t numberOfSurfaces;\r\n    uint32_t numberOfFaces;\r\n    uint32_t numberOfMipmaps;\r\n    uint32_t metadataLength;\r\n#ifdef _MSC_VER\r\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -2220,7 +2220,7 @@ Diagnostics:
           Length:          101
           ReplacementText: "using tImageSource = struct\r\n{\r\n    const unsigned char *data;\r\n    ssize_t size;\r\n    int offset;\r\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''pngReadCallback'' is a static definition in anonymous namespace; static is redundant here'
@@ -2232,7 +2232,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for parameter ''png_ptr'''
@@ -2252,7 +2252,7 @@ Diagnostics:
           Length:          7
           ReplacementText: pngPtr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -2264,7 +2264,7 @@ Diagnostics:
           Length:          12
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -2272,7 +2272,7 @@ Diagnostics:
       FileOffset:      8783
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-const-cast
     DiagnosticMessage:
       Message:         do not use const_cast
@@ -2280,7 +2280,7 @@ Diagnostics:
       FileOffset:      10412
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-const-cast
     DiagnosticMessage:
       Message:         do not use const_cast
@@ -2288,7 +2288,7 @@ Diagnostics:
       FileOffset:      10518
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-no-malloc
     DiagnosticMessage:
       Message:         'do not manage memory manually; use RAII'
@@ -2296,7 +2296,7 @@ Diagnostics:
       FileOffset:      11665
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      11665
@@ -2308,7 +2308,7 @@ Diagnostics:
       FileOffset:      11665
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      11665
@@ -2324,7 +2324,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isPng'' can be made static'
@@ -2336,7 +2336,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -2344,7 +2344,7 @@ Diagnostics:
       FileOffset:      11823
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -2352,7 +2352,7 @@ Diagnostics:
       FileOffset:      11878
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isEtc'' can be made static'
@@ -2364,7 +2364,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''dataLen'' is unused'
@@ -2376,7 +2376,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*dataLen*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -2384,7 +2384,7 @@ Diagnostics:
       FileOffset:      12131
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in ternary expression result
@@ -2396,7 +2396,7 @@ Diagnostics:
           Length:          51
           ReplacementText: 'etc1_pkm_is_valid((etc1_byte *)data) != 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isEtc2'' can be made static'
@@ -2408,7 +2408,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''dataLen'' is unused'
@@ -2420,7 +2420,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*dataLen*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -2428,7 +2428,7 @@ Diagnostics:
       FileOffset:      12267
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in ternary expression result
@@ -2440,7 +2440,7 @@ Diagnostics:
           Length:          51
           ReplacementText: 'etc2_pkm_is_valid((etc2_byte *)data) != 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isASTC'' can be made static'
@@ -2452,7 +2452,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''dataLen'' is unused'
@@ -2464,7 +2464,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*dataLen*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -2472,7 +2472,7 @@ Diagnostics:
       FileOffset:      12397
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in ternary expression result
@@ -2484,7 +2484,7 @@ Diagnostics:
           Length:          45
           ReplacementText: 'astcIsValid((astc_byte *)data)'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isJpg'' can be made static'
@@ -2496,7 +2496,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -2504,7 +2504,7 @@ Diagnostics:
       FileOffset:      12577
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isWebp'' can be made static'
@@ -2516,7 +2516,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '12 is a magic number; consider replacing it with a named constant'
@@ -2524,7 +2524,7 @@ Diagnostics:
       FileOffset:      12753
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''WEBP_RIFF'''
@@ -2540,7 +2540,7 @@ Diagnostics:
           Length:          9
           ReplacementText: webpRiff
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''WEBP_WEBP'''
@@ -2556,7 +2556,7 @@ Diagnostics:
           Length:          9
           ReplacementText: webpWebp
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -2564,7 +2564,7 @@ Diagnostics:
       FileOffset:      12978
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''isPvr'' can be made static'
@@ -2576,7 +2576,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -2588,7 +2588,7 @@ Diagnostics:
           Length:          14
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -2600,7 +2600,7 @@ Diagnostics:
           Length:          14
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -2617,7 +2617,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '0x50565203 is a magic number; consider replacing it with a named constant'
@@ -2625,7 +2625,7 @@ Diagnostics:
       FileOffset:      13584
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2637,7 +2637,7 @@ Diagnostics:
           Length:          466
           ReplacementText: "if (isJpg(data, dataLen)) {\r\n        return Format::JPG;\r\n    } else if (isWebp(data, dataLen)) {\r\n        return Format::WEBP;\r\n    } else if (isPvr(data, dataLen)) {\r\n        return Format::PVR;\r\n    } else if (isEtc(data, dataLen)) {\r\n        return Format::ETC;\r\n    } else if (isEtc2(data, dataLen)) {\r\n        return Format::ETC2;\r\n    } else if (isASTC(data, dataLen)) {\r\n        return Format::ASTC;\r\n    } else {\r\n        return Format::UNKNOWN;\r\n    }"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''getASTCFormat'' can be made static'
@@ -2657,7 +2657,7 @@ Diagnostics:
           Length:          5
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2669,7 +2669,7 @@ Diagnostics:
           Length:          1138
           ReplacementText: "if (xdim == 5) {\r\n        if (ydim == 4) {\r\n            return gfx::Format::ASTC_RGBA_5x4;\r\n        } else {\r\n            return gfx::Format::ASTC_RGBA_5x5;\r\n        }\r\n    } else if (xdim == 6) {\r\n        if (ydim == 5) {\r\n            return gfx::Format::ASTC_RGBA_6x5;\r\n        } else {\r\n            return gfx::Format::ASTC_RGBA_6x6;\r\n        }\r\n    } else if (xdim == 8) {\r\n        if (ydim == 5) {\r\n            return gfx::Format::ASTC_RGBA_8x5;\r\n        } else if (ydim == 6) {\r\n            return gfx::Format::ASTC_RGBA_8x6;\r\n        } else {\r\n            return gfx::Format::ASTC_RGBA_8x8;\r\n        }\r\n    } else if (xdim == 10) {\r\n        if (ydim == 5) {\r\n            return gfx::Format::ASTC_RGBA_10x5;\r\n        } else if (ydim == 6) {\r\n            return gfx::Format::ASTC_RGBA_10x6;\r\n        } else if (ydim == 8) {\r\n            return gfx::Format::ASTC_RGBA_10x8;\r\n        } else {\r\n            return gfx::Format::ASTC_RGBA_10x10;\r\n        }\r\n    } else {\r\n        if (ydim == 10) {\r\n            return gfx::Format::ASTC_RGBA_12x10;\r\n        } else {\r\n            return gfx::Format::ASTC_RGBA_12x12;\r\n        }\r\n    }"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '5 is a magic number; consider replacing it with a named constant'
@@ -2677,7 +2677,7 @@ Diagnostics:
       FileOffset:      14479
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2690,7 +2690,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '6 is a magic number; consider replacing it with a named constant'
@@ -2698,7 +2698,7 @@ Diagnostics:
       FileOffset:      14659
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '5 is a magic number; consider replacing it with a named constant'
@@ -2706,7 +2706,7 @@ Diagnostics:
       FileOffset:      14685
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2719,7 +2719,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -2727,7 +2727,7 @@ Diagnostics:
       FileOffset:      14839
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '5 is a magic number; consider replacing it with a named constant'
@@ -2735,7 +2735,7 @@ Diagnostics:
       FileOffset:      14865
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2748,7 +2748,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '6 is a magic number; consider replacing it with a named constant'
@@ -2756,7 +2756,7 @@ Diagnostics:
       FileOffset:      14946
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '10 is a magic number; consider replacing it with a named constant'
@@ -2764,7 +2764,7 @@ Diagnostics:
       FileOffset:      15100
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '5 is a magic number; consider replacing it with a named constant'
@@ -2772,7 +2772,7 @@ Diagnostics:
       FileOffset:      15127
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2785,7 +2785,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '6 is a magic number; consider replacing it with a named constant'
@@ -2793,7 +2793,7 @@ Diagnostics:
       FileOffset:      15209
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -2801,7 +2801,7 @@ Diagnostics:
       FileOffset:      15291
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '10 is a magic number; consider replacing it with a named constant'
@@ -2809,7 +2809,7 @@ Diagnostics:
       FileOffset:      15459
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-else-after-return
     DiagnosticMessage:
       Message:         'do not use ''else'' after ''return'''
@@ -2822,7 +2822,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for struct ''MyErrorMgr'''
@@ -2835,7 +2835,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-using
     DiagnosticMessage:
       Message:         'use ''using'' instead of ''typedef'''
@@ -2847,7 +2847,7 @@ Diagnostics:
           Length:          37
           ReplacementText: 'using MyErrorPtr = struct MyErrorMgr *'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-static-definition-in-anonymous-namespace
     DiagnosticMessage:
       Message:         '''myErrorExit'' is a static definition in anonymous namespace; static is redundant here'
@@ -2855,7 +2855,7 @@ Diagnostics:
       FileOffset:      17076
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -2867,7 +2867,7 @@ Diagnostics:
           Length:          10
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -2875,7 +2875,7 @@ Diagnostics:
       FileOffset:      17212
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -2883,7 +2883,7 @@ Diagnostics:
       FileOffset:      17557
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-member-init
     DiagnosticMessage:
       Message:         'uninitialized record type: ''cinfo'''
@@ -2895,7 +2895,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '{}'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-member-init
     DiagnosticMessage:
       Message:         'uninitialized record type: ''jerr'''
@@ -2907,7 +2907,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '{}'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -2915,7 +2915,7 @@ Diagnostics:
       FileOffset:      18336
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''row_pointer'''
@@ -2935,7 +2935,7 @@ Diagnostics:
           Length:          11
           ReplacementText: rowPointer
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -2947,7 +2947,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-const-cast
     DiagnosticMessage:
       Message:         do not use const_cast
@@ -2955,7 +2955,7 @@ Diagnostics:
       FileOffset:      19130
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -2971,7 +2971,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -2979,7 +2979,7 @@ Diagnostics:
       FileOffset:      20029
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      20029
@@ -2991,7 +2991,7 @@ Diagnostics:
       FileOffset:      20066
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      20066
@@ -3007,7 +3007,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-macro-usage
     DiagnosticMessage:
       Message:         'macro ''PNGSIGSIZE'' used to declare a constant; consider using a ''constexpr'' constant'
@@ -3015,7 +3015,7 @@ Diagnostics:
       FileOffset:      21238
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-c-arrays
     DiagnosticMessage:
       Message:         'do not declare C-style arrays, use std::array<> instead'
@@ -3023,7 +3023,7 @@ Diagnostics:
       FileOffset:      21279
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''png_ptr'''
@@ -3131,7 +3131,7 @@ Diagnostics:
           Length:          7
           ReplacementText: pngPtr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3143,7 +3143,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''info_ptr'''
@@ -3211,7 +3211,7 @@ Diagnostics:
           Length:          8
           ReplacementText: infoPtr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3223,7 +3223,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3235,7 +3235,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3247,7 +3247,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3259,7 +3259,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to cast away constness
@@ -3267,7 +3267,7 @@ Diagnostics:
       FileOffset:      22024
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''bit_depth'''
@@ -3299,7 +3299,7 @@ Diagnostics:
           Length:          9
           ReplacementText: bitDepth
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''color_type'''
@@ -3327,7 +3327,7 @@ Diagnostics:
           Length:          10
           ReplacementText: colorType
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -3335,7 +3335,7 @@ Diagnostics:
       FileOffset:      22992
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -3343,7 +3343,7 @@ Diagnostics:
       FileOffset:      23022
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '16 is a magic number; consider replacing it with a named constant'
@@ -3351,7 +3351,7 @@ Diagnostics:
       FileOffset:      23357
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '8 is a magic number; consider replacing it with a named constant'
@@ -3359,7 +3359,7 @@ Diagnostics:
       FileOffset:      23518
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-init-variables
     DiagnosticMessage:
       Message:         'variable ''rowbytes'' is not initialized'
@@ -3371,7 +3371,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' = 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'initializing non-owner ''png_bytep *'' (aka ''unsigned char **'') with a newly created ''gsl::owner<>'''
@@ -3379,7 +3379,7 @@ Diagnostics:
       FileOffset:      24392
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24392
@@ -3395,7 +3395,7 @@ Diagnostics:
           Length:          9
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-identifier-naming
     DiagnosticMessage:
       Message:         'invalid case style for local variable ''row_pointers'''
@@ -3431,7 +3431,7 @@ Diagnostics:
           Length:          12
           ReplacementText: rowPointers
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3439,7 +3439,7 @@ Diagnostics:
       FileOffset:      24418
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-no-malloc
     DiagnosticMessage:
       Message:         'do not manage memory manually; consider a container or a smart pointer'
@@ -3447,7 +3447,7 @@ Diagnostics:
       FileOffset:      24431
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24431
@@ -3459,7 +3459,7 @@ Diagnostics:
       FileOffset:      24578
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24578
@@ -3471,7 +3471,7 @@ Diagnostics:
       FileOffset:      24615
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24615
@@ -3483,7 +3483,7 @@ Diagnostics:
       FileOffset:      24742
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24742
@@ -3495,7 +3495,7 @@ Diagnostics:
       FileOffset:      24742
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      24742
@@ -3507,7 +3507,7 @@ Diagnostics:
       FileOffset:      25074
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      25074
@@ -3519,7 +3519,7 @@ Diagnostics:
       FileOffset:      25074
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      25074
@@ -3535,7 +3535,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3547,7 +3547,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -3559,7 +3559,7 @@ Diagnostics:
           Length:          1
           ReplacementText: nullptr
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-isolate-declaration
     DiagnosticMessage:
       Message:         multiple declarations in a single statement reduces readability
@@ -3571,7 +3571,7 @@ Diagnostics:
           Length:          26
           ReplacementText: "int width = 0;\n    int height = 0;"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -3583,7 +3583,7 @@ Diagnostics:
           Length:          14
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3600,7 +3600,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -3612,7 +3612,7 @@ Diagnostics:
           Length:          22
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-simplify-boolean-expr
     DiagnosticMessage:
       Message:         redundant boolean literal in ternary expression result
@@ -3624,7 +3624,7 @@ Diagnostics:
           Length:          68
           ReplacementText: '(flags & (unsigned int)PVR2TextureFlag::VerticalFlip) != 0'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3641,7 +3641,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3658,7 +3658,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3666,7 +3666,7 @@ Diagnostics:
       FileOffset:      27035
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      27035
@@ -3678,7 +3678,7 @@ Diagnostics:
       FileOffset:      27072
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      27072
@@ -3690,7 +3690,7 @@ Diagnostics:
       FileOffset:      27134
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -3702,7 +3702,7 @@ Diagnostics:
           Length:          14
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3719,7 +3719,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
       Message:         '0x50565203 is a magic number; consider replacing it with a named constant'
@@ -3727,7 +3727,7 @@ Diagnostics:
       FileOffset:      27581
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-auto
     DiagnosticMessage:
       Message:         use auto when initializing with a cast to avoid duplicating the type name
@@ -3739,7 +3739,7 @@ Diagnostics:
           Length:          22
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3756,7 +3756,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -3773,7 +3773,7 @@ Diagnostics:
         FileOffset:      3706
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3781,7 +3781,7 @@ Diagnostics:
       FileOffset:      28780
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      28780
@@ -3793,7 +3793,7 @@ Diagnostics:
       FileOffset:      28817
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      28817
@@ -3809,7 +3809,7 @@ Diagnostics:
           Length:          9
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3817,7 +3817,7 @@ Diagnostics:
       FileOffset:      29529
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      29529
@@ -3829,7 +3829,7 @@ Diagnostics:
       FileOffset:      29566
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      29566
@@ -3845,7 +3845,7 @@ Diagnostics:
           Length:          9
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -3861,7 +3861,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '} '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -3877,7 +3877,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3885,7 +3885,7 @@ Diagnostics:
       FileOffset:      30412
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      30412
@@ -3897,7 +3897,7 @@ Diagnostics:
       FileOffset:      30449
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      30449
@@ -3913,7 +3913,7 @@ Diagnostics:
           Length:          9
           ReplacementText: auto
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3921,7 +3921,7 @@ Diagnostics:
       FileOffset:      31114
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      31114
@@ -3933,7 +3933,7 @@ Diagnostics:
       FileOffset:      31151
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      31151
@@ -3953,7 +3953,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -3969,7 +3969,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-braces-around-statements
     DiagnosticMessage:
       Message:         statement should be inside braces
@@ -3985,7 +3985,7 @@ Diagnostics:
           Length:          0
           ReplacementText: "\n}"
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -3993,7 +3993,7 @@ Diagnostics:
       FileOffset:      32384
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      32384
@@ -4005,7 +4005,7 @@ Diagnostics:
       FileOffset:      32421
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      32421
@@ -4017,7 +4017,7 @@ Diagnostics:
       FileOffset:      32491
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-union-access
     DiagnosticMessage:
       Message:         'do not access members of unions; use (boost::)variant instead'
@@ -4025,7 +4025,7 @@ Diagnostics:
       FileOffset:      32559
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-union-access
     DiagnosticMessage:
       Message:         'do not access members of unions; use (boost::)variant instead'
@@ -4033,7 +4033,7 @@ Diagnostics:
       FileOffset:      32641
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-no-malloc
     DiagnosticMessage:
       Message:         'do not manage memory manually; use RAII'
@@ -4041,7 +4041,7 @@ Diagnostics:
       FileOffset:      32823
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      32823
@@ -4053,7 +4053,7 @@ Diagnostics:
       FileOffset:      32823
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      32823
@@ -4069,7 +4069,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''dataLen'' is unused'
@@ -4081,7 +4081,7 @@ Diagnostics:
           Length:          7
           ReplacementText: ' /*dataLen*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''bitsPerComponent'' is unused'
@@ -4093,7 +4093,7 @@ Diagnostics:
           Length:          16
           ReplacementText: ' /*bitsPerComponent*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  misc-unused-parameters
     DiagnosticMessage:
       Message:         'parameter ''preMulti'' is unused'
@@ -4105,7 +4105,7 @@ Diagnostics:
           Length:          8
           ReplacementText: ' /*preMulti*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-owning-memory
     DiagnosticMessage:
       Message:         'assigning newly created ''gsl::owner<>'' to non-owner ''unsigned char *'''
@@ -4113,7 +4113,7 @@ Diagnostics:
       FileOffset:      33470
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      33470
@@ -4125,7 +4125,7 @@ Diagnostics:
       FileOffset:      33507
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
     Ranges:
       - FilePath:        'cocos/platform/Image.cpp'
         FileOffset:      33507
@@ -4141,7 +4141,7 @@ Diagnostics:
           Length:          1
           ReplacementText: 'false'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-inconsistent-declaration-parameter-name
     DiagnosticMessage:
       Message:         'function ''cc::Image::isASTC'' has a definition with different parameter names'
@@ -4158,7 +4158,7 @@ Diagnostics:
         FileOffset:      4490
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-nullptr
     DiagnosticMessage:
       Message:         use nullptr
@@ -4171,7 +4171,7 @@ Diagnostics:
         FileOffset:      0
         Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         'prefer using ''override'' or (rarely) ''final'' instead of ''virtual'''
@@ -4187,7 +4187,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' override'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         'prefer using ''override'' or (rarely) ''final'' instead of ''virtual'''
@@ -4203,7 +4203,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' override'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         'prefer using ''override'' or (rarely) ''final'' instead of ''virtual'''
@@ -4219,7 +4219,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' override'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-explicit-virtual-functions
     DiagnosticMessage:
       Message:         'prefer using ''override'' or (rarely) ''final'' instead of ''virtual'''
@@ -4235,7 +4235,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' override'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-named-parameter
     DiagnosticMessage:
       Message:         all parameters should be named in a function
@@ -4247,7 +4247,7 @@ Diagnostics:
           Length:          0
           ReplacementText: ' /*unused*/'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-default-member-init
     DiagnosticMessage:
       Message:         'use default member initializer for ''_ccsaxParserImp'''
@@ -4263,7 +4263,7 @@ Diagnostics:
           Length:          0
           ReplacementText: '{0}'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4271,7 +4271,7 @@ Diagnostics:
       FileOffset:      2827
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4279,7 +4279,7 @@ Diagnostics:
       FileOffset:      2865
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4287,7 +4287,7 @@ Diagnostics:
       FileOffset:      3086
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4295,7 +4295,7 @@ Diagnostics:
       FileOffset:      3289
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-use-equals-default
     DiagnosticMessage:
       Message:         'use ''= default'' to define a trivial destructor'
@@ -4307,7 +4307,7 @@ Diagnostics:
           Length:          4
           ReplacementText: '= default;'
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  modernize-redundant-void-arg
     DiagnosticMessage:
       Message:         redundant void argument list in function definition
@@ -4319,7 +4319,7 @@ Diagnostics:
           Length:          4
           ReplacementText: ''
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  readability-convert-member-functions-to-static
     DiagnosticMessage:
       Message:         'method ''init'' can be made static'
@@ -4331,7 +4331,7 @@ Diagnostics:
           Length:          0
           ReplacementText: 'static '
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4339,7 +4339,7 @@ Diagnostics:
       FileOffset:      4050
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4347,7 +4347,7 @@ Diagnostics:
       FileOffset:      4229
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4355,7 +4355,7 @@ Diagnostics:
       FileOffset:      4280
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4363,7 +4363,7 @@ Diagnostics:
       FileOffset:      4294
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4371,7 +4371,7 @@ Diagnostics:
       FileOffset:      4393
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4379,7 +4379,7 @@ Diagnostics:
       FileOffset:      4442
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4387,7 +4387,7 @@ Diagnostics:
       FileOffset:      4542
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
   - DiagnosticName:  cppcoreguidelines-pro-type-cstyle-cast
     DiagnosticMessage:
       Message:         do not use C-style cast to convert between unrelated types
@@ -4395,5 +4395,5 @@ Diagnostics:
       FileOffset:      4592
       Replacements:    []
     Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+    BuildDirectory:  'build'
 ...

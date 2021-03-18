@@ -21,20 +21,19 @@ jobs:
         with:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
-     # - name: Install CMake & Clang Tidy
-     #   run: |
-     #     choco install cmake
-     #     curl -Ls -o "LLVM-10.0.0-win64.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe"
-     #     LLVM-10.0.0-win64.exe /S
-     # - name: Generate Compile database
-     #   run: |
-     #     rm external/config.json
-     #     git clone --branch v3d-gfx-30 --depth 1 https://github.com/cocos-creator/engine-native-external external
-     #     cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-     # - name: Generate clang-fix.yaml
-     #   run: clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
+      - name: Install CMake & Clang Tidy
+        run: |
+          choco install cmake
+          choco install llvm
+
+      - name: Generate Compile database
+        run: |
+          rm external/config.json
+          git clone --branch v3d-gfx-30 --depth 1 https://github.com/cocos-creator/engine-native-external external
+          cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Generate clang-fix.yaml
+        run: clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
       - name: clang-tidy-action
         uses: asarium/clang-tidy-action@v1.0
         with:
           fixesFile: clang-fixes.yaml
-      
