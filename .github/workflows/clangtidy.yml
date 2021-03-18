@@ -34,7 +34,9 @@ jobs:
           git clone --branch v3d-gfx-30 --depth 1 https://github.com/cocos-creator/engine-native-external external
           cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       - name: Generate clang-fix.yaml
-        run: clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
+        run: |
+          dir "C:/Program Files/llvm/bin"
+          clang-tidy -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
       - name: clang-tidy-action
         uses: asarium/clang-tidy-action@v1.0
         with:
