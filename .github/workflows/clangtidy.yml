@@ -26,6 +26,7 @@ jobs:
           choco install cmake
           choco install llvm
           refreshenv
+          dir "C:/Program Files/llvm/bin"
 
       - name: Generate Compile database
         run: |
