@@ -24,7 +24,8 @@ jobs:
       - name: Install CMake & Clang Tidy
         run: |
           choco install cmake
-          choco install llvm
+          curl -Ls -o "LLVM-10.0.0-win64.exe" "https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/LLVM-10.0.0-win64.exe"
+          LLVM-10.0.0-win64.exe /S
       - name: Generate Compile database
         run: |
           rm external/config.json
