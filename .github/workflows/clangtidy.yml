@@ -35,8 +35,7 @@ jobs:
           cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       - name: Generate clang-fix.yaml
         run: |
-          dir "C:/Program Files/llvm/bin"
-          C:/Program\ Files/llvm/bin/clang-tidy.exe -p build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
+          "C:/Program Files/llvm/bin/clang-tidy.exe" -p ./build --export-fixes=clang-fixes.yaml ${{ steps.listchanged.outputs.added_modified }}
       - name: clang-tidy-action
         uses: asarium/clang-tidy-action@v1.0
         with:
