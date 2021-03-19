@@ -37,6 +37,6 @@ jobs:
         run: |
           C:/Program" "Files/llvm/bin/clang-tidy.exe -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
       - name: clang-tidy-action
-        uses: asarium/clang-tidy-action@v1.0
+        uses: PatriceJiang/clang-tidy-action@v1.1
         with:
           fixesFile: clang-fixes.yaml
