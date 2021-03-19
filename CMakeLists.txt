@@ -1,5 +1,7 @@
 
 
+cmake_minimum_required(VERSION 3.8)
+
 set(CC_PLATFORM_MAC_IOS 1)
 set(CC_PLATFORM_WINDOWS 2)
 set(CC_PLATFORM_ANDROID 3)

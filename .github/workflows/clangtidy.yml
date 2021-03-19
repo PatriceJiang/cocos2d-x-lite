@@ -10,7 +10,7 @@ jobs:
     # Name the Job
     name: Lint code base
     # Set the type of machine to run on
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       # Checks out a copy of your repository on the ubuntu-latest machine
@@ -23,19 +23,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CMake & Clang Tidy
         run: |
-          choco install cmake
-          choco install llvm
-          refreshenv
-          dir "C:/Program Files/llvm/bin"
+          sudo apt install -y cmake llvm
 
       - name: Generate Compile database
+        shell: bash
         run: |
           rm external/config.json
           git clone --branch v3d-gfx-30 --depth 1 https://github.com/cocos-creator/engine-native-external external
-          cmake -Bbuild -G"Unix Makefiles" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake -Bbuild -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"  -DANDROID_PLATFORM=android-21 -G"Unix Makefiles"
+
       - name: Generate clang-fix.yaml
         run: |
-          C:/Program" "Files/llvm/bin/clang-tidy.exe -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
+          clang-tidy -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
         with:
