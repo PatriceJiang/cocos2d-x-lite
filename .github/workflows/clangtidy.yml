@@ -39,3 +39,4 @@ jobs:
         uses: PatriceJiang/clang-tidy-action@master
         with:
           fixesFile: clang-fixes.yaml
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
