@@ -23,7 +23,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install CMake & Clang Tidy
         run: |
-          sudo apt install -y cmake llvm
+          sudo apt install -y cmake llvm clang-tidy-11
 
       - name: Generate Compile database
         shell: bash
@@ -34,7 +34,7 @@ jobs:
 
       - name: Generate clang-fix.yaml
         run: |
-          clang-tidy -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
+          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
         with:
