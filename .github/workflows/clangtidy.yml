@@ -34,7 +34,7 @@ jobs:
 
       - name: Generate clang-fix.yaml
         run: |
-          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml cocos\platform\Application.cpp
+          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml cocos/platform/Application.cpp
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
         with:
