@@ -35,7 +35,7 @@ jobs:
       - name: Generate clang-fix.yaml
         shell: bash
         run: |
-          FILES=${{ steps.files.outputs.added_modified }}
+          FILES="${{ steps.files.outputs.added_modified }}"
           CPP=""
           for file in $FILES; do
               if [[ "$file" == *.cpp || "$file" == *.c || "$file" == *.m || "$file" == *.mm ]]; then
