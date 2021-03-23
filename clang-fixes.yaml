@@ -25,100 +25,75 @@ Diagnostics:
       Replacements:    []
     Level:           Error
     BuildDirectory:  ''
-  - DiagnosticName:  readability-qualified-auto
+  - DiagnosticName:  cppcoreguidelines-macro-usage
     DiagnosticMessage:
-      Message:         '''auto scriptEngine'' can be declared as ''auto *scriptEngine'''
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      1654
-      Replacements:
-        - FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-          Offset:          1654
-          Length:          5
-          ReplacementText: 'auto *'
+      Message:         'macro ''NANOSECONDS_PER_SECOND'' used to declare a constant; consider using a ''constexpr'' constant'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      1642
+      Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  readability-uppercase-literal-suffix
+  - DiagnosticName:  cppcoreguidelines-macro-usage
     DiagnosticMessage:
-      Message:         'floating point literal has suffix ''f'', which is not uppercase'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2449
-      Replacements:
-        - FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-          Offset:          2451
-          Length:          1
-          ReplacementText: F
+      Message:         'macro ''NANOSECONDS_60FPS'' used to declare a constant; consider using a ''constexpr'' constant'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      1685
+      Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  readability-simplify-boolean-expr
+  - DiagnosticName:  cppcoreguidelines-special-member-functions
     DiagnosticMessage:
-      Message:         redundant boolean literal in if statement condition
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2533
+      Message:         'class ''Application'' defines a non-default destructor but does not define a copy constructor, a copy assignment operator, a move constructor or a move assignment operator'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      1794
+      Replacements:    []
+    Level:           Warning
+    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
+  - DiagnosticName:  readability-convert-member-functions-to-static
+    DiagnosticMessage:
+      Message:         'method ''getScheduler'' can be made static'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      3142
       Replacements:
-        - FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-          Offset:          2529
-          Length:          77
+        - FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+          Offset:          3108
+          Length:          0
+          ReplacementText: 'static '
+        - FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+          Offset:          3157
+          Length:          6
           ReplacementText: ''
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  readability-isolate-declaration
+  - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
-      Message:         multiple declarations in a single statement reduces readability
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2551
+      Message:         'variable ''_instance'' is non-const and globally accessible, consider making it const'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      4887
       Replacements:    []
-    Notes:
-      - Message:         this fix will not be applied because it overlaps with another fix
-        FilePath:        ''
-        FileOffset:      0
-        Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  cppcoreguidelines-init-variables
+  - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
-      Message:         'variable ''b'' is not initialized'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2555
-      Replacements:
-        - FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-          Offset:          2556
-          Length:          0
-          ReplacementText: ' = 0'
+      Message:         'variable ''_instance'' provides global access to a non-const object; consider making the pointed-to data ''const'''
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      4887
+      Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  cppcoreguidelines-init-variables
+  - DiagnosticName:  cppcoreguidelines-avoid-non-const-global-variables
     DiagnosticMessage:
-      Message:         'variable ''cd'' is not initialized'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2558
-      Replacements:
-        - FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-          Offset:          2560
-          Length:          0
-          ReplacementText: ' = 0'
-    Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
-    DiagnosticMessage:
-      Message:         '1000 is a magic number; consider replacing it with a named constant'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      2576
+      Message:         'variable ''_scheduler'' is non-const and globally accessible, consider making it const'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      4937
       Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
   - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
     DiagnosticMessage:
-      Message:         '0.1 is a magic number; consider replacing it with a named constant'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      3257
-      Replacements:    []
-    Level:           Warning
-    BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
-  - DiagnosticName:  cppcoreguidelines-avoid-magic-numbers
-    DiagnosticMessage:
-      Message:         '0.9 is a magic number; consider replacing it with a named constant'
-      FilePath:        'D:/Github/cocos2d-x-lite/cocos/platform/Application.cpp'
-      FileOffset:      3263
+      Message:         '60 is a magic number; consider replacing it with a named constant'
+      FilePath:        'D:\Github\cocos2d-x-lite\cocos\platform\Application.h'
+      FileOffset:      4965
       Replacements:    []
     Level:           Warning
     BuildDirectory:  'D:\Github\cocos2d-x-lite\build'
