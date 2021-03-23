@@ -47,4 +47,5 @@ jobs:
         uses: PatriceJiang/clang-tidy-action@master
         with:
           fixesFile: clang-fixes.yaml
+          noFailOnIssue: true
           repo-token: ${{ secrets.GITHUB_TOKEN }}
