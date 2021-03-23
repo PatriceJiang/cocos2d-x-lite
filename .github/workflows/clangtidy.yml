@@ -33,8 +33,16 @@ jobs:
           cmake -Bbuild -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake"  -DANDROID_PLATFORM=android-21 -G"Unix Makefiles"
 
       - name: Generate clang-fix.yaml
+        shell: bash
         run: |
-          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml cocos/platform/Application.cpp
+          FILES=${{ steps.files.outputs.added_modified }}
+          CPP=""
+          for file in $FILES; do
+              if [[ "$file" == *.cpp || "$file" == *.c || "$file" == *.m || "$file" == *.mm ]]; then
+                  CPP+=" $file"
+              fi
+          done
+          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml $CPP
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
         with:

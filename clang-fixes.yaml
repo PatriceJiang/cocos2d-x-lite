@@ -1,6 +1,30 @@
 ---
-MainSourceFile:  'D:\Github\cocos2d-x-lite\cocos/platform/Application.cpp'
+MainSourceFile:  'D:\Github\cocos2d-x-lite\cocos/ass.ccc'
 Diagnostics:
+  - DiagnosticName:  clang-diagnostic-error
+    DiagnosticMessage:
+      Message:         no input files
+      FilePath:        ''
+      FileOffset:      0
+      Replacements:    []
+    Level:           Error
+    BuildDirectory:  ''
+  - DiagnosticName:  clang-diagnostic-error
+    DiagnosticMessage:
+      Message:         'no such file or directory: ''D:\Github\cocos2d-x-lite\cocos\ass.ccc'''
+      FilePath:        ''
+      FileOffset:      0
+      Replacements:    []
+    Level:           Error
+    BuildDirectory:  ''
+  - DiagnosticName:  clang-diagnostic-error
+    DiagnosticMessage:
+      Message:         'unable to handle compilation, expected exactly one compiler job in '''''
+      FilePath:        ''
+      FileOffset:      0
+      Replacements:    []
+    Level:           Error
+    BuildDirectory:  ''
   - DiagnosticName:  readability-qualified-auto
     DiagnosticMessage:
       Message:         '''auto scriptEngine'' can be declared as ''auto *scriptEngine'''
