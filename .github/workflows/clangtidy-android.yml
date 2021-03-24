@@ -54,7 +54,6 @@ jobs:
           clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml $CPP
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
-        if: hasFiles('clang-fixes.yaml') != ''
         with:
           fixesFile: clang-fixes.yaml
           noFailOnIssue: true
