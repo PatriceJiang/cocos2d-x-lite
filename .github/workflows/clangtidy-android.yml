@@ -46,7 +46,7 @@ jobs:
         if: ${{ steps.listchanged.outputs.source == 'true' }}
         run: |
           CPP="${{ steps.listchanged.outputs.source_files }}"
-          clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml $CPP
+          clang-tidy-11 --format-style=file -p ./build --export-fixes=clang-fixes.yaml $CPP
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
         with:
