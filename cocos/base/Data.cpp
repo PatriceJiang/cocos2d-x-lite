@@ -73,6 +73,7 @@ void Data::move(Data &other) {
 
     other._bytes = nullptr;
     other._size = 0;
+    //sdfsfd
 }
 
 bool Data::isNull() const {

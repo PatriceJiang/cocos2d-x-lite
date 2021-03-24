@@ -99,7 +99,7 @@ namespace cc {
  - char* (UTF-8)
  - std::wstring (autodetected UTF-16 / UTF-32 based on compiler)
  - wchar_t* (autodetected UTF-16 / UTF-32 based on compiler)
- 
+ sdfsfd
  
  \see
  - For additional information on UTF-16 encoding: http://en.wikipedia.org/wiki/UTF-16

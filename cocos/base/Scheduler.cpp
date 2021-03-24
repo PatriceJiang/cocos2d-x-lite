@@ -26,8 +26,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 #include "base/Scheduler.h"
-#include "base/Macros.h"
 #include "base/Array.h"
+#include "base/Macros.h"
 
 #define CC_REPEAT_FOREVER (UINT_MAX - 1)
 
@@ -67,6 +67,7 @@ typedef struct _hashSelectorEntry {
 // implementation Timer
 
 Timer::Timer() {
+    int a = 3;
 }
 
 void Timer::setupTimerWithInterval(float seconds, unsigned int repeat, float delay) {
