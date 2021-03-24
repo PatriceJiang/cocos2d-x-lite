@@ -21,7 +21,14 @@ jobs:
         with:
           filters: |
             addedOrModified:
-              - added|modified: "**"
+              - added|modified: '**/*.cpp'
+              - added|modified: '**/*.h'
+              - added|modified: '**/*.hpp'
+              - added|modified: '**/*.m'
+              - added|modified: '**/*.mm'
+              - added|modified: '**/*.c'
+            allChanges:
+              - added|modified|deleted: '**'
       - name: Install CMake & Clang Tidy
         run: |
           sudo apt install -y cmake llvm clang-tidy-11
@@ -35,6 +42,7 @@ jobs:
 
       - name: Generate clang-fix.yaml
         shell: bash
+        if: ${{ steps.listchanged.outputs.addedOrModified == 'true' }}
         run: |
           FILES="${{ steps.listchanged.outputs.addedOrModified_files }}"
           CPP=""
@@ -46,6 +54,7 @@ jobs:
           clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml $CPP
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
+        if: hasFiles('clang-fixes.yaml') != ''
         with:
           fixesFile: clang-fixes.yaml
           noFailOnIssue: true
