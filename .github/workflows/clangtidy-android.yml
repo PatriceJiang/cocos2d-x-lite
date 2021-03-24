@@ -19,6 +19,7 @@ jobs:
       - uses: dorny/paths-filter@v2
         id: listchanged
         with:
+          list-files: shell
           filters: |
             addedOrModified:
               - added|modified: '**/*.cpp'
