@@ -16,11 +16,12 @@ jobs:
       # Checks out a copy of your repository on the ubuntu-latest machine
       - name: Checkout code
         uses: actions/checkout@v2
-      - uses: jitterbit/get-changed-files@v1
+      - uses: dorny/paths-filter@v2
         id: listchanged
         with:
-          format: space-delimited
-          token: ${{ secrets.GITHUB_TOKEN }}
+          filters: |
+            addedOrModified:
+              - added|modified: "**"
       - name: Install CMake & Clang Tidy
         run: |
           sudo apt install -y cmake llvm clang-tidy-11
@@ -35,7 +36,7 @@ jobs:
       - name: Generate clang-fix.yaml
         shell: bash
         run: |
-          FILES="${{ steps.listchanged.outputs.added_modified }}"
+          FILES="${{ steps.listchanged.outputs.addedOrModified_files }}"
           CPP=""
           for file in $FILES; do
               if [[ "$file" == *.cpp || "$file" == *.c || "$file" == *.m || "$file" == *.mm  || "$file" == *.h ]]; then
