@@ -21,7 +21,7 @@ jobs:
         with:
           list-files: shell
           filters: |
-            addedOrModified:
+            source:
               - added|modified: '**/*.cpp'
               - added|modified: '**/*.h'
               - added|modified: '**/*.hpp'
@@ -43,15 +43,9 @@ jobs:
 
       - name: Generate clang-fix.yaml
         shell: bash
-        if: ${{ steps.listchanged.outputs.addedOrModified == 'true' }}
+        if: ${{ steps.listchanged.outputs.source == 'true' }}
         run: |
-          FILES=${{ steps.listchanged.outputs.addedOrModified_files }}
-          CPP=""
-          for file in $FILES; do
-              if [[ "$file" == *.cpp || "$file" == *.c || "$file" == *.m || "$file" == *.mm  || "$file" == *.h ]]; then
-                  CPP+=" $file"
-              fi
-          done
+          CPP="${{ steps.listchanged.outputs.asource_files }}"
           clang-tidy-11 -p ./build --export-fixes=clang-fixes.yaml $CPP
       - name: clang-tidy-action
         uses: PatriceJiang/clang-tidy-action@master
