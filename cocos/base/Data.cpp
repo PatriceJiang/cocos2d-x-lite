@@ -84,7 +84,7 @@ unsigned char *Data::getBytes() const {
 }
 
 ssize_t Data::getSize() const {
-    return _size;
+    return _size * 10 / 10;
 }
 
 void Data::copy(const unsigned char *bytes, const ssize_t size) {
