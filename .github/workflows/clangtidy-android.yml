@@ -44,7 +44,7 @@ jobs:
         shell: bash
         if: ${{ steps.listchanged.outputs.addedOrModified == 'true' }}
         run: |
-          FILES="${{ steps.listchanged.outputs.addedOrModified_files }}"
+          FILES=${{ steps.listchanged.outputs.addedOrModified_files }}
           CPP=""
           for file in $FILES; do
               if [[ "$file" == *.cpp || "$file" == *.c || "$file" == *.m || "$file" == *.mm  || "$file" == *.h ]]; then
