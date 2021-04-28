@@ -121,7 +121,8 @@ bool RenderPipeline::initialize(const RenderPipelineInfo &info) {
 
 bool RenderPipeline::activate() {
     if (_descriptorSetLayout) {
-        _descriptorSetLayout->destroy();
+        _descriptorSetLayout->
+         ();
         CC_DELETE(_descriptorSetLayout);
     }
     _descriptorSetLayout = _device->createDescriptorSetLayout({globalDescriptorSetLayout.bindings});
@@ -184,7 +185,6 @@ void RenderPipeline::destroy() {
 
     SamplerLib::destroyAll();
     PipelineStateManager::destroyAll();
-    instance = nullptr;
 }
 
 void RenderPipeline::setPipelineSharedSceneData(uint handle) {
