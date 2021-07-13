@@ -1317,6 +1317,8 @@ cocos_source_files(
                  cocos/bindings/auto/jsb_pipeline_auto.h
     NO_WERROR    cocos/bindings/auto/jsb_scene_auto.cpp
                  cocos/bindings/auto/jsb_scene_auto.h
+    NO_WERROR    cocos/bindings/manual/jsb_drawbatch2d_ext.h
+    NO_WERROR    cocos/bindings/manual/jsb_drawbatch2d_ext.cpp
 )
 
 if(USE_AUDIO)

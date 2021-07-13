@@ -27,19 +27,40 @@
 #pragma once
 
 #include <map>
+#include <tuple>
 #include <string>
+#include <cstdint>
 #include <vector>
 #include "../config.h"
 #include "base/Log.h"
+#include <string_view>
 
-//#define RECORD_JSB_INVOKING
+#define RECORD_JSB_INVOKING
 
 #if SCRIPT_ENGINE_TYPE == SCRIPT_ENGINE_V8
 
-    #if defined(CC_DEBUG) & defined(RECORD_JSB_INVOKING)
+    #if defined(RECORD_JSB_INVOKING)
 extern unsigned int                        __jsbInvocationCount;
-extern std::map<std::string, unsigned int> __jsbFunctionInvokedRecords;
+extern std::map<const char* const, unsigned int> __jsbFunctionInvokedRecords;
+extern std::map<const char *const, int64_t> __jsbFunctionInvokedRecordsTime;
     #endif
+
+class PerfObjJSB {
+public:
+    PerfObjJSB(const std::string_view fn) :_functionName(fn) {
+        _clockStart = std::chrono::high_resolution_clock::now();
+        __jsbFunctionInvokedRecords[_functionName.data()] += 1;
+        __jsbInvocationCount += 1;
+    }
+    ~PerfObjJSB() {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto takes = std::chrono::duration_cast<std::chrono::nanoseconds>(now - _clockStart).count();
+        __jsbFunctionInvokedRecordsTime[_functionName.data()] += takes;
+    }
+private:
+    std::chrono::high_resolution_clock::time_point _clockStart;
+    std::string_view _functionName;
+};
 
 template <typename T, typename STATE>
 constexpr inline T *SE_THIS_OBJECT(STATE &s) { // NOLINT(readability-identifier-naming)
@@ -60,17 +81,23 @@ inline bool cmp(const std::pair<std::string, int> &a, const std::pair<std::strin
     return a.second < b.second;
 }
 
-inline void recordJSBInvoke(const std::string &funcName) {
-    #if defined(CC_DEBUG) & defined(RECORD_JSB_INVOKING)
-    ++__jsbInvocationCount;
-    ++__jsbFunctionInvokedRecords[funcName];
-    #endif
-}
+#ifdef RECORD_JSB_INVOKING
+#define recordJSBInvoke(fn) PerfObjJSB perfObjJSB(fn)
+#else
+#define recordJSBInvoke(fn) 
+#endif
+//inline void recordJSBInvoke(const std::string &funcName) {
+//    #if defined(CC_DEBUG) & defined(RECORD_JSB_INVOKING)
+//    ++__jsbInvocationCount;
+//    ++__jsbFunctionInvokedRecords[funcName];
+//    #endif
+//}
 
 inline void clearRecordJSBInvoke() {
     #if defined(CC_DEBUG) & defined(RECORD_JSB_INVOKING)
     __jsbInvocationCount = 0;
     __jsbFunctionInvokedRecords.clear();
+    __jsbFunctionInvokedRecordsTime.clear();
     #endif
 }
 

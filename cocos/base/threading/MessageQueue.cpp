@@ -27,6 +27,8 @@
 #include <cassert>
 #include "AutoReleasePool.h"
 
+#include "base/Log.h"
+
 namespace cc {
 
 namespace {
@@ -240,7 +242,11 @@ Message *MessageQueue::readMessage() noexcept {
         pullMessages();        // try pulling data from consumer
 
         if (!hasNewMessage()) { // still empty
+            //auto start = std::chrono::high_resolution_clock::now();
             _event.wait();      // wait for the producer to wake me up
+          /*  auto end = std::chrono::high_resolution_clock::now();
+            auto pass = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+            CC_LOG_DEBUG("_event.wait() %f ms", pass/1000.f);*/
             pullMessages();     // pulling again
         }
     }

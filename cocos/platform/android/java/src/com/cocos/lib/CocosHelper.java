@@ -289,8 +289,8 @@ public class CocosHelper {
         }
         String pathToOBB = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Android/obb/" + applicationInfo.packageName + "/main." + versionCode + "." + applicationInfo.packageName + ".obb";
         File obbFile = new File(pathToOBB);
-        if (obbFile.exists())
-            CocosHelper.sObbFilePath = pathToOBB;
+//        if (obbFile.exists())
+//            CocosHelper.sObbFilePath = pathToOBB;
     }
 
     private static void initializeOBBFile() {
