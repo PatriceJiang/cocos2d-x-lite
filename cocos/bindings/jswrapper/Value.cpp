@@ -102,6 +102,7 @@ Value::Value(uint16_t v)
     setUint16(v);
 }
 
+#if CC_USE_SE_BIGINT
 Value::Value(int64_t v)
 : _type(Type::Undefined),
   _autoRootUnroot(false) {
@@ -113,6 +114,7 @@ Value::Value(uint64_t v)
   _autoRootUnroot(false) {
     setUint64(v);
 }
+#endif
 
 Value::Value(float v)
 : _type(Type::Undefined),
@@ -167,9 +169,11 @@ Value &Value::operator=(const Value &v) {
             case Type::Number:
                 _u._number = v._u._number;
                 break;
+#if CC_USE_SE_BIGINT
             case Type::BigInt:
                 _u._bigint = v._u._bigint;
                 break;
+#endif
             case Type::String:
                 *_u._string = *v._u._string;
                 break;
@@ -199,9 +203,11 @@ Value &Value::operator=(Value &&v) noexcept {
             case Type::Number:
                 _u._number = v._u._number;
                 break;
+#if CC_USE_SE_BIGINT
             case Type::BigInt:
                 _u._bigint = v._u._bigint;
                 break;
+#endif
             case Type::String:
                 *_u._string = std::move(*v._u._string);
                 break;
@@ -302,7 +308,7 @@ void Value::setUint16(uint16_t v) {
     reset(Type::Number);
     _u._number = static_cast<double>(v);
 }
-
+#if CC_USE_SE_BIGINT
 void Value::setInt64(int64_t v) {
     reset(Type::BigInt);
     _u._bigint = v;
@@ -312,6 +318,7 @@ void Value::setUint64(uint64_t v) {
     reset(Type::BigInt);
     _u._bigint = static_cast<int64_t>(v);
 }
+#endif
 
 void Value::setFloat(float v) {
     reset(Type::Number);
@@ -399,7 +406,7 @@ int32_t Value::toInt32() const {
 uint32_t Value::toUint32() const {
     return static_cast<uint32_t>(toDouble());
 }
-
+#if CC_USE_SE_BIGINT
 int64_t Value::toInt64() const {
     assert(isBigInt() || isNumber());
     return _type == Type::BigInt ? _u._bigint : static_cast<uint64_t>(_u._number);
@@ -409,6 +416,7 @@ uint64_t Value::toUint64() const {
     assert(isBigInt() || isNumber());
     return _type == Type::BigInt ? static_cast<uint64_t>(_u._bigint) : static_cast<uint64_t>(_u._number);
 }
+#endif
 
 float Value::toFloat() const {
     return static_cast<float>(toDouble());
@@ -446,9 +454,13 @@ std::string Value::toStringForce() const {
         char tmp[50] = {0};
         snprintf(tmp, sizeof(tmp), "%.17g", _u._number);
         ss << tmp;
-    } else if (_type == Type::BigInt) {
+    }
+#if CC_USE_SE_BIGINT
+    else if (_type == Type::BigInt) {
         ss << _u._bigint;
-    } else if (_type == Type::Object) {
+    }
+#endif
+    else if (_type == Type::Object) {
         ss << toObject()->toString();
     } else if (_type == Type::Null) {
         ss << "null";

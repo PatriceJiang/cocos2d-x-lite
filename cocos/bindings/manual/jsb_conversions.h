@@ -917,6 +917,7 @@ inline bool sevalue_to_native(const se::Value &from, uint8_t *to, se::Object * /
     return true;
 }
 
+#if CC_USE_SE_BIGINT
 template <>
 inline bool sevalue_to_native(const se::Value &from, uint64_t *to, se::Object * /*ctx*/) {
     *to = from.toUint64();
@@ -928,6 +929,19 @@ inline bool sevalue_to_native(const se::Value &from, int64_t *to, se::Object * /
     *to = from.toInt64();
     return true;
 }
+#else
+template <>
+inline bool sevalue_to_native(const se::Value &from, uint64_t *to, se::Object * /*ctx*/) {
+    *to = static_cast<uint64_t>(from.toDouble());
+    return true;
+}
+
+template <>
+inline bool sevalue_to_native(const se::Value &from, int64_t *to, se::Object * /*ctx*/) {
+    *to = static_cast<uint64_t>(from.toDouble());
+    return true;
+}
+#endif
 
 #if CC_PLATFORM == CC_PLATFORM_MAC_IOS || CC_PLATFORM == CC_PLATFORM_MAC_OSX
 template <>
@@ -1312,10 +1326,14 @@ inline bool nativevalue_to_se(const T &from, se::Value &to, se::Object *ctx) { /
         return native_ptr_to_seval(from, &to);
     } else if CC_CONSTEXPR (is_jsb_object_v<T>) {
         return native_ptr_to_seval(from, &to);
-    } else if CC_CONSTEXPR (std::is_same<T, int64_t>::value || std::is_same<T, uint64_t>::value) {
+    }
+    #if CC_USE_SE_BIGINT
+    else if CC_CONSTEXPR (std::is_same<T, int64_t>::value || std::is_same<T, uint64_t>::value) {
         to.setInt64(static_cast<int64_t>(from));
         return true;
-    } else if CC_CONSTEXPR (std::is_arithmetic<T>::value) {
+    }
+    #endif
+    else if CC_CONSTEXPR (std::is_arithmetic<T>::value) {
         to.setDouble(static_cast<double>(from));
         return true;
     } else {
@@ -1418,6 +1436,7 @@ inline bool nativevalue_to_se(const std::array<float, N> &from, se::Value &to, s
     return true;
 }
 
+#if CC_USE_SE_BIGINT
 template <>
 inline bool nativevalue_to_se(const int64_t &from, se::Value &to, se::Object * /*ctx*/) {
     to.setInt64(from);
@@ -1429,6 +1448,19 @@ inline bool nativevalue_to_se(const uint64_t &from, se::Value &to, se::Object * 
     to.setUint64(from);
     return true;
 }
+#else
+template <>
+inline bool nativevalue_to_se(const int64_t &from, se::Value &to, se::Object * /*ctx*/) {
+    to.setDouble(static_cast<double>(from));
+    return true;
+}
+
+template <>
+inline bool nativevalue_to_se(const uint64_t &from, se::Value &to, se::Object * /*ctx*/) {
+    to.setDouble(static_cast<double>(from));
+    return true;
+}
+#endif
 
 template <>
 inline bool nativevalue_to_se(const int32_t &from, se::Value &to, se::Object * /*ctx*/) {

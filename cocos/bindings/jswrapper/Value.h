@@ -48,7 +48,9 @@ public:
         Boolean,       // NOLINT(readability-identifier-naming)
         String,        // NOLINT(readability-identifier-naming)
         Object,        // NOLINT(readability-identifier-naming)
-        BigInt,        // NOLINT(readability-identifier-naming)
+#if CC_USE_SE_BIGINT
+        BigInt, // NOLINT(readability-identifier-naming)
+#endif
     };
 
     static Value Null;      // NOLINT(readability-identifier-naming)
@@ -104,6 +106,7 @@ public:
          */
     explicit Value(uint32_t v);
 
+#if CC_USE_SE_BIGINT
     /**
          *  @brief The constructor with a uint64_t argument.
          */
@@ -113,6 +116,7 @@ public:
          *  @brief The constructor with a int64_t argument.
          */
     explicit Value(int64_t v);
+#endif
 
     /**
          *  @brief The constructor with a float argument.
@@ -215,6 +219,7 @@ public:
          */
     void setUint32(uint32_t v);
 
+#if CC_USE_SE_BIGINT
     /**
      *  @brief Sets se::Value to a unsigned int64_t
      *  @param[in] v The unsigned int64_t value to be set.
@@ -226,7 +231,7 @@ public:
      *  @param[in] v The int64_t value to be set.
      */
     void setInt64(int64_t v);
-
+#endif
     /**
      *  @brief Sets se::Value to a float value.
      *  @param[in] v The float value to be set.
@@ -301,6 +306,7 @@ public:
          */
     uint32_t toUint32() const;
 
+#if CC_USE_SE_BIGINT
     /**
      *  @brief Converts se::Value to int64_t
      *  @return signed int64
@@ -312,7 +318,7 @@ public:
      *  @return unsigned int64.
      */
     uint64_t toUint64() const;
-
+#endif
     /**
          *  @brief Converts se::Value to float number.
          *  @return float number.
@@ -363,12 +369,13 @@ public:
      */
     inline bool isNumber() const { return _type == Type::Number; }
 
+#if CC_USE_SE_BIGINT
     /**
      *  @brief Tests whether se::Value stores a Bigint.
      *  @return true if se::Value stores a uint64_t or a int64_t, otherwise false.
      */
     inline bool isBigInt() const { return _type == Type::BigInt; }
-
+#endif
     /**
      *  @brief Tests whether se::Value stores a string.
      *  @return true if se::Value stores a string, otherwise false.
@@ -414,7 +421,11 @@ public:
     }
 
     uintptr_t asPtr() const {
+#if CC_USE_SE_BIGINT
         return static_cast<uintptr_t>(toUint64());
+#else
+        return static_cast<uintptr_t>(toDouble());
+#endif
     }
 
 private:

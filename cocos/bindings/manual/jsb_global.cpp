@@ -626,7 +626,7 @@ bool jsb_global_load_image(const std::string &path, const se::Value &callbackVal
 
                 if (loadSucceed) {
                     se::HandleObject retObj(se::Object::createPlainObject());
-                    dataVal.setUint64(reinterpret_cast<uintptr_t>(imgInfo->data));
+                    dataVal.setDouble(static_cast<double>(reinterpret_cast<intptr_t>(imgInfo->data)));
                     retObj->setProperty("data", dataVal);
                     retObj->setProperty("width", se::Value(imgInfo->width));
                     retObj->setProperty("height", se::Value(imgInfo->height));

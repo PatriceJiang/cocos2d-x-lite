@@ -71,10 +71,17 @@ void fastSetShaders(void *buffer) {
     }
 }
 
+#if CC_USE_SE_BIGINT
 template <typename F>
 uint64_t convertPtr(F *in) {
     return static_cast<uint64_t>(reinterpret_cast<intptr_t>(in));
 }
+#else
+template <typename F>
+double convertPtr(F *in) {
+    return static_cast<double>(reinterpret_cast<intptr_t>(in));
+}
+#endif
 bool             mqInitialized{false};
 se::Object *     msgQueue{nullptr};
 se::Object *     globalThis{nullptr};

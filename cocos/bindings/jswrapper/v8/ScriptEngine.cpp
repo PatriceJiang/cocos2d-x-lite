@@ -210,7 +210,11 @@ public:
         //NOTICE: spaces are required between flags
         flags.append(" --expose-gc-as=" EXPOSE_GC);
         flags.append(" --no-flush-bytecode --no-lazy"); // for bytecode support
-                                                        // flags.append(" --trace-gc"); // v8 trace gc
+        // flags.append(" --trace-gc"); // v8 trace gc
+        // flags.append("  --trace-gc-verbose");
+        // flags.append("  --opt");
+        flags.append(" --enable-sse3 --enable-ssse3 --enable-sse4-1 --enable-avx");
+        //flags.append(" --track-gc-object-stats");
     #if (CC_PLATFORM == CC_PLATFORM_MAC_IOS)
         flags.append(" --jitless");
     #endif

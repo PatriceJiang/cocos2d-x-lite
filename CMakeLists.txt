@@ -138,6 +138,7 @@ endfunction()
 
 # default fallback options
 set_if_undefined(USE_SE_V8                ON)
+set_if_undefined(USE_SE_BIGINT            OFF)
 set_if_undefined(USE_V8_DEBUGGER          ON)
 set_if_undefined(USE_SOCKET               ON)
 set_if_undefined(USE_AUDIO                ON)
@@ -1928,6 +1929,7 @@ target_compile_definitions(cocos2d PUBLIC
     $<IF:$<BOOL:${USE_SOCKET}>,USE_SOCKET=1,USE_SOCKET=0>
     $<IF:$<BOOL:${USE_WEBSOCKET_SERVER}>,USE_WEBSOCKET_SERVER=1,USE_WEBSOCKET_SERVER=0>
     $<IF:$<BOOL:${USE_EDIT_BOX}>,CC_USE_EDITBOX=1,CC_USE_EDITBOX=0>
+    $<IF:$<BOOL:${USE_SE_BIGINT}>,CC_USE_SE_BIGINT=1,CC_USE_SE_BIGINT=0>
     $<IF:$<BOOL:${USE_V8_DEBUGGER}>,USE_V8_DEBUGGER=1,USE_V8_DEBUGGER=0>
     $<IF:$<BOOL:${USE_MIDDLEWARE}>,USE_MIDDLEWARE=1,USE_MIDDLEWARE=0>
     $<IF:$<BOOL:${USE_SPINE}>,USE_SPINE=1,USE_SPINE=0>

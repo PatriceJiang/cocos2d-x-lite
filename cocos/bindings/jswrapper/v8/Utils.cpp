@@ -81,9 +81,11 @@ void seToJsValue(v8::Isolate *isolate, const Value &v, v8::Local<v8::Value> *out
         case Value::Type::Undefined:
             *outJsVal = v8::Undefined(isolate);
             break;
+    #if CC_USE_SE_BIGINT
         case Value::Type::BigInt:
             *outJsVal = v8::BigInt::New(isolate, v.toInt64());
             break;
+    #endif
         default:
             assert(false);
             break;
@@ -105,7 +107,9 @@ void jsToSeValue(v8::Isolate *isolate, v8::Local<v8::Value> jsval, Value *v) {
         } else {
             v->setUndefined();
         }
-    } else if (jsval->IsBigInt()) {
+    }
+    #if CC_USE_SE_BIGINT
+    else if (jsval->IsBigInt()) {
         v8::MaybeLocal<v8::BigInt> jsBigInt = jsval->ToBigInt(isolate->GetCurrentContext());
         if (!jsBigInt.IsEmpty()) {
             auto bigInt = jsBigInt.ToLocalChecked();
@@ -113,7 +117,9 @@ void jsToSeValue(v8::Isolate *isolate, v8::Local<v8::Value> jsval, Value *v) {
         } else {
             v->setUndefined();
         }
-    } else if (jsval->IsString()) {
+    }
+    #endif
+    else if (jsval->IsString()) {
         v8::String::Utf8Value utf8(isolate, jsval);
         v->setString(std::string(*utf8));
     } else if (jsval->IsBoolean()) {
@@ -151,11 +157,15 @@ void setReturnValueTemplate(const Value &data, const T &argv) {
         argv.GetReturnValue().Set(v8::Null(argv.GetIsolate()));
     } else if (data.getType() == Value::Type::Number) {
         argv.GetReturnValue().Set(v8::Number::New(argv.GetIsolate(), data.toDouble()));
-    } else if (data.getType() == Value::Type::BigInt) {
+    }
+    #if CC_USE_SE_BIGINT
+    else if (data.getType() == Value::Type::BigInt) {
         // Notice: Most return value of type `size_t` should be treated as Number.
         // argv.GetReturnValue().Set(v8::BigInt::New(argv.GetIsolate(), data.toInt64()));
         argv.GetReturnValue().Set(v8::Number::New(argv.GetIsolate(), static_cast<double>(data.toInt64())));
-    } else if (data.getType() == Value::Type::String) {
+    }
+    #endif
+    else if (data.getType() == Value::Type::String) {
         v8::MaybeLocal<v8::String> value = v8::String::NewFromUtf8(argv.GetIsolate(), data.toString().c_str(), v8::NewStringType::kNormal);
         assert(!value.IsEmpty());
         argv.GetReturnValue().Set(value.ToLocalChecked());
