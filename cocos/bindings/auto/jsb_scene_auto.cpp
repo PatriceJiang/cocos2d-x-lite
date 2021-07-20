@@ -4676,25 +4676,6 @@ static bool js_scene_Pass_setPhase(se::State& s) // NOLINT(readability-identifie
 }
 SE_BIND_FUNC(js_scene_Pass_setPhase)
 
-static bool js_scene_Pass_setPipelineLayout(se::State& s) // NOLINT(readability-identifier-naming)
-{
-    auto* cobj = SE_THIS_OBJECT<cc::scene::Pass>(s);
-    SE_PRECONDITION2(cobj, false, "js_scene_Pass_setPipelineLayout : Invalid Native Object");
-    const auto& args = s.args();
-    size_t argc = args.size();
-    CC_UNUSED bool ok = true;
-    if (argc == 1) {
-        HolderType<cc::gfx::PipelineLayout*, false> arg0 = {};
-        ok &= sevalue_to_native(args[0], &arg0, s.thisObject());
-        SE_PRECONDITION2(ok, false, "js_scene_Pass_setPipelineLayout : Error processing arguments");
-        cobj->setPipelineLayout(arg0.value());
-        return true;
-    }
-    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 1);
-    return false;
-}
-SE_BIND_FUNC(js_scene_Pass_setPipelineLayout)
-
 static bool js_scene_Pass_setPrimitive(se::State& s) // NOLINT(readability-identifier-naming)
 {
     auto* cobj = SE_THIS_OBJECT<cc::scene::Pass>(s);
@@ -4790,46 +4771,6 @@ static bool js_scene_Pass_setStage(se::State& s) // NOLINT(readability-identifie
 }
 SE_BIND_FUNC(js_scene_Pass_setStage)
 
-static bool js_scene_Pass_setState(se::State& s) // NOLINT(readability-identifier-naming)
-{
-    auto* cobj = SE_THIS_OBJECT<cc::scene::Pass>(s);
-    SE_PRECONDITION2(cobj, false, "js_scene_Pass_setState : Invalid Native Object");
-    const auto& args = s.args();
-    size_t argc = args.size();
-    CC_UNUSED bool ok = true;
-    if (argc == 4) {
-        HolderType<cc::gfx::BlendState*, false> arg0 = {};
-        HolderType<cc::gfx::DepthStencilState*, false> arg1 = {};
-        HolderType<cc::gfx::RasterizerState*, false> arg2 = {};
-        HolderType<cc::gfx::DescriptorSet*, false> arg3 = {};
-        ok &= sevalue_to_native(args[0], &arg0, s.thisObject());
-        ok &= sevalue_to_native(args[1], &arg1, s.thisObject());
-        ok &= sevalue_to_native(args[2], &arg2, s.thisObject());
-        ok &= sevalue_to_native(args[3], &arg3, s.thisObject());
-        SE_PRECONDITION2(ok, false, "js_scene_Pass_setState : Error processing arguments");
-        cobj->setState(arg0.value(), arg1.value(), arg2.value(), arg3.value());
-        return true;
-    }
-    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 4);
-    return false;
-}
-SE_BIND_FUNC(js_scene_Pass_setState)
-
-static bool js_scene_Pass_update(se::State& s) // NOLINT(readability-identifier-naming)
-{
-    auto* cobj = SE_THIS_OBJECT<cc::scene::Pass>(s);
-    SE_PRECONDITION2(cobj, false, "js_scene_Pass_update : Invalid Native Object");
-    const auto& args = s.args();
-    size_t argc = args.size();
-    if (argc == 0) {
-        cobj->update();
-        return true;
-    }
-    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 0);
-    return false;
-}
-SE_BIND_FUNC(js_scene_Pass_update)
-
 SE_DECLARE_FINALIZE_FUNC(js_cc_scene_Pass_finalize)
 
 static bool js_scene_Pass_constructor(se::State& s) // NOLINT(readability-identifier-naming) constructor.c
@@ -4879,14 +4820,11 @@ bool js_register_scene_Pass(se::Object* obj) // NOLINT(readability-identifier-na
     cls->defineFunction("setDynamicState", _SE(js_scene_Pass_setDynamicState));
     cls->defineFunction("setHash", _SE(js_scene_Pass_setHash));
     cls->defineFunction("setPhase", _SE(js_scene_Pass_setPhase));
-    cls->defineFunction("setPipelineLayout", _SE(js_scene_Pass_setPipelineLayout));
     cls->defineFunction("setPrimitive", _SE(js_scene_Pass_setPrimitive));
     cls->defineFunction("setPriority", _SE(js_scene_Pass_setPriority));
     cls->defineFunction("setRasterizerState", _SE(js_scene_Pass_setRasterizerState));
     cls->defineFunction("setRootBufferDirty", _SE(js_scene_Pass_setRootBufferDirty));
     cls->defineFunction("setStage", _SE(js_scene_Pass_setStage));
-    cls->defineFunction("setState", _SE(js_scene_Pass_setState));
-    cls->defineFunction("update", _SE(js_scene_Pass_update));
     cls->defineFinalizeFunction(_SE(js_cc_scene_Pass_finalize));
     cls->install();
     JSBClassType::registerClass<cc::scene::Pass>(cls);
@@ -7381,33 +7319,33 @@ bool register_all_scene(se::Object* obj)
     }
     se::Object* ns = nsVal.toObject();
 
-    js_register_scene_RenderScene(ns);
-    js_register_scene_Camera(ns);
-    js_register_scene_Fog(ns);
     js_register_scene_Node(ns);
-    js_register_scene_Frustum(ns);
-    js_register_scene_DrawBatch2D(ns);
     js_register_scene_Light(ns);
+    js_register_scene_DirectionalLight(ns);
+    js_register_scene_Plane(ns);
+    js_register_scene_Frustum(ns);
+    js_register_scene_AABB(ns);
+    js_register_scene_SpotLight(ns);
     js_register_scene_SphereLight(ns);
     js_register_scene_Model(ns);
-    js_register_scene_BakedSkinningModel(ns);
-    js_register_scene_Plane(ns);
-    js_register_scene_JointTransform(ns);
-    js_register_scene_RenderWindow(ns);
+    js_register_scene_Fog(ns);
     js_register_scene_Shadow(ns);
-    js_register_scene_SubModel(ns);
-    js_register_scene_BakedJointInfo(ns);
-    js_register_scene_AABB(ns);
-    js_register_scene_Ambient(ns);
-    js_register_scene_SkinningModel(ns);
-    js_register_scene_DirectionalLight(ns);
-    js_register_scene_JointInfo(ns);
-    js_register_scene_Root(ns);
-    js_register_scene_BakedAnimInfo(ns);
-    js_register_scene_Pass(ns);
     js_register_scene_Skybox(ns);
+    js_register_scene_Ambient(ns);
     js_register_scene_PipelineSharedSceneData(ns);
-    js_register_scene_SpotLight(ns);
+    js_register_scene_Root(ns);
+    js_register_scene_SubModel(ns);
+    js_register_scene_Pass(ns);
+    js_register_scene_BakedAnimInfo(ns);
+    js_register_scene_BakedJointInfo(ns);
+    js_register_scene_BakedSkinningModel(ns);
+    js_register_scene_DrawBatch2D(ns);
+    js_register_scene_JointTransform(ns);
+    js_register_scene_JointInfo(ns);
+    js_register_scene_SkinningModel(ns);
+    js_register_scene_RenderScene(ns);
+    js_register_scene_RenderWindow(ns);
+    js_register_scene_Camera(ns);
     return true;
 }
 

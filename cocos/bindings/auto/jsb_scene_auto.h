@@ -263,14 +263,11 @@ SE_DECLARE_FUNC(js_scene_Pass_setDescriptorSet);
 SE_DECLARE_FUNC(js_scene_Pass_setDynamicState);
 SE_DECLARE_FUNC(js_scene_Pass_setHash);
 SE_DECLARE_FUNC(js_scene_Pass_setPhase);
-SE_DECLARE_FUNC(js_scene_Pass_setPipelineLayout);
 SE_DECLARE_FUNC(js_scene_Pass_setPrimitive);
 SE_DECLARE_FUNC(js_scene_Pass_setPriority);
 SE_DECLARE_FUNC(js_scene_Pass_setRasterizerState);
 SE_DECLARE_FUNC(js_scene_Pass_setRootBufferDirty);
 SE_DECLARE_FUNC(js_scene_Pass_setStage);
-SE_DECLARE_FUNC(js_scene_Pass_setState);
-SE_DECLARE_FUNC(js_scene_Pass_update);
 SE_DECLARE_FUNC(js_scene_Pass_Pass);
 
 extern se::Object* __jsb_cc_scene_BakedAnimInfo_proto;
